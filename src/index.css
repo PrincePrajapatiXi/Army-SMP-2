@@ -1,0 +1,129 @@
+:root {
+  --bg-dark: #121212;
+  --bg-surface: #1e1e1e;
+  --bg-card: #252525;
+
+  --primary: #ff5500;
+  --primary-glow: rgba(255, 85, 0, 0.5);
+  --accent: #ffaa00;
+
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+
+  --border-radius: 8px;
+  --card-border: 1px solid rgba(255, 255, 255, 0.1);
+
+  --font-main: 'Poppins', 'Inter', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  min-height: 100vh;
+  line-height: 1.6;
+  overflow-x: hidden;
+  /* Prevent horizontal scroll */
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul {
+  list-style: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* Utilities */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  width: 100%;
+  /* Ensure fluid width */
+}
+
+/* Mobile responsive utils */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  /* Removes bottom space */
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 15px;
+    width: 100%;
+    overflow-x: hidden;
+    /* extra safety */
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    /* Fallback */
+  }
+
+  .btn {
+    width: 100%;
+    /* Full width buttons on mobile */
+    justify-content: center;
+    padding: 12px 20px;
+    /* Slightly reduced padding */
+  }
+}
+
+/* Animations */
+@keyframes float {
+  0% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Ranks Grid */
+.ranks-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .ranks-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}

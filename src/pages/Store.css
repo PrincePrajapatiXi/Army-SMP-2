@@ -1,0 +1,63 @@
+/* Store Grid Layout */
+.store-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    /* Desktop default */
+    gap: 2rem;
+    width: 100%;
+}
+
+.store-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.store-title {
+    font-size: clamp(2.5rem, 5vw, 3rem);
+    margin-bottom: 1rem;
+}
+
+.category-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+    .store-grid {
+        grid-template-columns: repeat(2, 1fr);
+        /* Force 2 columns */
+        gap: 0.8rem;
+        /* Tighter gap */
+    }
+
+    .store-header {
+        margin-bottom: 2rem;
+    }
+
+    .category-tabs {
+        gap: 0.5rem;
+        justify-content: flex-start;
+        /* Align left for scroll if needed */
+        overflow-x: auto;
+        padding-bottom: 10px;
+        /* Space for scrollbar */
+        white-space: nowrap;
+        flex-wrap: nowrap;
+        /* Prevent wrap, enable scroll */
+        margin: 0 -15px 2rem;
+        /* Negative margin to span full width */
+        padding-left: 15px;
+        /* Offset content */
+        scrollbar-width: none;
+        /* Hide scrollbar Firefox */
+    }
+
+    .category-tabs::-webkit-scrollbar {
+        display: none;
+        /* Hide scrollbar Chrome */
+    }
+}
