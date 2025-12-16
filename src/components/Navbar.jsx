@@ -32,7 +32,7 @@ const Navbar = () => {
                     </li>
 
                     <li>
-                        <a href="#" className="nav-item">Discord</a>
+                        <a href="https://discord.gg/EBmGM2jsdt" className="nav-item">Discord</a>
                     </li>
                 </ul>
 

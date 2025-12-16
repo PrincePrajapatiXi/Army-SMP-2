@@ -69,8 +69,9 @@ const Home = () => {
                             className="btn btn-primary"
                             style={{
                                 padding: '12px 30px',
-                                fontSize: '1rem',
-                                minWidth: '160px'
+                                fontSize: '2rem',
+                                minWidth: '160px',
+                                color: 'var(--primary)',
                             }}
                             onClick={handleJoin}
                         >
@@ -78,7 +79,7 @@ const Home = () => {
                         </button>
                         <Link to="/store" className="btn btn-outline" style={{
                             padding: '12px 30px',
-                            fontSize: '1rem',
+                            fontSize: '2rem',
                             minWidth: '160px'
                         }}>
                             Visit Store

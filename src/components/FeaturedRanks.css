@@ -1,0 +1,135 @@
+/* FeaturedRanks.css */
+
+.featured-section {
+    padding: 4rem 0;
+}
+
+@media (max-width: 768px) {
+    .featured-section {
+        padding: 2rem 0;
+    }
+}
+
+.ranks-title {
+    text-align: center;
+    margin-bottom: 3rem;
+    font-size: clamp(2rem, 5vw, 2.5rem);
+}
+
+.ranks-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+
+.rank-card {
+    border-radius: 16px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    padding: clamp(1.5rem, 4vw, 2rem);
+    transition: transform 0.3s ease;
+}
+
+.rank-card:hover {
+    transform: translateY(-5px);
+}
+
+.rank-glow-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+}
+
+.rank-image {
+    width: 100px;
+    margin-bottom: 1rem;
+    border-radius: 50%;
+}
+
+.rank-name {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+    margin-bottom: 0.5rem;
+}
+
+.rank-price {
+    font-size: clamp(1.2rem, 4vw, 1.5rem);
+    margin: 1rem 0;
+    font-weight: bold;
+}
+
+.rank-features {
+    text-align: left;
+    margin-bottom: 2rem;
+    color: var(--text-secondary);
+    list-style: none;
+    padding: 0;
+}
+
+.rank-features li {
+    margin-bottom: 0.5rem;
+}
+
+.rank-btn {
+    width: 100%;
+    justify-content: center;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Mobile Overrides - 3 columns, small boxes */
+@media (max-width: 768px) {
+    .ranks-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.25rem;
+        /* Very small gap to fit 3 items */
+    }
+
+    .rank-card {
+        padding: 0.5rem;
+        border-radius: 8px;
+    }
+
+    .rank-image {
+        width: 35px;
+        /* Significantly smaller */
+        margin-bottom: 0.25rem;
+    }
+
+    .rank-name {
+        font-size: 0.8rem;
+        /* Small font */
+        margin-bottom: 0.1rem;
+    }
+
+    .rank-price {
+        font-size: 0.7rem;
+        margin: 0.25rem 0;
+    }
+
+    .rank-features {
+        display: none;
+        /* Hide features on mobile as they won't fit effectively in 3 cols */
+    }
+
+    /* If user insists on features, we can try this instead of display: none
+    .rank-features {
+        font-size: 0.5rem;
+        margin-bottom: 0.5rem;
+    } 
+    */
+
+    .rank-btn {
+        padding: 4px 8px;
+        font-size: 0.6rem;
+        height: auto;
+        min-height: unset;
+    }
+
+    .ranks-title {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+}

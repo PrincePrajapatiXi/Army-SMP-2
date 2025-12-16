@@ -113,17 +113,3 @@ img {
     transform: translateY(0);
   }
 }
-
-/* Ranks Grid */
-.ranks-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-}
-
-@media (max-width: 768px) {
-  .ranks-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-}

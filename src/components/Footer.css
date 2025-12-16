@@ -1,0 +1,144 @@
+/* Footer.css */
+
+.site-footer {
+    background: var(--bg-card);
+    border-top: 1px solid var(--card-border);
+    padding: 4rem 0 2rem;
+    margin-top: auto;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 3rem;
+    margin-bottom: 3rem;
+}
+
+/* Brand Section */
+.footer-brand-link {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.footer-brand-desc {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* Headings */
+.footer-heading {
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    color: white;
+}
+
+/* Links List */
+.footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.footer-link {
+    color: var(--text-secondary);
+    transition: color 0.2s;
+}
+
+.footer-link:hover {
+    color: var(--primary);
+}
+
+/* Social Icons */
+.footer-social-links {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.social-icon-link {
+    color: var(--text-secondary);
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.social-icon-link:hover {
+    background: var(--primary-glow);
+    color: white;
+}
+
+/* Support Email */
+.footer-email {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* Copyright Section */
+.footer-copyright {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 2rem;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.mojang-disclaimer {
+    opacity: 0.6;
+}
+
+/* Mobile Overrides */
+@media (max-width: 768px) {
+    .site-footer {
+        padding: 2rem 0 1.5rem;
+    }
+
+    .footer-grid {
+        grid-template-columns: 1fr 1fr;
+        /* 2 columns for links/community */
+        gap: 2rem 1rem;
+        /* row gap, column gap */
+        margin-bottom: 2rem;
+    }
+
+    /* Make Brand section take full width */
+    .footer-brand-section {
+        grid-column: 1 / -1;
+        text-align: left;
+    }
+
+    .footer-heading {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .footer-links {
+        gap: 0.5rem;
+    }
+
+    .footer-link {
+        font-size: 0.9rem;
+    }
+
+    .footer-social-links {
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .social-icon-link {
+        padding: 6px;
+    }
+
+    .social-icon-link svg {
+        width: 18px;
+        height: 18px;
+    }
+}
