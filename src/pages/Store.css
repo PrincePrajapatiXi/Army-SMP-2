@@ -41,23 +41,23 @@
     .category-tabs {
         gap: 0.5rem;
         justify-content: flex-start;
-        /* Align left for scroll if needed */
         overflow-x: auto;
         padding-bottom: 10px;
-        /* Space for scrollbar */
         white-space: nowrap;
         flex-wrap: nowrap;
-        /* Prevent wrap, enable scroll */
         margin: 0 -15px 2rem;
-        /* Negative margin to span full width */
         padding-left: 15px;
-        /* Offset content */
         scrollbar-width: none;
-        /* Hide scrollbar Firefox */
+    }
+
+    .category-tabs .btn {
+        padding: 8px 20px;
+        font-size: 0.9rem;
+        border-radius: 20px;
+        /* Pill shape for tabs looks modern */
     }
 
     .category-tabs::-webkit-scrollbar {
         display: none;
-        /* Hide scrollbar Chrome */
     }
 }

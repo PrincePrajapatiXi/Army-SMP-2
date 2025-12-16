@@ -34,7 +34,7 @@ const Home = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 textAlign: 'center',
-                background: 'linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url("/images/hero-bg.png")',
+                background: 'linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url("/images/hero-bg.jpg")',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 marginTop: '-80px',

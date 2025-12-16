@@ -88,7 +88,19 @@
     }
 
     .btn-buy {
-        padding: 6px 12px;
-        font-size: 0.8rem;
+        padding: 8px 16px;
+        /* Slightly larger targets */
+        font-size: 0.9rem;
+        width: 100%;
+        /* Full width on mobile often looks better or just larger */
+        justify-content: center;
+        margin-top: 0.5rem;
+    }
+
+    .card-footer {
+        flex-direction: column;
+        /* Stack price and button on mobile? Or just ensure space */
+        align-items: flex-start;
+        gap: 0.5rem;
     }
 }
