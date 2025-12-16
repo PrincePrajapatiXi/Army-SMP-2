@@ -6,21 +6,21 @@ const ranks = [
         name: "Stone",
         price: "₹30",
         color: "#55ff55",
-        image: "./images/stone.png",
+        image: "/images/stone.png",
         features: ["✓ Priority Queue", "✓ Green Name Color", "✓ 1x Kit Key"]
     },
     {
         name: "Beacon",
         price: "₹60",
         color: "#55ffff",
-        image: "./images/beacon.png",
+        image: "/images/beacon.png",
         features: ["✓ Priority Queue", "✓ Aqua Name Color", "✓ 3x Kit Keys", "✓ /fly in Lobby"]
     },
     {
         name: "Bedrock",
         price: "₹120",
         color: "#ff5555",
-        image: "./images/bedrock.png",
+        image: "/images/bedrock.png",
         features: ["✓ Top Priority Queue", "✓ Red Name Color", "✓ 5x Kit Keys", "✓ /fly in Lobby", "✓ Exclusive Pet"]
     },
 ];
