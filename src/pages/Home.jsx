@@ -71,7 +71,6 @@ const Home = () => {
                                 padding: '12px 30px',
                                 fontSize: '2rem',
                                 minWidth: '160px',
-                                color: 'var(--primary)',
                             }}
                             onClick={handleJoin}
                         >

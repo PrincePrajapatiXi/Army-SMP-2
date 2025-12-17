@@ -57,6 +57,39 @@ button {
   /* Ensure fluid width */
 }
 
+.btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 24px;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--accent);
+  box-shadow: 0 0 15px var(--primary-glow);
+  transform: translateY(-2px);
+}
+
+.btn-outline {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-outline:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(255, 85, 0, 0.1);
+}
+
 /* Mobile responsive utils */
 img {
   max-width: 100%;
