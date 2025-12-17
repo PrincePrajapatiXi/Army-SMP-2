@@ -14,7 +14,7 @@ export const products = [
         price: "₹60",
         color: "#55ffff",
         category: "ranks",
-        image: "/images/beacon.png",
+        image: "/images/Beacon.png",
         description: "Includes Priority Queue, Aqua Name Color, 3x Kit Keys, and /fly in Lobby."
     },
     {

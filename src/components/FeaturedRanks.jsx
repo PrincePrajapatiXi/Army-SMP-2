@@ -13,7 +13,7 @@ const ranks = [
         name: "Beacon",
         price: "₹60",
         color: "#55ffff",
-        image: "/images/beacon.png",
+        image: "/images/Beacon.png",
         features: ["✓ Priority Queue", "✓ Aqua Name Color", "✓ 3x Kit Keys", "✓ /fly in Lobby"]
     },
     {
