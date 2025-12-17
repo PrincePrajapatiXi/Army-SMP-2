@@ -90,25 +90,25 @@
     }
 
     .rank-card {
-        padding: 0.5rem;
+        padding: 0.25rem;
         border-radius: 8px;
     }
 
     .rank-image {
-        width: 35px;
-        /* Significantly smaller */
-        margin-bottom: 0.25rem;
+        width: 60px;
+        /* Increased from 35px */
+        margin-bottom: 0.1rem;
     }
 
     .rank-name {
         font-size: 0.8rem;
         /* Small font */
-        margin-bottom: 0.1rem;
+        margin-bottom: 0;
     }
 
     .rank-price {
         font-size: 0.7rem;
-        margin: 0.25rem 0;
+        margin: 0.1rem 0;
     }
 
     .rank-features {
@@ -124,14 +124,15 @@
     */
 
     .rank-btn {
-        padding: 4px 8px;
+        padding: 2px 4px;
         font-size: 0.6rem;
         height: auto;
         min-height: unset;
+        line-height: 1.2;
     }
 
     .ranks-title {
         font-size: 1.5rem;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
     }
 }
