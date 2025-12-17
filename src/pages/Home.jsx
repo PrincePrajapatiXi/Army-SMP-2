@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Features from '../components/Features';
 import FeaturedRanks from '../components/FeaturedRanks';
+import Sponsor from '../components/Sponsor';
 import Modal from '../components/Modal';
 import { Link } from 'react-router-dom';
 
@@ -88,6 +89,7 @@ const Home = () => {
             </section>
 
             <FeaturedRanks />
+            <Sponsor />
             <Features />
 
             <Modal
