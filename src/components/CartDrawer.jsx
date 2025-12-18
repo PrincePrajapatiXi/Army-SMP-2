@@ -1,9 +1,16 @@
 import { X, Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import './CartDrawer.css';
 
 const CartDrawer = ({ isOpen, onClose }) => {
-    const { cartItems, removeFromCart, incrementQuantity, decrementQuantity, getCartTotal, clearCart } = useCart();
+    const navigate = useNavigate();
+    const { cartItems, removeFromCart, incrementQuantity, decrementQuantity, getCartTotal, clearCart, loading } = useCart();
+
+    const handleCheckout = () => {
+        onClose();
+        navigate('/checkout');
+    };
 
     if (!isOpen) return null;
 
@@ -38,12 +45,15 @@ const CartDrawer = ({ isOpen, onClose }) => {
                                         <img src={item.image} alt={item.name} className="cart-item-image" />
                                         <div className="cart-item-details">
                                             <h4>{item.name}</h4>
-                                            <span className="cart-item-price">{item.price}</span>
+                                            <span className="cart-item-price">
+                                                {item.priceDisplay || `₹${item.price}`}
+                                            </span>
                                         </div>
                                         <div className="cart-item-quantity">
                                             <button
                                                 onClick={() => decrementQuantity(item.id)}
                                                 className="qty-btn"
+                                                disabled={loading}
                                             >
                                                 <Minus size={16} />
                                             </button>
@@ -51,6 +61,7 @@ const CartDrawer = ({ isOpen, onClose }) => {
                                             <button
                                                 onClick={() => incrementQuantity(item.id)}
                                                 className="qty-btn"
+                                                disabled={loading}
                                             >
                                                 <Plus size={16} />
                                             </button>
@@ -58,6 +69,7 @@ const CartDrawer = ({ isOpen, onClose }) => {
                                         <button
                                             className="cart-item-remove"
                                             onClick={() => removeFromCart(item.id)}
+                                            disabled={loading}
                                         >
                                             <Trash2 size={18} />
                                         </button>
@@ -70,10 +82,18 @@ const CartDrawer = ({ isOpen, onClose }) => {
                                     <span>Total:</span>
                                     <span className="total-amount">₹{getCartTotal().toFixed(2)}</span>
                                 </div>
-                                <button className="btn btn-primary checkout-btn">
+                                <button
+                                    className="btn btn-primary checkout-btn"
+                                    onClick={handleCheckout}
+                                    disabled={loading}
+                                >
                                     Proceed to Checkout
                                 </button>
-                                <button className="btn btn-outline clear-btn" onClick={clearCart}>
+                                <button
+                                    className="btn btn-outline clear-btn"
+                                    onClick={clearCart}
+                                    disabled={loading}
+                                >
                                     Clear Cart
                                 </button>
                             </div>

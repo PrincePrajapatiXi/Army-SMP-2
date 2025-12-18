@@ -1,0 +1,132 @@
+[
+    {
+        "id": 1,
+        "name": "Stone",
+        "price": 30,
+        "priceDisplay": "₹30",
+        "color": "#ffffffff",
+        "category": "ranks",
+        "image": "/images/stone.png",
+        "description": "Includes Priority Queue, Green Name Color, and 1x Kit Key.",
+        "features": [
+            "Priority Queue Access",
+            "Green Name Color",
+            "1x Kit Key",
+            "Basic Chat Perks"
+        ]
+    },
+    {
+        "id": 2,
+        "name": "Beacon",
+        "price": 60,
+        "priceDisplay": "₹60",
+        "color": "#55ffff",
+        "category": "ranks",
+        "image": "/images/Beacon.png",
+        "description": "Includes Priority Queue, Aqua Name Color, 3x Kit Keys, and /fly in Lobby.",
+        "features": [
+            "Priority Queue Access",
+            "Aqua Name Color",
+            "3x Kit Keys",
+            "/fly in Lobby",
+            "Custom Join Message"
+        ]
+    },
+    {
+        "id": 3,
+        "name": "Bedrock",
+        "price": 120,
+        "priceDisplay": "₹120",
+        "color": "rgba(255, 255, 255, 1)",
+        "category": "ranks",
+        "image": "/images/bedrock.png",
+        "description": "Includes Top Priority Queue, Red Name Color, 5x Kit Keys, /fly in Lobby, and Exclusive Pet.",
+        "features": [
+            "Top Priority Queue",
+            "Red Name Color",
+            "5x Kit Keys",
+            "/fly in Lobby",
+            "Exclusive Pet",
+            "VIP Discord Access",
+            "Custom Prefix"
+        ]
+    },
+    {
+        "id": 4,
+        "name": "Common Key",
+        "price": 15,
+        "priceDisplay": "₹15",
+        "color": "#aaaaaa",
+        "category": "keys",
+        "image": "/images/stone.png",
+        "description": "Opens Common Crates with basic rewards.",
+        "features": [
+            "Opens Common Crates",
+            "Basic Rewards",
+            "Stackable"
+        ]
+    },
+    {
+        "id": 5,
+        "name": "Rare Key",
+        "price": 35,
+        "priceDisplay": "₹35",
+        "color": "#55ff55",
+        "category": "keys",
+        "image": "/images/Beacon.png",
+        "description": "Opens Rare Crates with valuable rewards.",
+        "features": [
+            "Opens Rare Crates",
+            "Valuable Rewards",
+            "Stackable",
+            "Higher Chance for Rare Items"
+        ]
+    },
+    {
+        "id": 6,
+        "name": "Legendary Key",
+        "price": 75,
+        "priceDisplay": "₹75",
+        "color": "#ff5555",
+        "category": "keys",
+        "image": "/images/bedrock.png",
+        "description": "Opens Legendary Crates with the best rewards!",
+        "features": [
+            "Opens Legendary Crates",
+            "Best Rewards",
+            "Stackable",
+            "Guaranteed Rare+ Item"
+        ]
+    },
+    {
+        "id": 7,
+        "name": "1000 Coins",
+        "price": 25,
+        "priceDisplay": "₹25",
+        "color": "#ffaa00",
+        "category": "coins",
+        "image": "/images/stone.png",
+        "description": "1000 in-game coins to spend in the server shop.",
+        "features": [
+            "1000 Coins",
+            "Use in Server Shop",
+            "Instant Delivery"
+        ]
+    },
+    {
+        "id": 8,
+        "name": "5000 Coins",
+        "price": 100,
+        "priceDisplay": "₹100",
+        "color": "#ffaa00",
+        "category": "coins",
+        "image": "/images/Beacon.png",
+        "description": "5000 in-game coins - Best Value Pack!",
+        "features": [
+            "5000 Coins",
+            "20% Bonus Value",
+            "Use in Server Shop",
+            "Instant Delivery"
+        ]
+    }
+]

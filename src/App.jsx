@@ -3,6 +3,7 @@ import { CartProvider } from './context/CartContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Store from './pages/Store';
+import Checkout from './pages/Checkout';
 import Footer from './components/Footer';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/store" element={<Store />} />
+              <Route path="/checkout" element={<Checkout />} />
             </Routes>
           </main>
           <Footer />
@@ -25,4 +27,3 @@ function App() {
 }
 
 export default App;
-
