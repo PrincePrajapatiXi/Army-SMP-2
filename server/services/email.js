@@ -1,15 +1,11 @@
 const nodemailer = require('nodemailer');
 
-// Email configuration
-// IMPORTANT: For Gmail, you need to use an App Password, not your regular password
-// Go to: Google Account > Security > 2-Step Verification > App Passwords
-// Create a new app password and use it below
-
+// Email configuration using environment variables
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'armysmp2@gmail.com',
-        pass: 'zhitcmggtwivmboh'
+        user: process.env.EMAIL_USER || 'armysmp2@gmail.com',
+        pass: process.env.EMAIL_PASS || 'zhitcmggtwivmboh'
     }
 });
 
@@ -34,8 +30,8 @@ const sendOrderNotification = async (order) => {
     ).join('\n');
 
     const mailOptions = {
-        from: 'armysmp2@gmail.com',
-        to: 'armysmp2@gmail.com',
+        from: process.env.EMAIL_USER || 'armysmp2@gmail.com',
+        to: process.env.EMAIL_USER || 'armysmp2@gmail.com',
         subject: `🛒 New Order: ${order.orderNumber} - ₹${order.total}`,
         html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #1a1a2e; color: #ffffff; padding: 20px; border-radius: 10px;">
@@ -128,10 +124,7 @@ const verifyEmailConfig = async () => {
         return true;
     } catch (error) {
         console.error('⚠️ Email service not configured:', error.message);
-        console.log('💡 To enable email notifications:');
-        console.log('   1. Enable 2-Step Verification on your Google account');
-        console.log('   2. Create an App Password at: https://myaccount.google.com/apppasswords');
-        console.log('   3. Replace YOUR_APP_PASSWORD_HERE in server/services/email.js');
+        console.log('💡 Make sure EMAIL_USER and EMAIL_PASS environment variables are set');
         return false;
     }
 };
