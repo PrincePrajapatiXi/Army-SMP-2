@@ -1,15 +1,19 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ShoppingCart, Menu, X } from 'lucide-react';
+import { useCart } from '../context/CartContext';
 import './Navbar.css';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = React.useState(false);
     const location = useLocation();
+    const { getCartCount } = useCart();
 
     const toggleMenu = () => setIsOpen(!isOpen);
 
     const isActive = (path) => location.pathname === path ? 'active' : '';
+
+    const cartCount = getCartCount();
 
     return (
         <nav className="navbar">
@@ -37,9 +41,24 @@ const Navbar = () => {
                 </ul>
 
                 <div className="nav-actions">
-                    <button className="cart-btn">
+                    <button className="cart-btn" style={{ position: 'relative' }}>
                         <ShoppingCart size={24} />
-                        <span className="cart-count">0</span>
+                        <span className="cart-count" style={{
+                            display: cartCount > 0 ? 'flex' : 'none',
+                            position: 'absolute',
+                            top: '-8px',
+                            right: '-8px',
+                            backgroundColor: 'var(--primary)',
+                            color: 'white',
+                            borderRadius: '50%',
+                            width: '20px',
+                            height: '20px',
+                            fontSize: '12px',
+                            fontWeight: 'bold',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            animation: cartCount > 0 ? 'pulse 0.3s ease' : 'none'
+                        }}>{cartCount}</span>
                     </button>
 
                     <div className="mobile-toggle" onClick={toggleMenu}>
@@ -52,3 +71,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

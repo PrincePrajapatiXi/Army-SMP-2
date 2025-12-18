@@ -1,10 +1,17 @@
-import { X } from 'lucide-react';
-import { useEffect } from 'react';
+import { X, ShoppingCart, Check } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useCart } from '../context/CartContext';
 
 const Modal = ({ isOpen, onClose, product }) => {
+    const [quantity, setQuantity] = useState(1);
+    const [addedToCart, setAddedToCart] = useState(false);
+    const { addToCart } = useCart();
+
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
+            setQuantity(1);
+            setAddedToCart(false);
         } else {
             document.body.style.overflow = 'unset';
         }
@@ -12,6 +19,25 @@ const Modal = ({ isOpen, onClose, product }) => {
             document.body.style.overflow = 'unset';
         };
     }, [isOpen]);
+
+    const handleDecrement = () => {
+        if (quantity > 1) {
+            setQuantity(prev => prev - 1);
+        }
+    };
+
+    const handleIncrement = () => {
+        setQuantity(prev => prev + 1);
+    };
+
+    const handleAddToCart = () => {
+        addToCart(product, quantity);
+        setAddedToCart(true);
+        setTimeout(() => {
+            setAddedToCart(false);
+            onClose();
+        }, 1000);
+    };
 
     if (!isOpen || !product) return null;
 
@@ -35,9 +61,9 @@ const Modal = ({ isOpen, onClose, product }) => {
                 borderRadius: '16px',
                 width: '90%',
                 maxWidth: '500px',
-                maxHeight: '90vh', // Ensure it doesn't overflow screen height
+                maxHeight: '90vh',
                 display: 'flex',
-                flexDirection: 'column', // Prepare for scrolling content
+                flexDirection: 'column',
                 position: 'relative',
                 border: '1px solid rgba(255,255,255,0.1)',
                 boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
@@ -47,7 +73,7 @@ const Modal = ({ isOpen, onClose, product }) => {
 
                 <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
                     <h2 style={{ fontSize: '1.5rem', margin: 0 }}>{product.name}</h2>
-                    <button onClick={onClose} style={{ color: 'var(--text-secondary)' }}><X /></button>
+                    <button onClick={onClose} style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer' }}><X /></button>
                 </div>
 
                 <div style={{ padding: '2rem', overflowY: 'auto' }}>
@@ -62,14 +88,59 @@ const Modal = ({ isOpen, onClose, product }) => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                         <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>{product.price}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--bg-dark)', padding: '5px 10px', borderRadius: '8px' }}>
-                            <button style={{ color: 'white', fontSize: '1.2rem', padding: '0 5px' }}>-</button>
-                            <span>1</span>
-                            <button style={{ color: 'white', fontSize: '1.2rem', padding: '0 5px' }}>+</button>
+                            <button
+                                onClick={handleDecrement}
+                                style={{
+                                    color: quantity > 1 ? 'white' : 'rgba(255,255,255,0.3)',
+                                    fontSize: '1.2rem',
+                                    padding: '5px 10px',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: quantity > 1 ? 'pointer' : 'not-allowed',
+                                    transition: 'all 0.2s ease'
+                                }}
+                            >-</button>
+                            <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: 'bold' }}>{quantity}</span>
+                            <button
+                                onClick={handleIncrement}
+                                style={{
+                                    color: 'white',
+                                    fontSize: '1.2rem',
+                                    padding: '5px 10px',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease'
+                                }}
+                            >+</button>
                         </div>
                     </div>
 
-                    <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '15px' }}>
-                        Add to Cart
+                    <button
+                        className="btn btn-primary"
+                        onClick={handleAddToCart}
+                        style={{
+                            width: '100%',
+                            justifyContent: 'center',
+                            padding: '15px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            backgroundColor: addedToCart ? '#22c55e' : 'var(--primary)',
+                            transition: 'all 0.3s ease'
+                        }}
+                    >
+                        {addedToCart ? (
+                            <>
+                                <Check size={20} />
+                                Added to Cart!
+                            </>
+                        ) : (
+                            <>
+                                <ShoppingCart size={20} />
+                                Add to Cart
+                            </>
+                        )}
                     </button>
                 </div>
 
@@ -79,3 +150,4 @@ const Modal = ({ isOpen, onClose, product }) => {
 };
 
 export default Modal;
+
