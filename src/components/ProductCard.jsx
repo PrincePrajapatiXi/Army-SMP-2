@@ -20,7 +20,9 @@ const ProductCard = ({ product, onBuy }) => {
                 }}>{product.name}</h3>
 
                 <div className="card-footer">
-                    <span className="card-price">{product.price}</span>
+                    <span className="card-price">
+                        {product.priceDisplay || (typeof product.price === 'number' ? `₹${product.price}` : product.price)}
+                    </span>
                     <button className="btn btn-primary btn-buy" onClick={(e) => {
                         e.stopPropagation();
                         onBuy(product);

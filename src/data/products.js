@@ -1,8 +1,10 @@
+// Static products data - used as fallback when backend is not available
 export const products = [
     {
         id: 1,
         name: "Stone",
-        price: "₹30",
+        price: 30,
+        priceDisplay: "₹30",
         color: "#ffffffff",
         category: "ranks",
         image: "/images/stone.png",
@@ -11,7 +13,8 @@ export const products = [
     {
         id: 2,
         name: "Beacon",
-        price: "₹60",
+        price: 60,
+        priceDisplay: "₹60",
         color: "#55ffff",
         category: "ranks",
         image: "/images/Beacon.png",
@@ -20,10 +23,61 @@ export const products = [
     {
         id: 3,
         name: "Bedrock",
-        price: "₹120",
+        price: 120,
+        priceDisplay: "₹120",
         color: "rgba(255, 255, 255, 1)",
         category: "ranks",
         image: "/images/bedrock.png",
         description: "Includes Top Priority Queue, Red Name Color, 5x Kit Keys, /fly in Lobby, and Exclusive Pet."
+    },
+    {
+        id: 4,
+        name: "Common Key",
+        price: 15,
+        priceDisplay: "₹15",
+        color: "#aaaaaa",
+        category: "keys",
+        image: "/images/stone.png",
+        description: "Opens Common Crates with basic rewards."
+    },
+    {
+        id: 5,
+        name: "Rare Key",
+        price: 35,
+        priceDisplay: "₹35",
+        color: "#55ff55",
+        category: "keys",
+        image: "/images/Beacon.png",
+        description: "Opens Rare Crates with valuable rewards."
+    },
+    {
+        id: 6,
+        name: "Legendary Key",
+        price: 75,
+        priceDisplay: "₹75",
+        color: "#ff5555",
+        category: "keys",
+        image: "/images/bedrock.png",
+        description: "Opens Legendary Crates with the best rewards!"
+    },
+    {
+        id: 7,
+        name: "1000 Coins",
+        price: 25,
+        priceDisplay: "₹25",
+        color: "#ffaa00",
+        category: "coins",
+        image: "/images/stone.png",
+        description: "1000 in-game coins to spend in the server shop."
+    },
+    {
+        id: 8,
+        name: "5000 Coins",
+        price: 100,
+        priceDisplay: "₹100",
+        color: "#ffaa00",
+        category: "coins",
+        image: "/images/Beacon.png",
+        description: "5000 in-game coins - Best Value Pack!"
     }
 ];

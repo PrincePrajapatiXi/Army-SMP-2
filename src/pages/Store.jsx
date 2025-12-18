@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { products as staticProducts } from '../data/products';
 import { productsApi } from '../services/api';
 import ProductCard from '../components/ProductCard';
 import ProductModal from '../components/ProductModal';
@@ -17,21 +18,25 @@ const Store = () => {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [usingFallback, setUsingFallback] = useState(false);
 
-    // Fetch products from API
+    // Fetch products from API with fallback to static data
     useEffect(() => {
         const fetchProducts = async () => {
             try {
                 setLoading(true);
-                setError(null);
                 const data = await productsApi.getAll(activeCategory);
                 setProducts(data);
+                setUsingFallback(false);
             } catch (err) {
-                console.error('Failed to fetch products:', err);
-                setError('Failed to load products. Please try again.');
-                // Fallback to empty array
-                setProducts([]);
+                console.log('API not available, using static products');
+                // Fallback to static products
+                let fallbackProducts = staticProducts;
+                if (activeCategory && activeCategory !== 'all') {
+                    fallbackProducts = staticProducts.filter(p => p.category === activeCategory);
+                }
+                setProducts(fallbackProducts);
+                setUsingFallback(true);
             } finally {
                 setLoading(false);
             }
@@ -72,22 +77,8 @@ const Store = () => {
                     </div>
                 )}
 
-                {/* Error State */}
-                {error && !loading && (
-                    <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--error)' }}>
-                        <p>{error}</p>
-                        <button
-                            className="btn btn-primary"
-                            onClick={() => window.location.reload()}
-                            style={{ marginTop: '1rem' }}
-                        >
-                            Retry
-                        </button>
-                    </div>
-                )}
-
                 {/* Product Grid */}
-                {!loading && !error && (
+                {!loading && (
                     <div className="store-grid">
                         {products.map(product => (
                             <ProductCard
@@ -99,7 +90,7 @@ const Store = () => {
                     </div>
                 )}
 
-                {!loading && !error && products.length === 0 && (
+                {!loading && products.length === 0 && (
                     <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
                         No products found in this category.
                     </div>
