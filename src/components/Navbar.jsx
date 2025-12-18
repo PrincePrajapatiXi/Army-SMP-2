@@ -22,7 +22,7 @@ const Navbar = () => {
             <nav className="navbar">
                 <div className="container nav-container">
                     <Link to="/" className="nav-logo">
-                        Army<span className="text-accent">SMP</span>
+                        <img src="/images/logo.png" alt="Army SMP 2" className="nav-logo-img" />
                     </Link>
 
                     {/* Desktop Menu */}
