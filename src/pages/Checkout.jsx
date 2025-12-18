@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingBag, Check, Loader2 } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Check, Loader2, MessageCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { ordersApi } from '../services/api';
 import './Checkout.css';
 
 const Checkout = () => {
     const navigate = useNavigate();
-    const { cartItems, getCartTotal, clearCart } = useCart();
+    const { cartItems, getCartTotal, clearCart, isLocalMode } = useCart();
     const [minecraftUsername, setMinecraftUsername] = useState('');
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
@@ -27,6 +27,29 @@ const Checkout = () => {
             return;
         }
 
+        // If in local mode (no backend), show Discord contact
+        if (isLocalMode) {
+            const orderDetails = {
+                orderNumber: `LOCAL-${Date.now().toString(36).toUpperCase()}`,
+                minecraftUsername: minecraftUsername.trim(),
+                email: email.trim() || null,
+                items: cartItems.map(item => ({
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    subtotal: item.price * item.quantity
+                })),
+                total: getCartTotal(),
+                totalDisplay: `₹${getCartTotal().toFixed(2)}`,
+                status: 'pending'
+            };
+
+            setOrderSuccess(orderDetails);
+            await clearCart();
+            return;
+        }
+
         try {
             setLoading(true);
             setError(null);
@@ -38,14 +61,40 @@ const Checkout = () => {
 
         } catch (err) {
             console.error('Order failed:', err);
-            setError(err.message || 'Failed to create order. Please try again.');
+            // If API fails, switch to local mode
+            const orderDetails = {
+                orderNumber: `LOCAL-${Date.now().toString(36).toUpperCase()}`,
+                minecraftUsername: minecraftUsername.trim(),
+                email: email.trim() || null,
+                items: cartItems.map(item => ({
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    subtotal: item.price * item.quantity
+                })),
+                total: getCartTotal(),
+                totalDisplay: `₹${getCartTotal().toFixed(2)}`,
+                status: 'pending'
+            };
+
+            setOrderSuccess(orderDetails);
+            await clearCart();
         } finally {
             setLoading(false);
         }
     };
 
+    // Get display price
+    const getDisplayPrice = (item) => {
+        const price = typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.-]+/g, ''));
+        return `₹${(price * item.quantity).toFixed(2)}`;
+    };
+
     // Success State
     if (orderSuccess) {
+        const isLocalOrder = orderSuccess.orderNumber?.startsWith('LOCAL-');
+
         return (
             <div className="checkout-page">
                 <div className="checkout-container">
@@ -72,10 +121,23 @@ const Checkout = () => {
                             ))}
                         </div>
 
-                        <p className="delivery-note">
-                            Your items will be delivered to your Minecraft account within 24 hours.
-                            Join our Discord for support!
-                        </p>
+                        {isLocalOrder ? (
+                            <div className="discord-contact">
+                                <MessageCircle size={24} />
+                                <p>
+                                    <strong>Contact us on Discord to complete your order!</strong><br />
+                                    Share your order number and payment details.
+                                </p>
+                                <a href="https://discord.gg/EBmGM2jsdt" target="_blank" rel="noopener noreferrer" className="btn btn-primary">
+                                    Join Discord
+                                </a>
+                            </div>
+                        ) : (
+                            <p className="delivery-note">
+                                Your items will be delivered to your Minecraft account within 24 hours.
+                                Join our Discord for support!
+                            </p>
+                        )}
 
                         <div className="success-actions">
                             <Link to="/store" className="btn btn-primary">
@@ -127,13 +189,25 @@ const Checkout = () => {
                         <div className="summary-items">
                             {cartItems.map(item => (
                                 <div key={item.id} className="summary-item">
-                                    <img src={item.image} alt={item.name} />
+                                    <div className="item-image-placeholder" style={{
+                                        width: '50px',
+                                        height: '50px',
+                                        borderRadius: '8px',
+                                        background: item.color ? `linear-gradient(135deg, ${item.color}40, ${item.color}20)` : 'rgba(255,255,255,0.1)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        border: `1px solid ${item.color || 'rgba(255,255,255,0.1)'}`,
+                                        fontSize: '20px'
+                                    }}>
+                                        {item.name?.charAt(0) || '?'}
+                                    </div>
                                     <div className="item-info">
                                         <h4>{item.name}</h4>
                                         <span className="item-qty">× {item.quantity}</span>
                                     </div>
                                     <span className="item-price">
-                                        ₹{(item.price * item.quantity).toFixed(2)}
+                                        {getDisplayPrice(item)}
                                     </span>
                                 </div>
                             ))}

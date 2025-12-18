@@ -3,6 +3,31 @@ import { cartApi } from '../services/api';
 
 const CartContext = createContext();
 
+// Check if we're in a browser and if backend is available
+const isBackendAvailable = () => {
+    // On deployed sites (not localhost), backend is not available
+    if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        return hostname === 'localhost' || hostname === '127.0.0.1';
+    }
+    return false;
+};
+
+// Local storage helpers
+const saveCartToStorage = (cart) => {
+    if (typeof window !== 'undefined') {
+        localStorage.setItem('armysmp_cart', JSON.stringify(cart));
+    }
+};
+
+const loadCartFromStorage = () => {
+    if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('armysmp_cart');
+        return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+};
+
 export const useCart = () => {
     const context = useContext(CartContext);
     if (!context) {
@@ -15,39 +40,46 @@ export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [useLocalStorage, setUseLocalStorage] = useState(!isBackendAvailable());
 
-    // Load cart from API on mount
+    // Load cart on mount
     const loadCart = useCallback(async () => {
+        if (useLocalStorage) {
+            // Use localStorage
+            const savedCart = loadCartFromStorage();
+            setCartItems(savedCart);
+            return;
+        }
+
         try {
             setLoading(true);
             const data = await cartApi.get();
             setCartItems(data.items || []);
             setError(null);
         } catch (err) {
-            console.error('Failed to load cart:', err);
-            setError(err.message);
-            // Fallback to empty cart if API fails
-            setCartItems([]);
+            console.log('Backend not available, switching to localStorage');
+            setUseLocalStorage(true);
+            const savedCart = loadCartFromStorage();
+            setCartItems(savedCart);
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [useLocalStorage]);
 
     useEffect(() => {
         loadCart();
     }, [loadCart]);
 
+    // Save to localStorage whenever cart changes (if using localStorage mode)
+    useEffect(() => {
+        if (useLocalStorage && cartItems.length >= 0) {
+            saveCartToStorage(cartItems);
+        }
+    }, [cartItems, useLocalStorage]);
+
     const addToCart = async (product, quantity = 1) => {
-        try {
-            setLoading(true);
-            const data = await cartApi.add(product.id, quantity);
-            setCartItems(data.cart || []);
-            setError(null);
-            return true;
-        } catch (err) {
-            console.error('Failed to add to cart:', err);
-            setError(err.message);
-            // Fallback: update local state
+        if (useLocalStorage) {
+            // Local mode
             setCartItems(prevItems => {
                 const existingItem = prevItems.find(item => item.id === product.id);
                 if (existingItem) {
@@ -57,24 +89,48 @@ export const CartProvider = ({ children }) => {
                             : item
                     );
                 }
-                return [...prevItems, { ...product, quantity }];
+                return [...prevItems, {
+                    id: product.id,
+                    name: product.name,
+                    price: typeof product.price === 'number' ? product.price : parseFloat(String(product.price).replace(/[^0-9.-]+/g, '')),
+                    priceDisplay: product.priceDisplay || product.price,
+                    image: product.image,
+                    color: product.color,
+                    quantity
+                }];
             });
-            return false;
+            return true;
+        }
+
+        try {
+            setLoading(true);
+            const data = await cartApi.add(product.id, quantity);
+            setCartItems(data.cart || []);
+            setError(null);
+            return true;
+        } catch (err) {
+            console.error('Failed to add to cart:', err);
+            setUseLocalStorage(true);
+            // Retry with local storage
+            return addToCart(product, quantity);
         } finally {
             setLoading(false);
         }
     };
 
     const removeFromCart = async (productId) => {
+        if (useLocalStorage) {
+            setCartItems(prevItems => prevItems.filter(item => item.id !== productId));
+            return;
+        }
+
         try {
             setLoading(true);
             const data = await cartApi.remove(productId);
             setCartItems(data.cart || []);
             setError(null);
         } catch (err) {
-            console.error('Failed to remove from cart:', err);
-            setError(err.message);
-            // Fallback: update local state
+            setUseLocalStorage(true);
             setCartItems(prevItems => prevItems.filter(item => item.id !== productId));
         } finally {
             setLoading(false);
@@ -86,15 +142,22 @@ export const CartProvider = ({ children }) => {
             return removeFromCart(productId);
         }
 
+        if (useLocalStorage) {
+            setCartItems(prevItems =>
+                prevItems.map(item =>
+                    item.id === productId ? { ...item, quantity } : item
+                )
+            );
+            return;
+        }
+
         try {
             setLoading(true);
             const data = await cartApi.update(productId, quantity);
             setCartItems(data.cart || []);
             setError(null);
         } catch (err) {
-            console.error('Failed to update cart:', err);
-            setError(err.message);
-            // Fallback: update local state
+            setUseLocalStorage(true);
             setCartItems(prevItems =>
                 prevItems.map(item =>
                     item.id === productId ? { ...item, quantity } : item
@@ -124,16 +187,20 @@ export const CartProvider = ({ children }) => {
     };
 
     const clearCart = async () => {
+        if (useLocalStorage) {
+            setCartItems([]);
+            saveCartToStorage([]);
+            return;
+        }
+
         try {
             setLoading(true);
             await cartApi.clear();
             setCartItems([]);
             setError(null);
         } catch (err) {
-            console.error('Failed to clear cart:', err);
-            setError(err.message);
-            // Fallback: update local state
             setCartItems([]);
+            saveCartToStorage([]);
         } finally {
             setLoading(false);
         }
@@ -164,7 +231,8 @@ export const CartProvider = ({ children }) => {
         clearCart,
         getCartTotal,
         getCartCount,
-        refreshCart: loadCart
+        refreshCart: loadCart,
+        isLocalMode: useLocalStorage
     };
 
     return (

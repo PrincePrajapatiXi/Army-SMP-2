@@ -360,3 +360,32 @@
     animation: spin 1s linear infinite;
     margin: 0 auto;
 }
+
+/* Discord Contact */
+.discord-contact {
+    background: linear-gradient(135deg, #5865F2, #7289da);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.discord-contact svg {
+    margin-bottom: 10px;
+}
+
+.discord-contact p {
+    color: white;
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.discord-contact .btn {
+    background: white;
+    color: #5865F2;
+    font-weight: 600;
+}
+
+.discord-contact .btn:hover {
+    background: #f0f0f0;
+}
