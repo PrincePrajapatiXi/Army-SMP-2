@@ -5,12 +5,8 @@ const CartContext = createContext();
 
 // Check if we're in a browser and if backend is available
 const isBackendAvailable = () => {
-    // On deployed sites (not localhost), backend is not available
-    if (typeof window !== 'undefined') {
-        const hostname = window.location.hostname;
-        return hostname === 'localhost' || hostname === '127.0.0.1';
-    }
-    return false;
+    // Backend is now available on all environments (Render)
+    return true;
 };
 
 // Local storage helpers
