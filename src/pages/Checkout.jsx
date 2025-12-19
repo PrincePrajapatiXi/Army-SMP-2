@@ -54,7 +54,16 @@ const Checkout = () => {
             setLoading(true);
             setError(null);
 
-            const result = await ordersApi.create(minecraftUsername.trim(), email.trim() || null);
+            // Format items for API
+            const orderItems = cartItems.map(item => ({
+                id: item.id,
+                name: item.name,
+                price: typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.-]+/g, '')),
+                quantity: item.quantity,
+                subtotal: (typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.-]+/g, ''))) * item.quantity
+            }));
+
+            const result = await ordersApi.create(minecraftUsername.trim(), email.trim() || null, orderItems);
 
             setOrderSuccess(result.order);
             await clearCart();

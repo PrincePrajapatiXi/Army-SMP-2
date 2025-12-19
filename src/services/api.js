@@ -73,10 +73,10 @@ export const cartApi = {
 
 // Orders API
 export const ordersApi = {
-    create: async (minecraftUsername, email = null) => {
+    create: async (minecraftUsername, email = null, items = []) => {
         return fetchWithCredentials(`${API_BASE_URL}/orders/create`, {
             method: 'POST',
-            body: JSON.stringify({ minecraftUsername, email }),
+            body: JSON.stringify({ minecraftUsername, email, items }),
         });
     },
 

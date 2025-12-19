@@ -24,14 +24,14 @@ const saveOrders = (orders) => {
 
 // POST /api/orders/create - Create a new order
 router.post('/create', async (req, res) => {
-    const { minecraftUsername, email } = req.body;
+    const { minecraftUsername, email, items } = req.body;
 
     if (!minecraftUsername) {
         return res.status(400).json({ error: 'Minecraft username is required' });
     }
 
-    // Get cart from session
-    const cart = req.session.cart || [];
+    // Get cart from request body OR session (fallback)
+    const cart = items && items.length > 0 ? items : (req.session.cart || []);
 
     if (cart.length === 0) {
         return res.status(400).json({ error: 'Cart is empty' });
