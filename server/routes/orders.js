@@ -68,20 +68,20 @@ router.post('/create', async (req, res) => {
     // Clear cart after order
     req.session.cart = [];
 
-    // Send email notification - WAIT for it to complete so we see result
-    let emailResult = { success: false, error: 'Not sent' };
-    try {
-        console.log('📧 About to send email for order:', order.orderNumber);
-        emailResult = await sendOrderNotification(order);
-        console.log('📧 Email result:', emailResult);
-    } catch (emailError) {
-        console.error('📧 Email exception:', emailError);
-        emailResult = { success: false, error: emailError.message };
-    }
+    // Send email notification - ASYNC (don't wait, don't block order)
+    // Note: Using fire-and-forget because SMTP may timeout on Render
+    sendOrderNotification(order)
+        .then(result => {
+            if (result.success) {
+                console.log(`📧 Email sent for order ${order.orderNumber}`);
+            } else {
+                console.log(`⚠️ Email failed for order ${order.orderNumber}: ${result.error}`);
+            }
+        })
+        .catch(err => console.error('📧 Email error:', err.message));
 
     res.status(201).json({
         message: 'Order created successfully!',
-        emailStatus: emailResult, // Include email status for debugging
         order: {
             id: order.id,
             orderNumber: order.orderNumber,

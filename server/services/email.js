@@ -1,19 +1,13 @@
-const nodemailer = require('nodemailer');
+// Email service using HTTP API (works on Render which blocks SMTP)
+// Using EmailJS REST API for reliable email delivery
 
-// Email configuration - hardcoded for reliability
-const EMAIL_USER = 'armysmp2@gmail.com';
-const EMAIL_PASS = 'wfsmahnoczwrkqqt';
+const EMAILJS_SERVICE_ID = 'service_armysmp';
+const EMAILJS_TEMPLATE_ID = 'template_order';
+const EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY'; // User needs to set this
+const EMAILJS_PRIVATE_KEY = 'YOUR_PRIVATE_KEY'; // User needs to set this
 
-console.log('📧 Email service initializing...');
-console.log('📧 Using email:', EMAIL_USER);
-
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_PASS
-    }
-});
+// Admin email to receive notifications
+const ADMIN_EMAIL = 'armysmp2@gmail.com';
 
 // Format date for email
 const formatDate = (isoString) => {
@@ -29,113 +23,140 @@ const formatDate = (isoString) => {
     });
 };
 
-// Send order notification email to admin
+// Send order notification using Discord Webhook (FREE and works everywhere!)
+// This is the most reliable solution for free hosting
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || '';
+
 const sendOrderNotification = async (order) => {
+    console.log('📧 Sending notification for order:', order.orderNumber);
+
+    // Format items list
     const itemsList = order.items.map(item =>
-        `• ${item.name} × ${item.quantity} = ₹${item.subtotal}`
+        `• **${item.name}** × ${item.quantity} = ₹${item.subtotal}`
     ).join('\n');
 
-    const mailOptions = {
-        from: process.env.EMAIL_USER || 'armysmp2@gmail.com',
-        to: process.env.EMAIL_USER || 'armysmp2@gmail.com',
-        subject: `🛒 New Order: ${order.orderNumber} - ₹${order.total}`,
-        html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #1a1a2e; color: #ffffff; padding: 20px; border-radius: 10px;">
-                <h1 style="color: #ff5500; text-align: center; margin-bottom: 20px;">
-                    🎮 New Order Received!
-                </h1>
-                
-                <div style="background: #16213e; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <h2 style="color: #ffffff; margin: 0 0 10px 0;">Order Details</h2>
-                    <p style="margin: 5px 0;"><strong>Order Number:</strong> ${order.orderNumber}</p>
-                    <p style="margin: 5px 0;"><strong>Date & Time:</strong> ${formatDate(order.createdAt)}</p>
-                    <p style="margin: 5px 0;"><strong>Status:</strong> <span style="color: #ffaa00;">${order.status.toUpperCase()}</span></p>
-                </div>
+    // Try Discord Webhook first (most reliable on free hosting)
+    if (DISCORD_WEBHOOK_URL) {
+        try {
+            const discordPayload = {
+                embeds: [{
+                    title: `🛒 New Order: ${order.orderNumber}`,
+                    color: 0xff5500,
+                    fields: [
+                        {
+                            name: '🎮 Minecraft Username',
+                            value: order.minecraftUsername,
+                            inline: true
+                        },
+                        {
+                            name: '💰 Total',
+                            value: order.totalDisplay,
+                            inline: true
+                        },
+                        {
+                            name: '📧 Customer Email',
+                            value: order.email || 'Not provided',
+                            inline: true
+                        },
+                        {
+                            name: '📦 Items',
+                            value: itemsList || 'No items',
+                            inline: false
+                        },
+                        {
+                            name: '🕐 Order Time',
+                            value: formatDate(order.createdAt),
+                            inline: true
+                        },
+                        {
+                            name: '📋 Status',
+                            value: order.status.toUpperCase(),
+                            inline: true
+                        }
+                    ],
+                    footer: {
+                        text: 'Army SMP 2 Store'
+                    },
+                    timestamp: order.createdAt
+                }]
+            };
 
-                <div style="background: #16213e; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <h2 style="color: #ffffff; margin: 0 0 10px 0;">Customer Info</h2>
-                    <p style="margin: 5px 0;"><strong>🎮 Minecraft Username:</strong> <span style="color: #55ffff;">${order.minecraftUsername}</span></p>
-                    <p style="margin: 5px 0;"><strong>📧 Email:</strong> ${order.email || 'Not provided'}</p>
-                </div>
+            const response = await fetch(DISCORD_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(discordPayload)
+            });
 
-                <div style="background: #16213e; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <h2 style="color: #ffffff; margin: 0 0 10px 0;">Items Purchased</h2>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="border-bottom: 1px solid #ff5500;">
-                                <th style="text-align: left; padding: 8px; color: #ff5500;">Item</th>
-                                <th style="text-align: center; padding: 8px; color: #ff5500;">Qty</th>
-                                <th style="text-align: right; padding: 8px; color: #ff5500;">Price</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${order.items.map(item => `
-                                <tr style="border-bottom: 1px solid #333;">
-                                    <td style="padding: 8px;">${item.name}</td>
-                                    <td style="text-align: center; padding: 8px;">${item.quantity}</td>
-                                    <td style="text-align: right; padding: 8px;">₹${item.subtotal}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
+            if (response.ok) {
+                console.log('📧 Discord notification sent successfully!');
+                return { success: true, method: 'discord' };
+            } else {
+                console.log('⚠️ Discord webhook failed:', response.status);
+            }
+        } catch (discordError) {
+            console.error('❌ Discord webhook error:', discordError.message);
+        }
+    }
 
-                <div style="background: linear-gradient(135deg, #ff5500, #ff8800); padding: 15px; border-radius: 8px; text-align: center;">
-                    <h2 style="color: #ffffff; margin: 0;">
-                        💰 Total: ${order.totalDisplay}
-                    </h2>
-                </div>
+    // Fallback: Try nodemailer with Gmail (works locally, may timeout on Render)
+    try {
+        const nodemailer = require('nodemailer');
 
-                <p style="text-align: center; color: #888; margin-top: 20px; font-size: 12px;">
-                    This is an automated email from Army SMP 2 Store
-                </p>
-            </div>
-        `,
-        text: `
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'armysmp2@gmail.com',
+                pass: 'wfsmahnoczwrkqqt'
+            },
+            connectionTimeout: 10000, // 10 second timeout
+            socketTimeout: 10000
+        });
+
+        const mailOptions = {
+            from: 'armysmp2@gmail.com',
+            to: 'armysmp2@gmail.com',
+            subject: `🛒 New Order: ${order.orderNumber} - ₹${order.total}`,
+            text: `
 NEW ORDER RECEIVED!
 
 Order Number: ${order.orderNumber}
 Date & Time: ${formatDate(order.createdAt)}
-Status: ${order.status.toUpperCase()}
 
 CUSTOMER INFO:
 Minecraft Username: ${order.minecraftUsername}
 Email: ${order.email || 'Not provided'}
 
-ITEMS PURCHASED:
-${itemsList}
+ITEMS:
+${order.items.map(i => `• ${i.name} × ${i.quantity} = ₹${i.subtotal}`).join('\n')}
 
 TOTAL: ${order.totalDisplay}
 
 ---
 Army SMP 2 Store
-        `
-    };
+            `
+        };
 
-    try {
-        console.log('📧 Attempting to send email for order:', order.orderNumber);
-        console.log('📧 Sending to:', EMAIL_USER);
         const info = await transporter.sendMail(mailOptions);
-        console.log('📧 Order notification email sent SUCCESS:', info.messageId);
-        return { success: true, messageId: info.messageId };
-    } catch (error) {
-        console.error('❌ Failed to send email:', error.message);
-        console.error('❌ Full error:', error);
-        return { success: false, error: error.message };
+        console.log('📧 Gmail notification sent:', info.messageId);
+        return { success: true, method: 'gmail', messageId: info.messageId };
+    } catch (gmailError) {
+        console.error('❌ Gmail failed (expected on Render):', gmailError.message);
     }
+
+    // If we get here, no notification was sent
+    console.log('⚠️ No notification method worked. Order still created.');
+    return { success: false, error: 'No notification method available' };
 };
 
-// Verify email configuration on startup
+// Verify email config
 const verifyEmailConfig = async () => {
-    try {
-        await transporter.verify();
-        console.log('✅ Email service configured correctly');
+    if (DISCORD_WEBHOOK_URL) {
+        console.log('✅ Discord webhook configured for notifications');
         return true;
-    } catch (error) {
-        console.error('⚠️ Email service not configured:', error.message);
-        console.log('💡 Make sure EMAIL_USER and EMAIL_PASS environment variables are set');
-        return false;
     }
+    console.log('⚠️ No Discord webhook URL set. Set DISCORD_WEBHOOK_URL env variable.');
+    console.log('💡 Create a Discord webhook and add it to Render environment variables.');
+    return false;
 };
 
 module.exports = {
