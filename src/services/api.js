@@ -1,5 +1,5 @@
 // API Service for Army SMP 2 Store
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
 
 // Helper function for API requests with credentials (for session cookies)
 const fetchWithCredentials = async (url, options = {}) => {
