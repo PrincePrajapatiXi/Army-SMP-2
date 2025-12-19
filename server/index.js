@@ -7,6 +7,7 @@ const path = require('path');
 const productsRouter = require('./routes/products');
 const cartRouter = require('./routes/cart');
 const ordersRouter = require('./routes/orders');
+const serverStatusRouter = require('./routes/serverStatus');
 
 // Import email service
 const { verifyEmailConfig } = require('./services/email');
@@ -38,6 +39,7 @@ app.use(session({
 app.use('/api/products', productsRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/orders', ordersRouter);
+app.use('/api/server-status', serverStatusRouter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

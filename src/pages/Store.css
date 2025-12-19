@@ -1,8 +1,7 @@
 /* Store Grid Layout */
 .store-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    /* Desktop default */
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 2rem;
     width: 100%;
 }
@@ -13,8 +12,15 @@
 }
 
 .store-title {
-    font-size: clamp(2.5rem, 5vw, 3rem);
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
     margin-bottom: 1rem;
+    background: linear-gradient(135deg, #ff6b35, #ff8555, #ffc107);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientFlow 3s ease infinite;
+    font-weight: 800;
 }
 
 .category-tabs {
@@ -25,13 +31,25 @@
     flex-wrap: wrap;
 }
 
+.category-tabs .btn {
+    border-radius: 50px;
+    padding: 10px 24px;
+    backdrop-filter: blur(10px);
+}
+
+.category-tabs .btn-primary {
+    box-shadow: 0 4px 20px rgba(255, 107, 53, 0.4);
+}
+
+.category-tabs .btn-outline:hover {
+    background: rgba(255, 107, 53, 0.15);
+}
+
 /* Mobile Responsive */
 @media (max-width: 600px) {
     .store-grid {
         grid-template-columns: repeat(2, 1fr);
-        /* Force 2 columns */
-        gap: 0.8rem;
-        /* Tighter gap */
+        gap: 1rem;
     }
 
     .store-header {
@@ -53,8 +71,6 @@
     .category-tabs .btn {
         padding: 8px 20px;
         font-size: 0.9rem;
-        border-radius: 20px;
-        /* Pill shape for tabs looks modern */
     }
 
     .category-tabs::-webkit-scrollbar {
@@ -64,13 +80,15 @@
 
 /* Loading Spinner */
 .loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid var(--card-border);
+    width: 45px;
+    height: 45px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
     border-top-color: var(--primary);
+    border-right-color: var(--accent);
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: spin 0.5s linear infinite;
     margin: 0 auto;
+    box-shadow: 0 0 25px rgba(255, 107, 53, 0.4);
 }
 
 @keyframes spin {
