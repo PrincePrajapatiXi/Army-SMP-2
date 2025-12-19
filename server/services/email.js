@@ -49,6 +49,11 @@ const sendOrderNotification = async (order) => {
                             inline: true
                         },
                         {
+                            name: '🎯 Platform',
+                            value: order.platform === 'Bedrock' ? '🪨 Bedrock Edition' : '☕ Java Edition',
+                            inline: true
+                        },
+                        {
                             name: '💰 Total',
                             value: order.totalDisplay,
                             inline: true

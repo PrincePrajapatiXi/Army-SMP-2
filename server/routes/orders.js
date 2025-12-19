@@ -24,7 +24,7 @@ const saveOrders = (orders) => {
 
 // POST /api/orders/create - Create a new order
 router.post('/create', async (req, res) => {
-    const { minecraftUsername, email, items } = req.body;
+    const { minecraftUsername, email, items, platform } = req.body;
 
     if (!minecraftUsername) {
         return res.status(400).json({ error: 'Minecraft username is required' });
@@ -46,6 +46,7 @@ router.post('/create', async (req, res) => {
         orderNumber: `ARMY-${Date.now().toString(36).toUpperCase()}`,
         minecraftUsername: minecraftUsername.trim(),
         email: email || null,
+        platform: platform || 'Java', // Java or Bedrock
         items: cart.map(item => ({
             id: item.id,
             name: item.name,

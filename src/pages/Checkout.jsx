@@ -10,6 +10,7 @@ const Checkout = () => {
     const { cartItems, getCartTotal, clearCart } = useCart();
     const [minecraftUsername, setMinecraftUsername] = useState('');
     const [email, setEmail] = useState('');
+    const [platform, setPlatform] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [orderSuccess, setOrderSuccess] = useState(null);
@@ -19,6 +20,16 @@ const Checkout = () => {
 
         if (!minecraftUsername.trim()) {
             setError('Please enter your Minecraft username');
+            return;
+        }
+
+        if (!email.trim()) {
+            setError('Please enter your email address');
+            return;
+        }
+
+        if (!platform) {
+            setError('Please select your platform (Java or Bedrock)');
             return;
         }
 
@@ -42,7 +53,7 @@ const Checkout = () => {
                 subtotal: (typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.-]+/g, ''))) * item.quantity
             }));
 
-            const result = await ordersApi.create(minecraftUsername.trim(), email.trim() || null, orderItems);
+            const result = await ordersApi.create(minecraftUsername.trim(), email.trim(), orderItems, platform);
 
             setOrderSuccess(result.order);
             await clearCart();
@@ -53,7 +64,8 @@ const Checkout = () => {
             const orderDetails = {
                 orderNumber: `LOCAL-${Date.now().toString(36).toUpperCase()}`,
                 minecraftUsername: minecraftUsername.trim(),
-                email: email.trim() || null,
+                email: email.trim(),
+                platform: platform,
                 items: cartItems.map(item => ({
                     id: item.id,
                     name: item.name,
@@ -234,17 +246,37 @@ const Checkout = () => {
 
                         <div className="form-group">
                             <label htmlFor="email">
-                                Email (Optional)
+                                Email <span className="required">*</span>
                             </label>
                             <input
                                 type="email"
                                 id="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="For order confirmation"
+                                placeholder="Enter your email address"
                                 disabled={loading}
+                                required
                             />
                             <small>We'll send order updates to this email</small>
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="platform">
+                                Platform <span className="required">*</span>
+                            </label>
+                            <select
+                                id="platform"
+                                value={platform}
+                                onChange={(e) => setPlatform(e.target.value)}
+                                disabled={loading}
+                                required
+                                className="platform-select"
+                            >
+                                <option value="">Select your platform</option>
+                                <option value="Java">☕ Java Edition</option>
+                                <option value="Bedrock">🪨 Bedrock Edition</option>
+                            </select>
+                            <small>Choose the Minecraft edition you play on</small>
                         </div>
 
                         <button
