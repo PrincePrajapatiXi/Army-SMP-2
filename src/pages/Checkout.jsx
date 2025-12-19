@@ -7,7 +7,7 @@ import './Checkout.css';
 
 const Checkout = () => {
     const navigate = useNavigate();
-    const { cartItems, getCartTotal, clearCart, isLocalMode } = useCart();
+    const { cartItems, getCartTotal, clearCart } = useCart();
     const [minecraftUsername, setMinecraftUsername] = useState('');
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
@@ -27,29 +27,8 @@ const Checkout = () => {
             return;
         }
 
-        // If in local mode (no backend), show Discord contact
-        if (isLocalMode) {
-            const orderDetails = {
-                orderNumber: `LOCAL-${Date.now().toString(36).toUpperCase()}`,
-                minecraftUsername: minecraftUsername.trim(),
-                email: email.trim() || null,
-                items: cartItems.map(item => ({
-                    id: item.id,
-                    name: item.name,
-                    price: item.price,
-                    quantity: item.quantity,
-                    subtotal: item.price * item.quantity
-                })),
-                total: getCartTotal(),
-                totalDisplay: `₹${getCartTotal().toFixed(2)}`,
-                status: 'pending'
-            };
-
-            setOrderSuccess(orderDetails);
-            await clearCart();
-            return;
-        }
-
+        // Always try to send order to backend first (for email notification)
+        // This ensures emails are sent even if cart was in local storage mode
         try {
             setLoading(true);
             setError(null);
