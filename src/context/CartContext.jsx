@@ -5,8 +5,9 @@ const CartContext = createContext();
 
 // Check if we're in a browser and if backend is available
 const isBackendAvailable = () => {
-    // Backend is now available on all environments (Render)
-    return true;
+    // Always use localStorage for cart - backend sessions don't persist cross-origin on Render
+    // Orders still go to backend for notifications, but cart is local for reliability
+    return false;
 };
 
 // Local storage helpers
