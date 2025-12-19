@@ -1,11 +1,17 @@
 const nodemailer = require('nodemailer');
 
-// Email configuration using environment variables
+// Email configuration - hardcoded for reliability
+const EMAIL_USER = 'armysmp2@gmail.com';
+const EMAIL_PASS = 'wfsmahnoczwrkqqt';
+
+console.log('📧 Email service initializing...');
+console.log('📧 Using email:', EMAIL_USER);
+
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'armysmp2@gmail.com',
-        pass: 'wfsmahnoczwrkqqt'
+        user: EMAIL_USER,
+        pass: EMAIL_PASS
     }
 });
 
@@ -107,11 +113,14 @@ Army SMP 2 Store
     };
 
     try {
+        console.log('📧 Attempting to send email for order:', order.orderNumber);
+        console.log('📧 Sending to:', EMAIL_USER);
         const info = await transporter.sendMail(mailOptions);
-        console.log('📧 Order notification email sent:', info.messageId);
+        console.log('📧 Order notification email sent SUCCESS:', info.messageId);
         return { success: true, messageId: info.messageId };
     } catch (error) {
         console.error('❌ Failed to send email:', error.message);
+        console.error('❌ Full error:', error);
         return { success: false, error: error.message };
     }
 };
