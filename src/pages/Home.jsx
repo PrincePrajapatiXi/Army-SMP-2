@@ -26,7 +26,8 @@ const Home = () => {
     useEffect(() => {
         const fetchServerStatus = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/server-status/quick');
+                // Use Render production URL
+                const response = await fetch('https://army-smp-2.onrender.com/api/server-status/quick');
                 const data = await response.json();
                 setServerStatus({
                     online: data.online,
