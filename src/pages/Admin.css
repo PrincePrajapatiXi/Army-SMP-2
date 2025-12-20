@@ -317,6 +317,10 @@
     background: #22c55e;
 }
 
+.status-dot.cancelled {
+    background: #ef4444;
+}
+
 .status-bar-value {
     font-weight: 700;
     font-size: 1.25rem;
