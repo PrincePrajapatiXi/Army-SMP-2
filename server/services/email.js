@@ -181,7 +181,91 @@ const verifyEmailConfig = async () => {
     return false;
 };
 
+// Send status update notification (for completed orders)
+const sendStatusUpdateNotification = async (order, newStatus) => {
+    if (!DISCORD_WEBHOOK_URL) {
+        console.log('⚠️ No Discord webhook configured for status updates');
+        return { success: false };
+    }
+
+    // Only send notification for completed status
+    if (newStatus !== 'completed') {
+        return { success: false, reason: 'Not a completed status' };
+    }
+
+    console.log(`📧 Sending completion notification for order: ${order.orderNumber}`);
+
+    try {
+        const itemsList = order.items.map(item =>
+            `• **${item.name}** × ${item.quantity}`
+        ).join('\n');
+
+        const discordPayload = {
+            embeds: [{
+                title: `✅ Order Completed: ${order.orderNumber}`,
+                color: 0x22c55e, // Green color
+                description: `Order has been marked as **COMPLETED**! 🎉`,
+                fields: [
+                    {
+                        name: '🎮 Minecraft Username',
+                        value: order.minecraftUsername,
+                        inline: true
+                    },
+                    {
+                        name: '🎯 Platform',
+                        value: order.platform === 'Bedrock' ? '🪨 Bedrock' : '☕ Java',
+                        inline: true
+                    },
+                    {
+                        name: '💰 Amount',
+                        value: order.totalDisplay || `₹${order.total}`,
+                        inline: true
+                    },
+                    {
+                        name: '📦 Items Delivered',
+                        value: itemsList || 'No items',
+                        inline: false
+                    },
+                    {
+                        name: '📧 Customer Email',
+                        value: order.email || 'Not provided',
+                        inline: true
+                    },
+                    {
+                        name: '🕐 Completed At',
+                        value: formatDate(new Date().toISOString()),
+                        inline: true
+                    }
+                ],
+                footer: {
+                    text: 'Army SMP 2 Store - Order Fulfilled'
+                },
+                timestamp: new Date().toISOString()
+            }]
+        };
+
+        const response = await fetch(DISCORD_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(discordPayload)
+        });
+
+        if (response.ok) {
+            console.log('✅ Completion notification sent successfully!');
+            return { success: true };
+        } else {
+            console.log('⚠️ Completion notification failed:', response.status);
+            return { success: false };
+        }
+    } catch (error) {
+        console.error('❌ Completion notification error:', error.message);
+        return { success: false, error: error.message };
+    }
+};
+
 module.exports = {
     sendOrderNotification,
+    sendStatusUpdateNotification,
     verifyEmailConfig
 };
+

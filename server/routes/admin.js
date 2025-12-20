@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
+const { sendStatusUpdateNotification } = require('../services/email');
 
 const ordersFilePath = path.join(__dirname, '../data/orders.json');
 
@@ -64,7 +65,7 @@ router.get('/stats', (req, res) => {
 });
 
 // PUT /api/admin/orders/:id/status - Update order status
-router.put('/orders/:id/status', (req, res) => {
+router.put('/orders/:id/status', async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
@@ -80,10 +81,22 @@ router.put('/orders/:id/status', (req, res) => {
             return res.status(404).json({ error: 'Order not found' });
         }
 
+        const previousStatus = orders[orderIndex].status;
         orders[orderIndex].status = status;
         orders[orderIndex].updatedAt = new Date().toISOString();
 
         saveOrders(orders);
+
+        // Send Discord notification when order is completed
+        if (status === 'completed' && previousStatus !== 'completed') {
+            sendStatusUpdateNotification(orders[orderIndex], status)
+                .then(result => {
+                    if (result.success) {
+                        console.log(`✅ Completion notification sent for ${orders[orderIndex].orderNumber}`);
+                    }
+                })
+                .catch(err => console.error('Notification error:', err));
+        }
 
         res.json({
             message: 'Status updated successfully',
