@@ -314,7 +314,6 @@ const Admin = () => {
                             >
                                 <option value="all">All Orders</option>
                                 <option value="pending">Pending</option>
-                                <option value="processing">Processing</option>
                                 <option value="completed">Completed</option>
                                 <option value="cancelled">Cancelled</option>
                             </select>
@@ -336,7 +335,6 @@ const Admin = () => {
                                             className={`status-select ${order.status}`}
                                         >
                                             <option value="pending">Pending</option>
-                                            <option value="processing">Processing</option>
                                             <option value="completed">Completed</option>
                                             <option value="cancelled">Cancelled</option>
                                         </select>

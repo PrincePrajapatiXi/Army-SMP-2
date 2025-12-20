@@ -70,7 +70,7 @@ router.put('/orders/:id/status', async (req, res) => {
         const { id } = req.params;
         const { status } = req.body;
 
-        if (!['pending', 'processing', 'completed', 'cancelled'].includes(status)) {
+        if (!['pending', 'completed', 'cancelled'].includes(status)) {
             return res.status(400).json({ error: 'Invalid status' });
         }
 
@@ -87,12 +87,12 @@ router.put('/orders/:id/status', async (req, res) => {
 
         saveOrders(orders);
 
-        // Send Discord notification when order is completed
-        if (status === 'completed' && previousStatus !== 'completed') {
+        // Send Discord notification when order status changes to completed or cancelled
+        if ((status === 'completed' || status === 'cancelled') && previousStatus !== status) {
             sendStatusUpdateNotification(orders[orderIndex], status)
                 .then(result => {
                     if (result.success) {
-                        console.log(`✅ Completion notification sent for ${orders[orderIndex].orderNumber}`);
+                        console.log(`✅ ${status.charAt(0).toUpperCase() + status.slice(1)} notification sent for ${orders[orderIndex].orderNumber}`);
                     }
                 })
                 .catch(err => console.error('Notification error:', err));
