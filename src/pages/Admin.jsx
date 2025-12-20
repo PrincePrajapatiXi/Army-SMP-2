@@ -518,17 +518,17 @@ const Admin = () => {
                                     <tbody>
                                         {orders.slice(0, 5).map(order => (
                                             <tr key={order.id || order.orderNumber}>
-                                                <td className="order-num">{order.orderNumber}</td>
-                                                <td>{order.minecraftUsername}</td>
-                                                <td>{order.items?.length || 0} items</td>
-                                                <td className="order-total">{order.totalDisplay}</td>
-                                                <td>
+                                                <td className="order-num" data-label="Order #">{order.orderNumber}</td>
+                                                <td data-label="Customer">{order.minecraftUsername}</td>
+                                                <td data-label="Items">{order.items?.length || 0} items</td>
+                                                <td className="order-total" data-label="Total">{order.totalDisplay}</td>
+                                                <td data-label="Status">
                                                     <span className={`status-badge ${order.status}`}>
                                                         {getStatusIcon(order.status)}
                                                         {order.status}
                                                     </span>
                                                 </td>
-                                                <td>{formatDate(order.createdAt)}</td>
+                                                <td data-label="Date">{formatDate(order.createdAt)}</td>
                                             </tr>
                                         ))}
                                     </tbody>
