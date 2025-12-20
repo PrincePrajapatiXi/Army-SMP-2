@@ -21,6 +21,7 @@ const Admin = () => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [chartPeriod, setChartPeriod] = useState('week');
     const chartRef = useRef(null);
     const pieChartRef = useRef(null);
 
@@ -39,12 +40,12 @@ const Admin = () => {
         }
     }, [isAuthenticated]);
 
-    // Initialize charts when orders change
+    // Initialize charts when orders or period change
     useEffect(() => {
         if (isAuthenticated && orders.length > 0 && activeTab === 'dashboard') {
             initCharts();
         }
-    }, [orders, isAuthenticated, activeTab]);
+    }, [orders, isAuthenticated, activeTab, chartPeriod]);
 
     // Secure Login via Backend API
     const handleLogin = async (e) => {
@@ -172,32 +173,99 @@ const Admin = () => {
             pieChartRef.current.chartInstance.destroy();
         }
 
-        // Revenue Chart - Last 7 days
+        // Revenue Chart - Based on selected period
         const revenueCtx = document.getElementById('revenueChart');
         if (revenueCtx) {
-            const last7Days = [];
+            const labels = [];
             const revenueData = [];
 
-            for (let i = 6; i >= 0; i--) {
-                const date = new Date();
-                date.setDate(date.getDate() - i);
-                const dateStr = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-                last7Days.push(dateStr);
+            // Get date range based on period
+            const getPeriodData = () => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
 
-                const dayRevenue = orders
-                    .filter(o => {
-                        const orderDate = new Date(o.createdAt);
-                        return orderDate.toDateString() === date.toDateString() && o.status !== 'cancelled';
-                    })
-                    .reduce((sum, o) => sum + (o.total || 0), 0);
-                revenueData.push(dayRevenue);
-            }
+                switch (chartPeriod) {
+                    case 'today':
+                        // Hourly data for today
+                        for (let hour = 0; hour <= 23; hour++) {
+                            labels.push(`${hour}:00`);
+                            const hourRevenue = orders
+                                .filter(o => {
+                                    const orderDate = new Date(o.createdAt);
+                                    return orderDate.toDateString() === today.toDateString()
+                                        && orderDate.getHours() === hour
+                                        && o.status !== 'cancelled';
+                                })
+                                .reduce((sum, o) => sum + (o.total || 0), 0);
+                            revenueData.push(hourRevenue);
+                        }
+                        break;
+
+                    case 'week':
+                        // Last 7 days
+                        for (let i = 6; i >= 0; i--) {
+                            const date = new Date();
+                            date.setDate(date.getDate() - i);
+                            labels.push(date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }));
+                            const dayRevenue = orders
+                                .filter(o => {
+                                    const orderDate = new Date(o.createdAt);
+                                    return orderDate.toDateString() === date.toDateString() && o.status !== 'cancelled';
+                                })
+                                .reduce((sum, o) => sum + (o.total || 0), 0);
+                            revenueData.push(dayRevenue);
+                        }
+                        break;
+
+                    case 'month':
+                        // Last 30 days (grouped by week)
+                        for (let i = 3; i >= 0; i--) {
+                            const weekEnd = new Date();
+                            weekEnd.setDate(weekEnd.getDate() - (i * 7));
+                            const weekStart = new Date(weekEnd);
+                            weekStart.setDate(weekStart.getDate() - 6);
+
+                            labels.push(`${weekStart.getDate()}/${weekStart.getMonth() + 1} - ${weekEnd.getDate()}/${weekEnd.getMonth() + 1}`);
+
+                            const weekRevenue = orders
+                                .filter(o => {
+                                    const orderDate = new Date(o.createdAt);
+                                    orderDate.setHours(0, 0, 0, 0);
+                                    return orderDate >= weekStart && orderDate <= weekEnd && o.status !== 'cancelled';
+                                })
+                                .reduce((sum, o) => sum + (o.total || 0), 0);
+                            revenueData.push(weekRevenue);
+                        }
+                        break;
+
+                    case 'year':
+                        // Last 12 months
+                        for (let i = 11; i >= 0; i--) {
+                            const date = new Date();
+                            date.setMonth(date.getMonth() - i);
+                            labels.push(date.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' }));
+
+                            const monthRevenue = orders
+                                .filter(o => {
+                                    const orderDate = new Date(o.createdAt);
+                                    return orderDate.getMonth() === date.getMonth()
+                                        && orderDate.getFullYear() === date.getFullYear()
+                                        && o.status !== 'cancelled';
+                                })
+                                .reduce((sum, o) => sum + (o.total || 0), 0);
+                            revenueData.push(monthRevenue);
+                        }
+                        break;
+                }
+            };
+
+            getPeriodData();
 
             chartRef.current = {
                 chartInstance: new window.Chart(revenueCtx, {
                     type: 'line',
                     data: {
-                        labels: last7Days,
+                        labels: labels,
                         datasets: [{
                             label: 'Revenue (₹)',
                             data: revenueData,
@@ -208,7 +276,7 @@ const Admin = () => {
                             pointBackgroundColor: '#ff6b35',
                             pointBorderColor: '#fff',
                             pointBorderWidth: 2,
-                            pointRadius: 5
+                            pointRadius: chartPeriod === 'today' ? 3 : 5
                         }]
                     },
                     options: {
@@ -225,7 +293,11 @@ const Admin = () => {
                             },
                             x: {
                                 grid: { display: false },
-                                ticks: { color: '#888' }
+                                ticks: {
+                                    color: '#888',
+                                    maxRotation: chartPeriod === 'today' ? 0 : 45,
+                                    font: { size: chartPeriod === 'today' ? 9 : 11 }
+                                }
                             }
                         }
                     }
@@ -488,7 +560,27 @@ const Admin = () => {
                         {/* Charts Section */}
                         <div className="charts-section">
                             <div className="chart-card">
-                                <h3>📈 Revenue (Last 7 Days)</h3>
+                                <div className="chart-header">
+                                    <h3>📈 Revenue</h3>
+                                    <div className="period-selector">
+                                        <button
+                                            className={`period-btn ${chartPeriod === 'today' ? 'active' : ''}`}
+                                            onClick={() => setChartPeriod('today')}
+                                        >Today</button>
+                                        <button
+                                            className={`period-btn ${chartPeriod === 'week' ? 'active' : ''}`}
+                                            onClick={() => setChartPeriod('week')}
+                                        >Week</button>
+                                        <button
+                                            className={`period-btn ${chartPeriod === 'month' ? 'active' : ''}`}
+                                            onClick={() => setChartPeriod('month')}
+                                        >Month</button>
+                                        <button
+                                            className={`period-btn ${chartPeriod === 'year' ? 'active' : ''}`}
+                                            onClick={() => setChartPeriod('year')}
+                                        >Year</button>
+                                    </div>
+                                </div>
                                 <div className="chart-container">
                                     <canvas id="revenueChart"></canvas>
                                 </div>
