@@ -9,7 +9,7 @@ import './Admin.css';
 const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
 
 // Simple password for admin (in production, use proper auth)
-const ADMIN_PASSWORD = 'armysmp2admin';
+const ADMIN_PASSWORD = 'Prince_Uday';
 
 const Admin = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
