@@ -185,7 +185,7 @@ const Admin = () => {
                 const dayRevenue = orders
                     .filter(o => {
                         const orderDate = new Date(o.createdAt);
-                        return orderDate.toDateString() === date.toDateString();
+                        return orderDate.toDateString() === date.toDateString() && o.status !== 'cancelled';
                     })
                     .reduce((sum, o) => sum + (o.total || 0), 0);
                 revenueData.push(dayRevenue);
@@ -282,13 +282,13 @@ const Admin = () => {
 
     const analytics = {
         totalOrders: orders.length,
-        totalRevenue: orders.reduce((sum, o) => sum + (o.total || 0), 0),
+        totalRevenue: orders.filter(o => o.status !== 'cancelled').reduce((sum, o) => sum + (o.total || 0), 0),
         pendingOrders: orders.filter(o => o.status === 'pending').length,
         completedOrders: orders.filter(o => o.status === 'completed').length,
         cancelledOrders: orders.filter(o => o.status === 'cancelled').length,
         todayOrders: orders.filter(o => getISTDateString(o.createdAt) === todayIST).length,
         todayRevenue: orders
-            .filter(o => getISTDateString(o.createdAt) === todayIST)
+            .filter(o => getISTDateString(o.createdAt) === todayIST && o.status !== 'cancelled')
             .reduce((sum, o) => sum + (o.total || 0), 0)
     };
 
