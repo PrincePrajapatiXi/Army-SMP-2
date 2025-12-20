@@ -21,6 +21,62 @@ const saveOrders = (orders) => {
     fs.writeFileSync(ordersFilePath, JSON.stringify(orders, null, 2));
 };
 
+// Admin password from environment variable (secure)
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Prince_Uday';
+
+// POST /api/admin/login - Secure admin authentication
+router.post('/login', (req, res) => {
+    try {
+        const { password } = req.body;
+
+        if (!password) {
+            return res.status(400).json({ success: false, error: 'Password required' });
+        }
+
+        if (password === ADMIN_PASSWORD) {
+            return res.json({ success: true, message: 'Login successful' });
+        } else {
+            return res.status(401).json({ success: false, error: 'Invalid password' });
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ success: false, error: 'Login failed' });
+    }
+});
+
+// DELETE /api/admin/orders/bulk - Bulk delete orders
+router.delete('/orders/bulk', (req, res) => {
+    try {
+        const { orderIds } = req.body;
+
+        if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
+            return res.status(400).json({ error: 'Order IDs array required' });
+        }
+
+        const orders = getOrders();
+        const filteredOrders = orders.filter(o =>
+            !orderIds.includes(o.id) && !orderIds.includes(o.orderNumber)
+        );
+
+        const deletedCount = orders.length - filteredOrders.length;
+
+        if (deletedCount === 0) {
+            return res.status(404).json({ error: 'No matching orders found' });
+        }
+
+        saveOrders(filteredOrders);
+
+        res.json({
+            success: true,
+            message: `${deletedCount} orders deleted successfully`,
+            deletedCount
+        });
+    } catch (error) {
+        console.error('Bulk delete error:', error);
+        res.status(500).json({ error: 'Failed to delete orders' });
+    }
+});
+
 // GET /api/admin/orders - Get all orders (sorted by date, newest first)
 router.get('/orders', (req, res) => {
     try {
