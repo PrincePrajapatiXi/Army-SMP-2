@@ -1,7 +1,10 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
-const path = require('path');
+// path imported above
+const mongoose = require('mongoose');
 
 // Import routes
 const productsRouter = require('./routes/products');
@@ -63,6 +66,15 @@ app.use((err, req, res, next) => {
     console.error('Error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
 });
+
+// Connect to MongoDB
+if (process.env.MONGODB_URI) {
+    mongoose.connect(process.env.MONGODB_URI, { dbName: 'army-smp' })
+        .then(() => console.log('✅ Connected to MongoDB'))
+        .catch(err => console.error('❌ MongoDB Connection Error:', err));
+} else {
+    console.warn('⚠️ MONGODB_URI not found in environment variables. Database features will fail.');
+}
 
 // Start server
 app.listen(PORT, async () => {

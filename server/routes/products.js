@@ -1,26 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const fs = require('fs');
-const path = require('path');
-
-// Load products from JSON file
-const getProducts = () => {
-    const filePath = path.join(__dirname, '../data/products.json');
-    const data = fs.readFileSync(filePath, 'utf8');
-    return JSON.parse(data);
-};
+const Product = require('../models/Product');
 
 // GET /api/products - Get all products
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
     try {
-        const products = getProducts();
-        const { category } = req.query;
-
-        if (category && category !== 'all') {
-            const filtered = products.filter(p => p.category === category);
-            return res.json(filtered);
-        }
-
+        const products = await Product.find().sort({ id: 1 });
         res.json(products);
     } catch (error) {
         console.error('Error fetching products:', error);
@@ -28,29 +13,32 @@ router.get('/', (req, res) => {
     }
 });
 
-// GET /api/products/categories - Get all categories
-router.get('/categories', (req, res) => {
+// GET /api/products/categories - Get products by category
+router.get('/categories', async (req, res) => {
     try {
-        const products = getProducts();
-        const categories = [...new Set(products.map(p => p.category))];
-        res.json(categories);
+        const { category } = req.query;
+        let query = {};
+        if (category && category !== 'all') {
+            query.category = category;
+        }
+        const products = await Product.find(query).sort({ id: 1 });
+        res.json(products);
     } catch (error) {
+        console.error('Error fetching categories:', error);
         res.status(500).json({ error: 'Failed to fetch categories' });
     }
 });
 
 // GET /api/products/:id - Get single product
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
     try {
-        const products = getProducts();
-        const product = products.find(p => p.id === parseInt(req.params.id));
-
+        const product = await Product.findOne({ id: parseInt(req.params.id) });
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
         }
-
         res.json(product);
     } catch (error) {
+        console.error('Error fetching product:', error);
         res.status(500).json({ error: 'Failed to fetch product' });
     }
 });
