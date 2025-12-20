@@ -18,7 +18,7 @@ export const coupons = [
         code: "WELCOME10",
         discount: 10,
         type: "percentage",
-        expiryDate: "2025-03-31",
+        expiryDate: "2025-12-31",
         minOrder: 50,
         maxDiscount: 50,
         description: "10% off on your first order!"
@@ -27,7 +27,7 @@ export const coupons = [
         code: "FLAT20",
         discount: 20,
         type: "fixed",
-        expiryDate: "2025-06-30",
+        expiryDate: "2025-12-31",
         minOrder: 100,
         description: "Flat ₹20 off on orders above ₹100"
     },
@@ -35,7 +35,7 @@ export const coupons = [
         code: "NEWYEAR25",
         discount: 25,
         type: "percentage",
-        expiryDate: "2025-01-15",
+        expiryDate: "2025-12-31",
         minOrder: 75,
         maxDiscount: 100,
         description: "New Year Special - 25% off!"

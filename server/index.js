@@ -8,6 +8,7 @@ const productsRouter = require('./routes/products');
 const cartRouter = require('./routes/cart');
 const ordersRouter = require('./routes/orders');
 const serverStatusRouter = require('./routes/serverStatus');
+const adminRouter = require('./routes/admin');
 
 // Import email service
 const { verifyEmailConfig } = require('./services/email');
@@ -50,6 +51,7 @@ app.use('/api/products', productsRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/server-status', serverStatusRouter);
+app.use('/api/admin', adminRouter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -68,6 +70,7 @@ app.listen(PORT, async () => {
     console.log(`📦 Products API: http://localhost:${PORT}/api/products`);
     console.log(`🛒 Cart API: http://localhost:${PORT}/api/cart`);
     console.log(`📋 Orders API: http://localhost:${PORT}/api/orders`);
+    console.log(`🔐 Admin API: http://localhost:${PORT}/api/admin`);
 
     // Verify email configuration
     await verifyEmailConfig();
