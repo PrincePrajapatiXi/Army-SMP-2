@@ -1,25 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const fs = require('fs');
-const path = require('path');
 const { sendStatusUpdateNotification } = require('../services/email');
-
-const ordersFilePath = path.join(__dirname, '../data/orders.json');
-
-// Load orders from file
-const getOrders = () => {
-    try {
-        const data = fs.readFileSync(ordersFilePath, 'utf8');
-        return JSON.parse(data);
-    } catch {
-        return [];
-    }
-};
-
-// Save orders to file
-const saveOrders = (orders) => {
-    fs.writeFileSync(ordersFilePath, JSON.stringify(orders, null, 2));
-};
+const Order = require('../models/Order');
+const Product = require('../models/Product');
 
 // Admin password from environment variable (secure)
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Prince_Uday';
@@ -45,7 +28,7 @@ router.post('/login', (req, res) => {
 });
 
 // DELETE /api/admin/orders/bulk - Bulk delete orders
-router.delete('/orders/bulk', (req, res) => {
+router.delete('/orders/bulk', async (req, res) => {
     try {
         const { orderIds } = req.body;
 
@@ -53,23 +36,22 @@ router.delete('/orders/bulk', (req, res) => {
             return res.status(400).json({ error: 'Order IDs array required' });
         }
 
-        const orders = getOrders();
-        const filteredOrders = orders.filter(o =>
-            !orderIds.includes(o.id) && !orderIds.includes(o.orderNumber)
-        );
+        // Delete where id is in orderIds OR orderNumber is in orderIds
+        const result = await Order.deleteMany({
+            $or: [
+                { id: { $in: orderIds } },
+                { orderNumber: { $in: orderIds } }
+            ]
+        });
 
-        const deletedCount = orders.length - filteredOrders.length;
-
-        if (deletedCount === 0) {
+        if (result.deletedCount === 0) {
             return res.status(404).json({ error: 'No matching orders found' });
         }
 
-        saveOrders(filteredOrders);
-
         res.json({
             success: true,
-            message: `${deletedCount} orders deleted successfully`,
-            deletedCount
+            message: `${result.deletedCount} orders deleted successfully`,
+            deletedCount: result.deletedCount
         });
     } catch (error) {
         console.error('Bulk delete error:', error);
@@ -78,14 +60,10 @@ router.delete('/orders/bulk', (req, res) => {
 });
 
 // GET /api/admin/orders - Get all orders (sorted by date, newest first)
-router.get('/orders', (req, res) => {
+router.get('/orders', async (req, res) => {
     try {
-        const orders = getOrders();
-        // Sort by createdAt descending (newest first)
-        const sortedOrders = orders.sort((a, b) =>
-            new Date(b.createdAt) - new Date(a.createdAt)
-        );
-        res.json(sortedOrders);
+        const orders = await Order.find().sort({ createdAt: -1 });
+        res.json(orders);
     } catch (error) {
         console.error('Error fetching orders:', error);
         res.status(500).json({ error: 'Failed to fetch orders' });
@@ -93,9 +71,9 @@ router.get('/orders', (req, res) => {
 });
 
 // GET /api/admin/stats - Get sales analytics
-router.get('/stats', (req, res) => {
+router.get('/stats', async (req, res) => {
     try {
-        const orders = getOrders();
+        const orders = await Order.find();
         const today = new Date().toDateString();
 
         const stats = {
@@ -126,29 +104,27 @@ router.put('/orders/:id/status', async (req, res) => {
         const { id } = req.params;
         const { status } = req.body;
 
-        if (!['pending', 'completed', 'cancelled'].includes(status)) {
+        if (!['pending', 'completed', 'cancelled', 'processing'].includes(status)) {
             return res.status(400).json({ error: 'Invalid status' });
         }
 
-        const orders = getOrders();
-        const orderIndex = orders.findIndex(o => o.id === id || o.orderNumber === id);
+        const order = await Order.findOne({ $or: [{ id }, { orderNumber: id }] });
 
-        if (orderIndex === -1) {
+        if (!order) {
             return res.status(404).json({ error: 'Order not found' });
         }
 
-        const previousStatus = orders[orderIndex].status;
-        orders[orderIndex].status = status;
-        orders[orderIndex].updatedAt = new Date().toISOString();
-
-        saveOrders(orders);
+        const previousStatus = order.status;
+        order.status = status;
+        order.updatedAt = new Date();
+        await order.save();
 
         // Send Discord notification when order status changes to completed or cancelled
         if ((status === 'completed' || status === 'cancelled') && previousStatus !== status) {
-            sendStatusUpdateNotification(orders[orderIndex], status)
+            sendStatusUpdateNotification(order, status)
                 .then(result => {
                     if (result.success) {
-                        console.log(`✅ ${status.charAt(0).toUpperCase() + status.slice(1)} notification sent for ${orders[orderIndex].orderNumber}`);
+                        console.log(`✅ ${status.charAt(0).toUpperCase() + status.slice(1)} notification sent for ${order.orderNumber}`);
                     }
                 })
                 .catch(err => console.error('Notification error:', err));
@@ -156,7 +132,7 @@ router.put('/orders/:id/status', async (req, res) => {
 
         res.json({
             message: 'Status updated successfully',
-            order: orders[orderIndex]
+            order
         });
     } catch (error) {
         console.error('Error updating status:', error);
@@ -165,17 +141,14 @@ router.put('/orders/:id/status', async (req, res) => {
 });
 
 // DELETE /api/admin/orders/:id - Delete an order
-router.delete('/orders/:id', (req, res) => {
+router.delete('/orders/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const orders = getOrders();
-        const filteredOrders = orders.filter(o => o.id !== id && o.orderNumber !== id);
+        const result = await Order.deleteOne({ $or: [{ id }, { orderNumber: id }] });
 
-        if (filteredOrders.length === orders.length) {
+        if (result.deletedCount === 0) {
             return res.status(404).json({ error: 'Order not found' });
         }
-
-        saveOrders(filteredOrders);
 
         res.json({ message: 'Order deleted successfully' });
     } catch (error) {
@@ -186,27 +159,10 @@ router.delete('/orders/:id', (req, res) => {
 
 // ==================== PRODUCT MANAGEMENT ====================
 
-const productsFilePath = path.join(__dirname, '../data/products.json');
-
-// Load products from file
-const getProducts = () => {
-    try {
-        const data = fs.readFileSync(productsFilePath, 'utf8');
-        return JSON.parse(data);
-    } catch {
-        return [];
-    }
-};
-
-// Save products to file
-const saveProducts = (products) => {
-    fs.writeFileSync(productsFilePath, JSON.stringify(products, null, 4));
-};
-
 // GET /api/admin/products - Get all products
-router.get('/products', (req, res) => {
+router.get('/products', async (req, res) => {
     try {
-        const products = getProducts();
+        const products = await Product.find().sort({ id: 1 });
         res.json(products);
     } catch (error) {
         console.error('Error fetching products:', error);
@@ -215,7 +171,7 @@ router.get('/products', (req, res) => {
 });
 
 // POST /api/admin/products - Add new product
-router.post('/products', (req, res) => {
+router.post('/products', async (req, res) => {
     try {
         const { name, price, category, image, description, color, features } = req.body;
 
@@ -223,12 +179,12 @@ router.post('/products', (req, res) => {
             return res.status(400).json({ error: 'Name, price, and category are required' });
         }
 
-        const products = getProducts();
+        // Generate new ID (find max ID)
+        const lastProduct = await Product.findOne().sort({ id: -1 });
+        const newId = lastProduct ? lastProduct.id + 1 : 1;
 
-        // Generate new ID
-        const maxId = products.reduce((max, p) => Math.max(max, p.id), 0);
-        const newProduct = {
-            id: maxId + 1,
+        const newProduct = new Product({
+            id: newId,
             name,
             price: parseFloat(price),
             priceDisplay: `₹${price}`,
@@ -237,10 +193,9 @@ router.post('/products', (req, res) => {
             image: image || '/images/stone.png',
             description: description || '',
             features: features || []
-        };
+        });
 
-        products.push(newProduct);
-        saveProducts(products);
+        await newProduct.save();
 
         res.json({
             success: true,
@@ -254,37 +209,34 @@ router.post('/products', (req, res) => {
 });
 
 // PUT /api/admin/products/:id - Update product
-router.put('/products/:id', (req, res) => {
+router.put('/products/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, price, category, image, description, color, features } = req.body;
+        const updates = req.body;
 
-        const products = getProducts();
-        const productIndex = products.findIndex(p => p.id === parseInt(id));
+        const product = await Product.findOne({ id: parseInt(id) });
 
-        if (productIndex === -1) {
+        if (!product) {
             return res.status(404).json({ error: 'Product not found' });
         }
 
-        // Update product fields
-        products[productIndex] = {
-            ...products[productIndex],
-            name: name || products[productIndex].name,
-            price: price ? parseFloat(price) : products[productIndex].price,
-            priceDisplay: price ? `₹${price}` : products[productIndex].priceDisplay,
-            category: category || products[productIndex].category,
-            image: image || products[productIndex].image,
-            description: description !== undefined ? description : products[productIndex].description,
-            color: color || products[productIndex].color,
-            features: features || products[productIndex].features
-        };
+        if (updates.name) product.name = updates.name;
+        if (updates.price) {
+            product.price = parseFloat(updates.price);
+            product.priceDisplay = `₹${product.price}`;
+        }
+        if (updates.category) product.category = updates.category;
+        if (updates.image) product.image = updates.image;
+        if (updates.description !== undefined) product.description = updates.description;
+        if (updates.color) product.color = updates.color;
+        if (updates.features) product.features = updates.features;
 
-        saveProducts(products);
+        await product.save();
 
         res.json({
             success: true,
             message: 'Product updated successfully',
-            product: products[productIndex]
+            product
         });
     } catch (error) {
         console.error('Error updating product:', error);
@@ -293,17 +245,14 @@ router.put('/products/:id', (req, res) => {
 });
 
 // DELETE /api/admin/products/:id - Delete product
-router.delete('/products/:id', (req, res) => {
+router.delete('/products/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const products = getProducts();
-        const filteredProducts = products.filter(p => p.id !== parseInt(id));
+        const result = await Product.deleteOne({ id: parseInt(id) });
 
-        if (filteredProducts.length === products.length) {
+        if (result.deletedCount === 0) {
             return res.status(404).json({ error: 'Product not found' });
         }
-
-        saveProducts(filteredProducts);
 
         res.json({
             success: true,
