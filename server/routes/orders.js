@@ -24,7 +24,7 @@ const saveOrders = (orders) => {
 
 // POST /api/orders/create - Create a new order
 router.post('/create', async (req, res) => {
-    const { minecraftUsername, email, items, platform } = req.body;
+    const { minecraftUsername, email, items, platform, couponInfo } = req.body;
 
     if (!minecraftUsername) {
         return res.status(400).json({ error: 'Minecraft username is required' });
@@ -37,8 +37,12 @@ router.post('/create', async (req, res) => {
         return res.status(400).json({ error: 'Cart is empty' });
     }
 
-    // Calculate total
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    // Calculate subtotal (before discount)
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    // Apply discount if coupon provided
+    const discount = couponInfo?.discount || 0;
+    const finalTotal = couponInfo?.finalTotal || (subtotal - discount);
 
     // Create order
     const order = {
@@ -54,8 +58,10 @@ router.post('/create', async (req, res) => {
             quantity: item.quantity,
             subtotal: item.price * item.quantity
         })),
-        total: total,
-        totalDisplay: `₹${total.toFixed(2)}`,
+        subtotal: subtotal,
+        total: finalTotal,
+        totalDisplay: `₹${finalTotal.toFixed(2)}`,
+        couponInfo: couponInfo || null, // Store coupon info for Discord notification
         status: 'pending', // pending, processing, completed, cancelled
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -88,8 +94,11 @@ router.post('/create', async (req, res) => {
             orderNumber: order.orderNumber,
             minecraftUsername: order.minecraftUsername,
             items: order.items,
+            subtotal: order.subtotal,
+            discount: discount,
             total: order.total,
             totalDisplay: order.totalDisplay,
+            couponApplied: couponInfo?.couponCode || null,
             status: order.status,
             createdAt: order.createdAt
         }

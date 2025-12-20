@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingBag, Check, Loader2, MessageCircle } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Check, Loader2, MessageCircle, Tag, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { ordersApi } from '../services/api';
+import { validateCoupon } from '../data/coupons';
 import './Checkout.css';
 
 const Checkout = () => {
@@ -14,6 +15,48 @@ const Checkout = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [orderSuccess, setOrderSuccess] = useState(null);
+
+    // Coupon state
+    const [couponCode, setCouponCode] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState(null);
+    const [couponError, setCouponError] = useState('');
+    const [couponLoading, setCouponLoading] = useState(false);
+
+    const subtotal = getCartTotal();
+    const discountAmount = appliedCoupon?.discountAmount || 0;
+    const finalTotal = subtotal - discountAmount;
+
+    // Apply coupon
+    const handleApplyCoupon = () => {
+        if (!couponCode.trim()) {
+            setCouponError('Please enter a coupon code');
+            return;
+        }
+
+        setCouponLoading(true);
+        setCouponError('');
+
+        // Simulate slight delay for UX
+        setTimeout(() => {
+            const result = validateCoupon(couponCode.trim(), subtotal);
+
+            if (result.valid) {
+                setAppliedCoupon(result);
+                setCouponCode('');
+                setCouponError('');
+            } else {
+                setCouponError(result.error);
+                setAppliedCoupon(null);
+            }
+            setCouponLoading(false);
+        }, 300);
+    };
+
+    // Remove coupon
+    const handleRemoveCoupon = () => {
+        setAppliedCoupon(null);
+        setCouponError('');
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -53,9 +96,21 @@ const Checkout = () => {
                 subtotal: (typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.-]+/g, ''))) * item.quantity
             }));
 
-            const result = await ordersApi.create(minecraftUsername.trim(), email.trim(), orderItems, platform);
+            const result = await ordersApi.create(minecraftUsername.trim(), email.trim(), orderItems, platform, {
+                couponCode: appliedCoupon?.coupon?.code || null,
+                discount: discountAmount,
+                subtotal: subtotal,
+                finalTotal: finalTotal
+            });
 
-            setOrderSuccess(result.order);
+            setOrderSuccess({
+                ...result.order,
+                couponApplied: appliedCoupon?.coupon?.code || null,
+                discount: discountAmount,
+                subtotal: subtotal,
+                total: finalTotal,
+                totalDisplay: `₹${finalTotal.toFixed(2)}`
+            });
             await clearCart();
 
         } catch (err) {
@@ -73,8 +128,11 @@ const Checkout = () => {
                     quantity: item.quantity,
                     subtotal: item.price * item.quantity
                 })),
-                total: getCartTotal(),
-                totalDisplay: `₹${getCartTotal().toFixed(2)}`,
+                subtotal: subtotal,
+                discount: discountAmount,
+                couponApplied: appliedCoupon?.coupon?.code || null,
+                total: finalTotal,
+                totalDisplay: `₹${finalTotal.toFixed(2)}`,
                 status: 'pending'
             };
 
@@ -107,6 +165,12 @@ const Checkout = () => {
 
                         <div className="order-details">
                             <p><strong>Minecraft Username:</strong> {orderSuccess.minecraftUsername}</p>
+                            {orderSuccess.couponApplied && (
+                                <p><strong>Coupon Applied:</strong> <span className="coupon-badge">{orderSuccess.couponApplied}</span></p>
+                            )}
+                            {orderSuccess.discount > 0 && (
+                                <p><strong>Discount:</strong> <span className="discount-text">-₹{orderSuccess.discount.toFixed(2)}</span></p>
+                            )}
                             <p><strong>Total:</strong> {orderSuccess.totalDisplay}</p>
                             <p><strong>Status:</strong> <span className="status-badge">Pending</span></p>
                         </div>
@@ -212,9 +276,72 @@ const Checkout = () => {
                                 </div>
                             ))}
                         </div>
+
+                        {/* Coupon Section */}
+                        <div className="coupon-section">
+                            <h3><Tag size={18} /> Apply Coupon</h3>
+
+                            {appliedCoupon ? (
+                                <div className="coupon-applied">
+                                    <div className="coupon-applied-info">
+                                        <span className="coupon-code-tag">{appliedCoupon.coupon.code}</span>
+                                        <span className="coupon-savings">-₹{appliedCoupon.discountAmount.toFixed(2)} saved!</span>
+                                    </div>
+                                    <button
+                                        className="coupon-remove-btn"
+                                        onClick={handleRemoveCoupon}
+                                        type="button"
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="coupon-input-row">
+                                    <input
+                                        type="text"
+                                        placeholder="Enter coupon code"
+                                        value={couponCode}
+                                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                        className="coupon-input"
+                                        disabled={couponLoading}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="coupon-apply-btn"
+                                        onClick={handleApplyCoupon}
+                                        disabled={couponLoading}
+                                    >
+                                        {couponLoading ? 'Applying...' : 'Apply'}
+                                    </button>
+                                </div>
+                            )}
+
+                            {couponError && (
+                                <p className="coupon-error">{couponError}</p>
+                            )}
+
+                            {appliedCoupon && (
+                                <p className="coupon-success">{appliedCoupon.message}</p>
+                            )}
+                        </div>
+
+                        {/* Price Summary */}
+                        <div className="price-breakdown">
+                            <div className="price-row">
+                                <span>Subtotal</span>
+                                <span>₹{subtotal.toFixed(2)}</span>
+                            </div>
+                            {discountAmount > 0 && (
+                                <div className="price-row discount-row">
+                                    <span>Discount</span>
+                                    <span className="discount-amount">-₹{discountAmount.toFixed(2)}</span>
+                                </div>
+                            )}
+                        </div>
+
                         <div className="summary-total">
                             <span>Total:</span>
-                            <span className="total-amount">₹{getCartTotal().toFixed(2)}</span>
+                            <span className="total-amount">₹{finalTotal.toFixed(2)}</span>
                         </div>
                     </div>
 
@@ -292,7 +419,7 @@ const Checkout = () => {
                             ) : (
                                 <>
                                     <ShoppingBag size={20} />
-                                    Place Order - ₹{getCartTotal().toFixed(2)}
+                                    Place Order - ₹{finalTotal.toFixed(2)}
                                 </>
                             )}
                         </button>

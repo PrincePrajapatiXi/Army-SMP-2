@@ -38,47 +38,64 @@ const sendOrderNotification = async (order) => {
     // Try Discord Webhook first (most reliable on free hosting)
     if (DISCORD_WEBHOOK_URL) {
         try {
+            // Build fields array dynamically
+            const fields = [
+                {
+                    name: '🎮 Minecraft Username',
+                    value: order.minecraftUsername,
+                    inline: true
+                },
+                {
+                    name: '🎯 Platform',
+                    value: order.platform === 'Bedrock' ? '🪨 Bedrock Edition' : '☕ Java Edition',
+                    inline: true
+                },
+                {
+                    name: '💰 Total',
+                    value: order.couponInfo?.finalTotal
+                        ? `₹${order.couponInfo.finalTotal.toFixed(2)}`
+                        : order.totalDisplay,
+                    inline: true
+                },
+                {
+                    name: '📧 Customer Email',
+                    value: order.email || 'Not provided',
+                    inline: true
+                }
+            ];
+
+            // Add coupon info if applied
+            if (order.couponInfo?.couponCode) {
+                fields.push({
+                    name: '🎁 Coupon Applied',
+                    value: `**${order.couponInfo.couponCode}** (-₹${order.couponInfo.discount.toFixed(2)})`,
+                    inline: true
+                });
+            }
+
+            fields.push(
+                {
+                    name: '📦 Items',
+                    value: itemsList || 'No items',
+                    inline: false
+                },
+                {
+                    name: '🕐 Order Time',
+                    value: formatDate(order.createdAt),
+                    inline: true
+                },
+                {
+                    name: '📋 Status',
+                    value: order.status.toUpperCase(),
+                    inline: true
+                }
+            );
+
             const discordPayload = {
                 embeds: [{
                     title: `🛒 New Order: ${order.orderNumber}`,
-                    color: 0xff5500,
-                    fields: [
-                        {
-                            name: '🎮 Minecraft Username',
-                            value: order.minecraftUsername,
-                            inline: true
-                        },
-                        {
-                            name: '🎯 Platform',
-                            value: order.platform === 'Bedrock' ? '🪨 Bedrock Edition' : '☕ Java Edition',
-                            inline: true
-                        },
-                        {
-                            name: '💰 Total',
-                            value: order.totalDisplay,
-                            inline: true
-                        },
-                        {
-                            name: '📧 Customer Email',
-                            value: order.email || 'Not provided',
-                            inline: true
-                        },
-                        {
-                            name: '📦 Items',
-                            value: itemsList || 'No items',
-                            inline: false
-                        },
-                        {
-                            name: '🕐 Order Time',
-                            value: formatDate(order.createdAt),
-                            inline: true
-                        },
-                        {
-                            name: '📋 Status',
-                            value: order.status.toUpperCase(),
-                            inline: true
-                        }
-                    ],
+                    color: order.couponInfo?.couponCode ? 0x22c55e : 0xff5500, // Green if coupon applied
+                    fields: fields,
                     footer: {
                         text: 'Army SMP 2 Store'
                     },
