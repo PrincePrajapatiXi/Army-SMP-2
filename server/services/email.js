@@ -26,6 +26,7 @@ const formatDate = (isoString) => {
 // Send order notification using Discord Webhook (FREE and works everywhere!)
 // This is the most reliable solution for free hosting
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || '';
+const DISCORD_WEBHOOK_COMPLETED = process.env.DISCORD_WEBHOOK_COMPLETED || DISCORD_WEBHOOK_URL; // Fallback to main webhook
 
 const sendOrderNotification = async (order) => {
     console.log('📧 Sending notification for order:', order.orderNumber);
@@ -244,7 +245,7 @@ const sendStatusUpdateNotification = async (order, newStatus) => {
             }]
         };
 
-        const response = await fetch(DISCORD_WEBHOOK_URL, {
+        const response = await fetch(DISCORD_WEBHOOK_COMPLETED, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(discordPayload)
