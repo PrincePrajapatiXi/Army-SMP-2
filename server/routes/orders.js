@@ -127,4 +127,15 @@ router.get('/user/:username', (req, res) => {
     res.json(userOrders);
 });
 
+// GET /api/orders/email/:email - Get orders by email
+router.get('/email/:email', (req, res) => {
+    const orders = getOrders();
+    const email = decodeURIComponent(req.params.email).toLowerCase();
+    const userOrders = orders.filter(
+        o => o.email && o.email.toLowerCase() === email
+    );
+
+    res.json(userOrders);
+});
+
 module.exports = router;

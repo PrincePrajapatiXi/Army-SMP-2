@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Store from './pages/Store';
 import Checkout from './pages/Checkout';
+import OrderHistory from './pages/OrderHistory';
 import Footer from './components/Footer';
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/store" element={<Store />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/orders" element={<OrderHistory />} />
             </Routes>
           </main>
           <Footer />
@@ -27,3 +29,4 @@ function App() {
 }
 
 export default App;
+

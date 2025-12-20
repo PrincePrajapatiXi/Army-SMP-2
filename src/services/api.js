@@ -86,6 +86,10 @@ export const ordersApi = {
 
     getByUsername: async (username) => {
         return fetchWithCredentials(`${API_BASE_URL}/orders/user/${username}`);
+    },
+
+    getByEmail: async (email) => {
+        return fetchWithCredentials(`${API_BASE_URL}/orders/email/${encodeURIComponent(email)}`);
     }
 };
 

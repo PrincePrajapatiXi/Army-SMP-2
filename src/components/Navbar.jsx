@@ -37,7 +37,11 @@ const Navbar = () => {
                                 Store
                             </Link>
                         </li>
-
+                        <li>
+                            <Link to="/orders" className={`nav-item ${isActive('/orders')}`} onClick={() => setIsOpen(false)}>
+                                My Orders
+                            </Link>
+                        </li>
                         <li>
                             <a href="https://discord.gg/EBmGM2jsdt" className="nav-item">Discord</a>
                         </li>
