@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 const orderSchema = new mongoose.Schema({
     id: { type: String, required: true, unique: true }, // Using UUID string for ID
     orderNumber: { type: String, required: true, unique: true },
-    customerName: { type: String, required: true },
-    email: { type: String, required: true },
+    minecraftUsername: { type: String, required: true },
+    email: { type: String }, // Optional
     discordId: { type: String },
     products: [{
         id: Number,
