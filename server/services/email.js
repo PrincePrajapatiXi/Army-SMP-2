@@ -182,30 +182,45 @@ const verifyEmailConfig = async () => {
     return false;
 };
 
-// Send status update notification (for completed orders)
+// Send status update notification (for completed and cancelled orders)
 const sendStatusUpdateNotification = async (order, newStatus) => {
     if (!DISCORD_WEBHOOK_URL) {
         console.log('⚠️ No Discord webhook configured for status updates');
         return { success: false };
     }
 
-    // Only send notification for completed status
-    if (newStatus !== 'completed') {
-        return { success: false, reason: 'Not a completed status' };
+    // Only send notification for completed or cancelled status
+    if (newStatus !== 'completed' && newStatus !== 'cancelled') {
+        return { success: false, reason: 'Not a completed or cancelled status' };
     }
 
-    console.log(`📧 Sending completion notification for order: ${order.orderNumber}`);
+    console.log(`📧 Sending ${newStatus} notification for order: ${order.orderNumber}`);
 
     try {
         const itemsList = order.items.map(item =>
             `• **${item.name}** × ${item.quantity}`
         ).join('\n');
 
+        // Determine styling based on status
+        const isCompleted = newStatus === 'completed';
+        const title = isCompleted
+            ? `✅ Order Completed: ${order.orderNumber}`
+            : `❌ Order Cancelled: ${order.orderNumber}`;
+        const color = isCompleted ? 0x22c55e : 0xef4444; // Green or Red
+        const description = isCompleted
+            ? `Order has been marked as **COMPLETED**! 🎉`
+            : `Order has been marked as **CANCELLED**! ❌`;
+        const footerText = isCompleted
+            ? 'Army SMP 2 Store - Order Fulfilled'
+            : 'Army SMP 2 Store - Order Rejected';
+        const itemsLabel = isCompleted ? '📦 Items Delivered' : '📦 Items (Cancelled)';
+        const timeLabel = isCompleted ? '🕐 Completed At' : '🕐 Cancelled At';
+
         const discordPayload = {
             embeds: [{
-                title: `✅ Order Completed: ${order.orderNumber}`,
-                color: 0x22c55e, // Green color
-                description: `Order has been marked as **COMPLETED**! 🎉`,
+                title: title,
+                color: color,
+                description: description,
                 fields: [
                     {
                         name: '🎮 Minecraft Username',
@@ -223,7 +238,7 @@ const sendStatusUpdateNotification = async (order, newStatus) => {
                         inline: true
                     },
                     {
-                        name: '📦 Items Delivered',
+                        name: itemsLabel,
                         value: itemsList || 'No items',
                         inline: false
                     },
@@ -233,13 +248,13 @@ const sendStatusUpdateNotification = async (order, newStatus) => {
                         inline: true
                     },
                     {
-                        name: '🕐 Completed At',
+                        name: timeLabel,
                         value: formatDate(new Date().toISOString()),
                         inline: true
                     }
                 ],
                 footer: {
-                    text: 'Army SMP 2 Store - Order Fulfilled'
+                    text: footerText
                 },
                 timestamp: new Date().toISOString()
             }]
@@ -252,14 +267,14 @@ const sendStatusUpdateNotification = async (order, newStatus) => {
         });
 
         if (response.ok) {
-            console.log('✅ Completion notification sent successfully!');
+            console.log(`✅ ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)} notification sent successfully!`);
             return { success: true };
         } else {
-            console.log('⚠️ Completion notification failed:', response.status);
+            console.log(`⚠️ ${newStatus} notification failed:`, response.status);
             return { success: false };
         }
     } catch (error) {
-        console.error('❌ Completion notification error:', error.message);
+        console.error(`❌ ${newStatus} notification error:`, error.message);
         return { success: false, error: error.message };
     }
 };
