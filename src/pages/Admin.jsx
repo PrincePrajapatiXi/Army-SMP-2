@@ -79,23 +79,27 @@ const Admin = () => {
         }
     };
 
+    // Helper to get IST date string
+    const getISTDateString = (date) => {
+        return new Date(date).toLocaleDateString('en-IN', {
+            timeZone: 'Asia/Kolkata',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+    };
+
     // Calculate Analytics
+    const todayIST = getISTDateString(new Date());
+
     const analytics = {
         totalOrders: orders.length,
         totalRevenue: orders.reduce((sum, o) => sum + (o.total || 0), 0),
         pendingOrders: orders.filter(o => o.status === 'pending').length,
         completedOrders: orders.filter(o => o.status === 'completed').length,
-        todayOrders: orders.filter(o => {
-            const orderDate = new Date(o.createdAt).toDateString();
-            const today = new Date().toDateString();
-            return orderDate === today;
-        }).length,
+        todayOrders: orders.filter(o => getISTDateString(o.createdAt) === todayIST).length,
         todayRevenue: orders
-            .filter(o => {
-                const orderDate = new Date(o.createdAt).toDateString();
-                const today = new Date().toDateString();
-                return orderDate === today;
-            })
+            .filter(o => getISTDateString(o.createdAt) === todayIST)
             .reduce((sum, o) => sum + (o.total || 0), 0)
     };
 
