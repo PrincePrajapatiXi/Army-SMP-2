@@ -128,5 +128,18 @@
             "Use in Server Shop",
             "Instant Delivery"
         ]
+    },
+    {
+        "id": 9,
+        "name": "11",
+        "price": 111,
+        "priceDisplay": "₹111",
+        "color": "#da1010",
+        "category": "ranks",
+        "image": "/images/stone.png",
+        "description": "dfsdf",
+        "features": [
+            "sdfsdf"
+        ]
     }
 ]

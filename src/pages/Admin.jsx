@@ -2,11 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
     Lock, LogOut, Package, TrendingUp, DollarSign,
     ShoppingCart, CheckCircle, XCircle, AlertCircle,
-    Calendar, Filter, RefreshCw, Trash2, BarChart3, X
+    Calendar, Filter, RefreshCw, Trash2, BarChart3, X,
+    Box, Edit, Plus, Image
 } from 'lucide-react';
 import './Admin.css';
 
-const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
+const API_BASE_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:5000/api'
+    : 'https://army-smp-2.onrender.com/api';
 
 const Admin = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -25,6 +28,22 @@ const Admin = () => {
     const chartRef = useRef(null);
     const pieChartRef = useRef(null);
 
+    // Product Management State
+    const [products, setProducts] = useState([]);
+    const [showProductModal, setShowProductModal] = useState(false);
+    const [editingProduct, setEditingProduct] = useState(null);
+    const [productLoading, setProductLoading] = useState(false);
+    const [showProductDeleteConfirm, setShowProductDeleteConfirm] = useState(null);
+    const [productForm, setProductForm] = useState({
+        name: '',
+        price: '',
+        category: 'ranks',
+        image: '/images/stone.png',
+        description: '',
+        color: '#ffffff',
+        features: ''
+    });
+
     // Check if already logged in
     useEffect(() => {
         const adminAuth = sessionStorage.getItem('adminAuth');
@@ -37,6 +56,7 @@ const Admin = () => {
     useEffect(() => {
         if (isAuthenticated) {
             fetchOrders();
+            fetchProducts();
         }
     }, [isAuthenticated]);
 
@@ -95,6 +115,115 @@ const Admin = () => {
             console.error('Error fetching orders:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    // ==================== PRODUCT MANAGEMENT FUNCTIONS ====================
+
+    const fetchProducts = async () => {
+        setProductLoading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/products`);
+            const data = await response.json();
+            setProducts(data || []);
+        } catch (error) {
+            console.error('Error fetching products:', error);
+        } finally {
+            setProductLoading(false);
+        }
+    };
+
+    const resetProductForm = () => {
+        setProductForm({
+            name: '',
+            price: '',
+            category: 'ranks',
+            image: '/images/stone.png',
+            description: '',
+            color: '#ffffff',
+            features: ''
+        });
+        setEditingProduct(null);
+    };
+
+    const openAddModal = () => {
+        resetProductForm();
+        setShowProductModal(true);
+    };
+
+    const openEditModal = (product) => {
+        setEditingProduct(product);
+        setProductForm({
+            name: product.name,
+            price: product.price.toString(),
+            category: product.category,
+            image: product.image,
+            description: product.description || '',
+            color: product.color || '#ffffff',
+            features: (product.features || []).join(', ')
+        });
+        setShowProductModal(true);
+    };
+
+    const handleProductSubmit = async (e) => {
+        e.preventDefault();
+        setProductLoading(true);
+
+        const productData = {
+            name: productForm.name,
+            price: parseFloat(productForm.price),
+            category: productForm.category,
+            image: productForm.image,
+            description: productForm.description,
+            color: productForm.color,
+            features: productForm.features.split(',').map(f => f.trim()).filter(f => f)
+        };
+
+        try {
+            const url = editingProduct
+                ? `${API_BASE_URL}/admin/products/${editingProduct.id}`
+                : `${API_BASE_URL}/admin/products`;
+
+            const response = await fetch(url, {
+                method: editingProduct ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(productData)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setShowProductModal(false);
+                resetProductForm();
+                fetchProducts();
+            } else {
+                alert(data.error || 'Failed to save product');
+            }
+        } catch (error) {
+            console.error('Error saving product:', error);
+            alert('Failed to save product');
+        } finally {
+            setProductLoading(false);
+        }
+    };
+
+    const handleDeleteProduct = async (productId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/products/${productId}`, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setShowProductDeleteConfirm(null);
+                fetchProducts();
+            } else {
+                alert(data.error || 'Failed to delete product');
+            }
+        } catch (error) {
+            console.error('Error deleting product:', error);
+            alert('Failed to delete product');
         }
     };
 
@@ -467,6 +596,13 @@ const Admin = () => {
                     <Package size={20} />
                     <span>Orders</span>
                 </button>
+                <button
+                    className={`mobile-nav-item ${activeTab === 'products' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('products')}
+                >
+                    <Box size={20} />
+                    <span>Products</span>
+                </button>
                 <button className="mobile-nav-item logout" onClick={handleLogout}>
                     <LogOut size={20} />
                     <span>Logout</span>
@@ -493,6 +629,13 @@ const Admin = () => {
                         <Package size={20} />
                         <span>Orders</span>
                     </button>
+                    <button
+                        className={`sidebar-item ${activeTab === 'products' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('products')}
+                    >
+                        <Box size={20} />
+                        <span>Products</span>
+                    </button>
                 </nav>
                 <button className="logout-btn" onClick={handleLogout}>
                     <LogOut size={20} />
@@ -504,9 +647,17 @@ const Admin = () => {
             <main className="admin-main">
                 {/* Header */}
                 <header className="admin-header">
-                    <h1>{activeTab === 'dashboard' ? '📊 Sales Analytics' : '📦 Order Management'}</h1>
-                    <button className="refresh-btn" onClick={fetchOrders} disabled={loading}>
-                        <RefreshCw size={18} className={loading ? 'spinning' : ''} />
+                    <h1>
+                        {activeTab === 'dashboard' && '📊 Sales Analytics'}
+                        {activeTab === 'orders' && '📦 Order Management'}
+                        {activeTab === 'products' && '🛍️ Product Management'}
+                    </h1>
+                    <button
+                        className="refresh-btn"
+                        onClick={() => { fetchOrders(); fetchProducts(); }}
+                        disabled={loading || productLoading}
+                    >
+                        <RefreshCw size={18} className={(loading || productLoading) ? 'spinning' : ''} />
                         <span>Refresh</span>
                     </button>
                 </header>
@@ -816,6 +967,227 @@ const Admin = () => {
                                     <p>No orders found</p>
                                 </div>
                             )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Products Tab */}
+                {activeTab === 'products' && (
+                    <div className="products-content">
+                        {/* Products Toolbar */}
+                        <div className="products-toolbar">
+                            <div className="products-info">
+                                <Box size={18} />
+                                <span>{products.length} products</span>
+                            </div>
+                            <button className="add-product-btn" onClick={openAddModal}>
+                                <Plus size={18} />
+                                <span>Add Product</span>
+                            </button>
+                        </div>
+
+                        {/* Products Grid */}
+                        <div className="products-grid">
+                            {products.map(product => (
+                                <div key={product.id} className="admin-product-card">
+                                    <div className="product-card-image">
+                                        <img
+                                            src={product.image}
+                                            alt={product.name}
+                                            onError={(e) => { e.target.src = '/images/stone.png'; }}
+                                        />
+                                        <div
+                                            className="product-color-badge"
+                                            style={{ backgroundColor: product.color }}
+                                        />
+                                    </div>
+                                    <div className="product-card-info">
+                                        <h4>{product.name}</h4>
+                                        <span className="product-category">{product.category}</span>
+                                        <span className="product-price">{product.priceDisplay}</span>
+                                    </div>
+                                    <div className="product-card-actions">
+                                        <button
+                                            className="edit-btn"
+                                            onClick={() => openEditModal(product)}
+                                        >
+                                            <Edit size={16} />
+                                            Edit
+                                        </button>
+                                        <button
+                                            className="delete-btn"
+                                            onClick={() => setShowProductDeleteConfirm(product.id)}
+                                        >
+                                            <Trash2 size={16} />
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {products.length === 0 && (
+                            <div className="no-products-admin">
+                                <Box size={48} />
+                                <p>No products found</p>
+                                <button className="add-product-btn" onClick={openAddModal}>
+                                    <Plus size={18} />
+                                    <span>Add First Product</span>
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Product Add/Edit Modal */}
+                {showProductModal && (
+                    <div className="modal-overlay" onClick={() => { setShowProductModal(false); resetProductForm(); }}>
+                        <div className="product-modal-content" onClick={e => e.stopPropagation()}>
+                            <div className="modal-header">
+                                <h3>{editingProduct ? '✏️ Edit Product' : '➕ Add New Product'}</h3>
+                                <button
+                                    className="modal-close-btn"
+                                    onClick={() => { setShowProductModal(false); resetProductForm(); }}
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleProductSubmit} className="product-form">
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Product Name *</label>
+                                        <input
+                                            type="text"
+                                            value={productForm.name}
+                                            onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
+                                            placeholder="e.g., Diamond Rank"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Price (₹) *</label>
+                                        <input
+                                            type="number"
+                                            value={productForm.price}
+                                            onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
+                                            placeholder="e.g., 100"
+                                            min="1"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Category *</label>
+                                        <select
+                                            value={productForm.category}
+                                            onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
+                                            required
+                                        >
+                                            <option value="ranks">Ranks</option>
+                                            <option value="keys">Keys</option>
+                                            <option value="coins">Coins</option>
+                                            <option value="items">Items</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Color</label>
+                                        <div className="color-input-wrapper">
+                                            <input
+                                                type="color"
+                                                value={productForm.color}
+                                                onChange={(e) => setProductForm({ ...productForm, color: e.target.value })}
+                                                className="color-picker"
+                                            />
+                                            <input
+                                                type="text"
+                                                value={productForm.color}
+                                                onChange={(e) => setProductForm({ ...productForm, color: e.target.value })}
+                                                placeholder="#ffffff"
+                                                className="color-text"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Image Path</label>
+                                    <div className="image-input-wrapper">
+                                        <Image size={18} />
+                                        <input
+                                            type="text"
+                                            value={productForm.image}
+                                            onChange={(e) => setProductForm({ ...productForm, image: e.target.value })}
+                                            placeholder="/images/stone.png"
+                                        />
+                                    </div>
+                                    <small className="form-hint">Use: /images/stone.png, /images/Beacon.png, or /images/bedrock.png</small>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Description</label>
+                                    <textarea
+                                        value={productForm.description}
+                                        onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
+                                        placeholder="Brief description of the product..."
+                                        rows={3}
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Features (comma separated)</label>
+                                    <textarea
+                                        value={productForm.features}
+                                        onChange={(e) => setProductForm({ ...productForm, features: e.target.value })}
+                                        placeholder="Feature 1, Feature 2, Feature 3..."
+                                        rows={2}
+                                    />
+                                </div>
+
+                                <div className="modal-form-actions">
+                                    <button
+                                        type="button"
+                                        className="btn-cancel"
+                                        onClick={() => { setShowProductModal(false); resetProductForm(); }}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="btn-save"
+                                        disabled={productLoading}
+                                    >
+                                        {productLoading ? 'Saving...' : (editingProduct ? 'Update Product' : 'Add Product')}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* Product Delete Confirmation Modal */}
+                {showProductDeleteConfirm && (
+                    <div className="modal-overlay" onClick={() => setShowProductDeleteConfirm(null)}>
+                        <div className="modal-content" onClick={e => e.stopPropagation()}>
+                            <h3>⚠️ Delete Product</h3>
+                            <p>Are you sure you want to delete this product?</p>
+                            <p className="warning-text">This action cannot be undone!</p>
+                            <div className="modal-actions">
+                                <button
+                                    className="btn-cancel"
+                                    onClick={() => setShowProductDeleteConfirm(null)}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="btn-delete"
+                                    onClick={() => handleDeleteProduct(showProductDeleteConfirm)}
+                                >
+                                    Delete Product
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}

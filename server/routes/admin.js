@@ -184,4 +184,135 @@ router.delete('/orders/:id', (req, res) => {
     }
 });
 
+// ==================== PRODUCT MANAGEMENT ====================
+
+const productsFilePath = path.join(__dirname, '../data/products.json');
+
+// Load products from file
+const getProducts = () => {
+    try {
+        const data = fs.readFileSync(productsFilePath, 'utf8');
+        return JSON.parse(data);
+    } catch {
+        return [];
+    }
+};
+
+// Save products to file
+const saveProducts = (products) => {
+    fs.writeFileSync(productsFilePath, JSON.stringify(products, null, 4));
+};
+
+// GET /api/admin/products - Get all products
+router.get('/products', (req, res) => {
+    try {
+        const products = getProducts();
+        res.json(products);
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        res.status(500).json({ error: 'Failed to fetch products' });
+    }
+});
+
+// POST /api/admin/products - Add new product
+router.post('/products', (req, res) => {
+    try {
+        const { name, price, category, image, description, color, features } = req.body;
+
+        if (!name || !price || !category) {
+            return res.status(400).json({ error: 'Name, price, and category are required' });
+        }
+
+        const products = getProducts();
+
+        // Generate new ID
+        const maxId = products.reduce((max, p) => Math.max(max, p.id), 0);
+        const newProduct = {
+            id: maxId + 1,
+            name,
+            price: parseFloat(price),
+            priceDisplay: `₹${price}`,
+            color: color || '#ffffff',
+            category,
+            image: image || '/images/stone.png',
+            description: description || '',
+            features: features || []
+        };
+
+        products.push(newProduct);
+        saveProducts(products);
+
+        res.json({
+            success: true,
+            message: 'Product added successfully',
+            product: newProduct
+        });
+    } catch (error) {
+        console.error('Error adding product:', error);
+        res.status(500).json({ error: 'Failed to add product' });
+    }
+});
+
+// PUT /api/admin/products/:id - Update product
+router.put('/products/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, price, category, image, description, color, features } = req.body;
+
+        const products = getProducts();
+        const productIndex = products.findIndex(p => p.id === parseInt(id));
+
+        if (productIndex === -1) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
+        // Update product fields
+        products[productIndex] = {
+            ...products[productIndex],
+            name: name || products[productIndex].name,
+            price: price ? parseFloat(price) : products[productIndex].price,
+            priceDisplay: price ? `₹${price}` : products[productIndex].priceDisplay,
+            category: category || products[productIndex].category,
+            image: image || products[productIndex].image,
+            description: description !== undefined ? description : products[productIndex].description,
+            color: color || products[productIndex].color,
+            features: features || products[productIndex].features
+        };
+
+        saveProducts(products);
+
+        res.json({
+            success: true,
+            message: 'Product updated successfully',
+            product: products[productIndex]
+        });
+    } catch (error) {
+        console.error('Error updating product:', error);
+        res.status(500).json({ error: 'Failed to update product' });
+    }
+});
+
+// DELETE /api/admin/products/:id - Delete product
+router.delete('/products/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+        const products = getProducts();
+        const filteredProducts = products.filter(p => p.id !== parseInt(id));
+
+        if (filteredProducts.length === products.length) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
+        saveProducts(filteredProducts);
+
+        res.json({
+            success: true,
+            message: 'Product deleted successfully'
+        });
+    } catch (error) {
+        console.error('Error deleting product:', error);
+        res.status(500).json({ error: 'Failed to delete product' });
+    }
+});
+
 module.exports = router;

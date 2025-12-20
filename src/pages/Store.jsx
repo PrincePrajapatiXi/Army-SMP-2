@@ -1,9 +1,13 @@
-import React, { useState, useMemo } from 'react';
-import { Search, SlidersHorizontal } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Search, SlidersHorizontal, Loader2 } from 'lucide-react';
 import { products as staticProducts } from '../data/products';
 import ProductCard from '../components/ProductCard';
 import ProductModal from '../components/ProductModal';
 import './Store.css';
+
+const API_BASE_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:5000/api'
+    : 'https://army-smp-2.onrender.com/api';
 
 const categories = [
     { id: 'all', label: 'All Items' },
@@ -22,14 +26,39 @@ const sortOptions = [
 ];
 
 const Store = () => {
+    const [products, setProducts] = useState(staticProducts);
+    const [loading, setLoading] = useState(true);
     const [activeCategory, setActiveCategory] = useState('all');
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [sortBy, setSortBy] = useState('default');
 
+    // Fetch products from API
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                setLoading(true);
+                const response = await fetch(`${API_BASE_URL}/products`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (Array.isArray(data) && data.length > 0) {
+                        setProducts(data);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                // Fallback to static products is already initial state
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProducts();
+    }, []);
+
     // Filter and sort products
-    const products = useMemo(() => {
-        let filtered = staticProducts;
+    const filteredProducts = useMemo(() => {
+        let filtered = products;
 
         // Category filter
         if (activeCategory !== 'all') {
@@ -66,7 +95,7 @@ const Store = () => {
         }
 
         return sorted;
-    }, [activeCategory, searchQuery, sortBy]);
+    }, [products, activeCategory, searchQuery, sortBy]);
 
     return (
         <div className="page-content" style={{ marginTop: '80px', minHeight: '100vh', paddingBottom: '4rem' }}>
@@ -131,36 +160,44 @@ const Store = () => {
                 {/* Results Count */}
                 {searchQuery && (
                     <div className="search-results-info">
-                        Found <strong>{products.length}</strong> {products.length === 1 ? 'product' : 'products'}
+                        Found <strong>{filteredProducts.length}</strong> {filteredProducts.length === 1 ? 'product' : 'products'}
                         {searchQuery && <span> for "<strong>{searchQuery}</strong>"</span>}
                     </div>
                 )}
 
-                {/* Product Grid - Instant render */}
-                <div className="store-grid">
-                    {products.map(product => (
-                        <ProductCard
-                            key={product.id}
-                            product={product}
-                            onBuy={setSelectedProduct}
-                        />
-                    ))}
-                </div>
-
-                {products.length === 0 && (
-                    <div className="no-products">
-                        <div className="no-products-icon">🔍</div>
-                        <h3>No products found</h3>
-                        <p>Try adjusting your search or filter criteria</p>
-                        {searchQuery && (
-                            <button
-                                className="btn btn-outline"
-                                onClick={() => setSearchQuery('')}
-                            >
-                                Clear Search
-                            </button>
-                        )}
+                {/* Product Grid */}
+                {loading ? (
+                    <div className="loading-container" style={{ display: 'flex', justifyContent: 'center', padding: '100px 0' }}>
+                        <Loader2 className="spinning" size={48} color="var(--primary)" />
                     </div>
+                ) : (
+                    <>
+                        <div className="store-grid">
+                            {filteredProducts.map(product => (
+                                <ProductCard
+                                    key={product.id}
+                                    product={product}
+                                    onBuy={setSelectedProduct}
+                                />
+                            ))}
+                        </div>
+
+                        {filteredProducts.length === 0 && (
+                            <div className="no-products">
+                                <div className="no-products-icon">🔍</div>
+                                <h3>No products found</h3>
+                                <p>Try adjusting your search or filter criteria</p>
+                                {searchQuery && (
+                                    <button
+                                        className="btn btn-outline"
+                                        onClick={() => setSearchQuery('')}
+                                    >
+                                        Clear Search
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </>
                 )}
 
             </div>
