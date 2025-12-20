@@ -97,6 +97,7 @@ const Admin = () => {
         totalRevenue: orders.reduce((sum, o) => sum + (o.total || 0), 0),
         pendingOrders: orders.filter(o => o.status === 'pending').length,
         completedOrders: orders.filter(o => o.status === 'completed').length,
+        cancelledOrders: orders.filter(o => o.status === 'cancelled').length,
         todayOrders: orders.filter(o => getISTDateString(o.createdAt) === todayIST).length,
         todayRevenue: orders
             .filter(o => getISTDateString(o.createdAt) === todayIST)
@@ -259,6 +260,13 @@ const Admin = () => {
                                         Completed
                                     </div>
                                     <div className="status-bar-value">{analytics.completedOrders}</div>
+                                </div>
+                                <div className="status-bar-item">
+                                    <div className="status-bar-label">
+                                        <span className="status-dot cancelled"></span>
+                                        Cancelled
+                                    </div>
+                                    <div className="status-bar-value">{analytics.cancelledOrders}</div>
                                 </div>
                             </div>
                         </div>
