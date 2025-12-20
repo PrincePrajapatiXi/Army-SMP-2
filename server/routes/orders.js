@@ -120,9 +120,9 @@ router.get('/:id', (req, res) => {
 // GET /api/orders/user/:username - Get orders by Minecraft username
 router.get('/user/:username', (req, res) => {
     const orders = getOrders();
-    const userOrders = orders.filter(
-        o => o.minecraftUsername.toLowerCase() === req.params.username.toLowerCase()
-    );
+    const userOrders = orders
+        .filter(o => o.minecraftUsername.toLowerCase() === req.params.username.toLowerCase())
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Newest first
 
     res.json(userOrders);
 });
@@ -131,9 +131,9 @@ router.get('/user/:username', (req, res) => {
 router.get('/email/:email', (req, res) => {
     const orders = getOrders();
     const email = decodeURIComponent(req.params.email).toLowerCase();
-    const userOrders = orders.filter(
-        o => o.email && o.email.toLowerCase() === email
-    );
+    const userOrders = orders
+        .filter(o => o.email && o.email.toLowerCase() === email)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Newest first
 
     res.json(userOrders);
 });
