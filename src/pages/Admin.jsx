@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
     Lock, LogOut, Package, TrendingUp, DollarSign,
     ShoppingCart, CheckCircle, XCircle, AlertCircle,
-    Calendar, Filter, RefreshCw, Trash2, BarChart3
+    Calendar, Filter, RefreshCw, Trash2, BarChart3, X
 } from 'lucide-react';
 import './Admin.css';
 
@@ -19,6 +19,8 @@ const Admin = () => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [selectedOrders, setSelectedOrders] = useState([]);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
     const chartRef = useRef(null);
     const pieChartRef = useRef(null);
 
@@ -292,9 +294,36 @@ const Admin = () => {
             .reduce((sum, o) => sum + (o.total || 0), 0)
     };
 
-    const filteredOrders = statusFilter === 'all'
-        ? orders
-        : orders.filter(o => o.status === statusFilter);
+    // Filter orders by status and date range
+    const filteredOrders = orders.filter(o => {
+        // Status filter
+        if (statusFilter !== 'all' && o.status !== statusFilter) return false;
+
+        // Date range filter
+        if (startDate || endDate) {
+            const orderDate = new Date(o.createdAt);
+            orderDate.setHours(0, 0, 0, 0);
+
+            if (startDate) {
+                const start = new Date(startDate);
+                start.setHours(0, 0, 0, 0);
+                if (orderDate < start) return false;
+            }
+
+            if (endDate) {
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                if (orderDate > end) return false;
+            }
+        }
+
+        return true;
+    });
+
+    const clearDateFilter = () => {
+        setStartDate('');
+        setEndDate('');
+    };
 
     const getStatusIcon = (status) => {
         switch (status) {
@@ -555,6 +584,32 @@ const Admin = () => {
                                     <option value="completed">Completed</option>
                                     <option value="cancelled">Cancelled</option>
                                 </select>
+
+                                {/* Date Range Filter */}
+                                <div className="date-filter">
+                                    <Calendar size={16} />
+                                    <input
+                                        type="date"
+                                        value={startDate}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                        className="date-input"
+                                        placeholder="From"
+                                    />
+                                    <span className="date-separator">to</span>
+                                    <input
+                                        type="date"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                        className="date-input"
+                                        placeholder="To"
+                                    />
+                                    {(startDate || endDate) && (
+                                        <button className="clear-date-btn" onClick={clearDateFilter}>
+                                            <X size={14} />
+                                        </button>
+                                    )}
+                                </div>
+
                                 <span className="filter-count">{filteredOrders.length} orders</span>
                             </div>
 
