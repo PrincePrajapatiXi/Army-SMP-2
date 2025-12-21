@@ -54,21 +54,25 @@ const Modal = ({ isOpen, onClose, product }) => {
             justifyContent: 'center',
             zIndex: 2000,
             backdropFilter: 'blur(5px)',
-            animation: 'fadeIn 0.2s ease-out'
+            animation: 'fadeIn 0.2s ease-out',
+            overflowY: 'auto',
+            padding: '20px'
         }} onClick={onClose}>
             <div style={{
                 backgroundColor: 'var(--bg-surface)',
                 borderRadius: '16px',
                 width: '90%',
                 maxWidth: '500px',
-                maxHeight: '90vh',
+                maxHeight: '85vh',
                 display: 'flex',
                 flexDirection: 'column',
                 position: 'relative',
                 border: '1px solid rgba(255,255,255,0.1)',
                 boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
                 transform: 'translateY(0)',
-                animation: 'float 0.3s ease-out'
+                animation: 'float 0.3s ease-out',
+                margin: 'auto',
+                overflowY: 'auto'
             }} onClick={e => e.stopPropagation()}>
 
                 <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
