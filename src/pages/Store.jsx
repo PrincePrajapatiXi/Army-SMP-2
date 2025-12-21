@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, SlidersHorizontal, Loader2 } from 'lucide-react';
+import { Search, SlidersHorizontal } from 'lucide-react';
 import { products as staticProducts } from '../data/products';
 import ProductCard from '../components/ProductCard';
 import ProductModal from '../components/ProductModal';
+import { SkeletonGrid } from '../components/SkeletonCard';
 import './Store.css';
 
 const API_BASE_URL = window.location.hostname === 'localhost'
@@ -167,9 +168,7 @@ const Store = () => {
 
                 {/* Product Grid */}
                 {loading ? (
-                    <div className="loading-container" style={{ display: 'flex', justifyContent: 'center', padding: '100px 0' }}>
-                        <Loader2 className="spinning" size={48} color="var(--primary)" />
-                    </div>
+                    <SkeletonGrid count={8} />
                 ) : (
                     <>
                         <div className="store-grid">
