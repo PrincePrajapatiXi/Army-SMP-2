@@ -14,7 +14,7 @@ const loginAttempts = {
     failedAttempts: 0,
     lockoutUntil: null,
     MAX_ATTEMPTS: 3,
-    LOCKOUT_DURATION: 1 * 60 * 1000  // 1 minute in ms (change to 2 * 60 * 60 * 1000 for 2 hours)
+    LOCKOUT_DURATION: 24 * 60 * 60 * 1000  // 1 minute in ms (change to 2 * 60 * 60 * 1000 for 2 hours)
 };
 
 // POST /api/admin/login - Secure admin authentication with rate limiting
