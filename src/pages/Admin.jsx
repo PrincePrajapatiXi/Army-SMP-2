@@ -1880,6 +1880,7 @@ const Admin = () => {
                                             type="text"
                                             value={promotionForm.name}
                                             onChange={(e) => setPromotionForm({ ...promotionForm, name: e.target.value })}
+                                            placeholder="Enter sponsor name"
                                             required
                                         />
                                     </div>
@@ -1889,6 +1890,7 @@ const Admin = () => {
                                             type="number"
                                             value={promotionForm.position}
                                             onChange={(e) => setPromotionForm({ ...promotionForm, position: e.target.value })}
+                                            placeholder="Slide order (1, 2, 3...)"
                                             min="1"
                                         />
                                     </div>
@@ -1900,6 +1902,7 @@ const Admin = () => {
                                         type="text"
                                         value={promotionForm.tagline}
                                         onChange={(e) => setPromotionForm({ ...promotionForm, tagline: e.target.value })}
+                                        placeholder="Short catchy tagline"
                                     />
                                 </div>
 
@@ -1908,6 +1911,7 @@ const Admin = () => {
                                     <textarea
                                         value={promotionForm.description}
                                         onChange={(e) => setPromotionForm({ ...promotionForm, description: e.target.value })}
+                                        placeholder="Describe the sponsor in detail..."
                                         rows={3}
                                         required
                                     />
@@ -1919,6 +1923,7 @@ const Admin = () => {
                                         type="text"
                                         value={promotionForm.features}
                                         onChange={(e) => setPromotionForm({ ...promotionForm, features: e.target.value })}
+                                        placeholder="Feature 1, Feature 2, Feature 3"
                                     />
                                 </div>
 
@@ -1929,6 +1934,7 @@ const Admin = () => {
                                             type="url"
                                             value={promotionForm.link}
                                             onChange={(e) => setPromotionForm({ ...promotionForm, link: e.target.value })}
+                                            placeholder="https://example.com"
                                             required
                                         />
                                     </div>
@@ -1938,6 +1944,7 @@ const Admin = () => {
                                             type="text"
                                             value={promotionForm.buttonText}
                                             onChange={(e) => setPromotionForm({ ...promotionForm, buttonText: e.target.value })}
+                                            placeholder="Visit Website"
                                         />
                                     </div>
                                 </div>
@@ -1949,6 +1956,7 @@ const Admin = () => {
                                             type="text"
                                             value={promotionForm.logo}
                                             onChange={(e) => setPromotionForm({ ...promotionForm, logo: e.target.value })}
+                                            placeholder="/images/logo.png"
                                         />
                                     </div>
                                     <div className="form-group">
