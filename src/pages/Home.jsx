@@ -107,8 +107,7 @@ const Home = () => {
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundAttachment: 'fixed',
-                marginTop: '-80px',
-                paddingTop: '80px',
+                paddingTop: '100px',
                 paddingBottom: '4rem',
                 position: 'relative',
                 overflow: 'hidden'
@@ -129,11 +128,14 @@ const Home = () => {
 
                 <div className="container" style={{ position: 'relative', zIndex: 1 }}>
                     <h1 style={{
-                        fontSize: 'clamp(2.5rem, 8vw, 4.5rem)',
+                        fontSize: 'clamp(1.8rem, 7vw, 4.5rem)',
                         marginBottom: '1.5rem',
                         fontWeight: '800',
                         letterSpacing: '-1px',
-                        lineHeight: 1.1
+                        lineHeight: 1.2,
+                        wordWrap: 'break-word',
+                        overflowWrap: 'break-word',
+                        padding: '0 10px'
                     }}>
                         Welcome to{' '}
                         <span style={{
@@ -144,7 +146,8 @@ const Home = () => {
                             backgroundClip: 'text',
                             animation: 'gradientFlow 3s ease infinite',
                             textShadow: 'none',
-                            filter: 'drop-shadow(0 0 30px rgba(255, 107, 53, 0.5))'
+                            filter: 'drop-shadow(0 0 30px rgba(255, 107, 53, 0.5))',
+                            display: 'inline-block'
                         }}>
                             {displayText}
                             <span style={{
