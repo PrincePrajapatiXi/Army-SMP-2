@@ -3,7 +3,8 @@ import {
     Lock, LogOut, Package, TrendingUp, DollarSign,
     ShoppingCart, CheckCircle, XCircle, AlertCircle,
     Calendar, Filter, RefreshCw, Trash2, BarChart3, X,
-    Box, Edit, Plus, Image, Search, Ticket, ToggleLeft, ToggleRight
+    Box, Edit, Plus, Image, Search, Ticket, ToggleLeft, ToggleRight,
+    Megaphone, GripVertical
 } from 'lucide-react';
 import './Admin.css';
 
@@ -63,6 +64,24 @@ const Admin = () => {
         expiresAt: ''
     });
 
+    // Promotions Management State
+    const [promotions, setPromotions] = useState([]);
+    const [promotionLoading, setPromotionLoading] = useState(false);
+    const [showPromotionModal, setShowPromotionModal] = useState(false);
+    const [editingPromotion, setEditingPromotion] = useState(null);
+    const [showPromotionDeleteConfirm, setShowPromotionDeleteConfirm] = useState(null);
+    const [promotionForm, setPromotionForm] = useState({
+        name: '',
+        logo: '/images/stone.png',
+        tagline: '',
+        description: '',
+        features: '',
+        link: '',
+        buttonText: 'Learn More',
+        gradient: 'linear-gradient(135deg, #1e3a5f, #0d1b2a)',
+        position: 1
+    });
+
     // Check if already logged in
     useEffect(() => {
         const adminAuth = sessionStorage.getItem('adminAuth');
@@ -77,6 +96,7 @@ const Admin = () => {
             fetchOrders();
             fetchProducts();
             fetchCoupons();
+            fetchPromotions();
         }
     }, [isAuthenticated]);
 
@@ -385,6 +405,142 @@ const Admin = () => {
         } catch (error) {
             console.error('Error toggling coupon:', error);
             alert('Failed to toggle coupon');
+        }
+    };
+
+    // ==================== PROMOTIONS MANAGEMENT FUNCTIONS ====================
+
+    const fetchPromotions = async () => {
+        setPromotionLoading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/promotions`);
+            const data = await response.json();
+            setPromotions(data || []);
+        } catch (error) {
+            console.error('Error fetching promotions:', error);
+        } finally {
+            setPromotionLoading(false);
+        }
+    };
+
+    const resetPromotionForm = () => {
+        setPromotionForm({
+            name: '',
+            logo: '/images/stone.png',
+            tagline: '',
+            description: '',
+            features: '',
+            link: '',
+            buttonText: 'Learn More',
+            gradient: 'linear-gradient(135deg, #1e3a5f, #0d1b2a)',
+            position: promotions.length + 1
+        });
+        setEditingPromotion(null);
+    };
+
+    const openAddPromotionModal = () => {
+        resetPromotionForm();
+        setShowPromotionModal(true);
+    };
+
+    const openEditPromotionModal = (promo) => {
+        setEditingPromotion(promo);
+        setPromotionForm({
+            name: promo.name,
+            logo: promo.logo,
+            tagline: promo.tagline || '',
+            description: promo.description,
+            features: Array.isArray(promo.features) ? promo.features.join(', ') : promo.features || '',
+            link: promo.link,
+            buttonText: promo.buttonText || 'Learn More',
+            gradient: promo.gradient || 'linear-gradient(135deg, #1e3a5f, #0d1b2a)',
+            position: promo.position || 1
+        });
+        setShowPromotionModal(true);
+    };
+
+    const handlePromotionSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!promotionForm.name || !promotionForm.description || !promotionForm.link) {
+            alert('Please fill in Name, Description, and Link');
+            return;
+        }
+
+        const promotionData = {
+            name: promotionForm.name,
+            logo: promotionForm.logo,
+            tagline: promotionForm.tagline,
+            description: promotionForm.description,
+            features: promotionForm.features.split(',').map(f => f.trim()).filter(f => f),
+            link: promotionForm.link,
+            buttonText: promotionForm.buttonText,
+            gradient: promotionForm.gradient,
+            position: parseInt(promotionForm.position) || 1
+        };
+
+        try {
+            const url = editingPromotion
+                ? `${API_BASE_URL}/admin/promotions/${editingPromotion._id}`
+                : `${API_BASE_URL}/admin/promotions`;
+
+            const response = await fetch(url, {
+                method: editingPromotion ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(promotionData)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setShowPromotionModal(false);
+                resetPromotionForm();
+                fetchPromotions();
+            } else {
+                alert(data.error || 'Failed to save promotion');
+            }
+        } catch (error) {
+            console.error('Error saving promotion:', error);
+            alert('Failed to save promotion');
+        }
+    };
+
+    const handlePromotionDelete = async (promoId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/promotions/${promoId}`, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setShowPromotionDeleteConfirm(null);
+                fetchPromotions();
+            } else {
+                alert(data.error || 'Failed to delete promotion');
+            }
+        } catch (error) {
+            console.error('Error deleting promotion:', error);
+            alert('Failed to delete promotion');
+        }
+    };
+
+    const togglePromotionActive = async (promoId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/promotions/${promoId}/toggle`, {
+                method: 'PUT'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                fetchPromotions();
+            } else {
+                alert(data.error || 'Failed to toggle promotion');
+            }
+        } catch (error) {
+            console.error('Error toggling promotion:', error);
+            alert('Failed to toggle promotion');
         }
     };
 
@@ -768,6 +924,13 @@ const Admin = () => {
                     <Ticket size={20} />
                     <span>Coupons</span>
                 </button>
+                <button
+                    className={`mobile-nav-item ${activeTab === 'promotions' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('promotions')}
+                >
+                    <Megaphone size={20} />
+                    <span>Promos</span>
+                </button>
                 <button className="mobile-nav-item logout" onClick={handleLogout}>
                     <LogOut size={20} />
                     <span>Logout</span>
@@ -808,6 +971,13 @@ const Admin = () => {
                         <Ticket size={20} />
                         <span>Coupons</span>
                     </button>
+                    <button
+                        className={`sidebar-item ${activeTab === 'promotions' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('promotions')}
+                    >
+                        <Megaphone size={20} />
+                        <span>Promotions</span>
+                    </button>
                 </nav>
                 <button className="logout-btn" onClick={handleLogout}>
                     <LogOut size={20} />
@@ -824,13 +994,14 @@ const Admin = () => {
                         {activeTab === 'orders' && '📦 Order Management'}
                         {activeTab === 'products' && '🛍️ Product Management'}
                         {activeTab === 'coupons' && '🎟️ Coupon Management'}
+                        {activeTab === 'promotions' && '📣 Promotion Banners'}
                     </h1>
                     <button
                         className="refresh-btn"
-                        onClick={() => { fetchOrders(); fetchProducts(); fetchCoupons(); }}
-                        disabled={loading || productLoading || couponLoading}
+                        onClick={() => { fetchOrders(); fetchProducts(); fetchCoupons(); fetchPromotions(); }}
+                        disabled={loading || productLoading || couponLoading || promotionLoading}
                     >
-                        <RefreshCw size={18} className={(loading || productLoading || couponLoading) ? 'spinning' : ''} />
+                        <RefreshCw size={18} className={(loading || productLoading || couponLoading || promotionLoading) ? 'spinning' : ''} />
                         <span>Refresh</span>
                     </button>
                 </header>
@@ -1613,6 +1784,229 @@ const Admin = () => {
                                     onClick={() => handleDeleteCoupon(showCouponDeleteConfirm)}
                                 >
                                     Delete Coupon
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ==================== PROMOTIONS TAB ==================== */}
+                {activeTab === 'promotions' && (
+                    <div className="promotions-content">
+                        {/* Promotions Toolbar */}
+                        <div className="coupons-toolbar">
+                            <div className="coupons-info">
+                                <Megaphone size={18} />
+                                <span>{promotions.length} promotion banners</span>
+                            </div>
+                            <button className="add-coupon-btn" onClick={openAddPromotionModal}>
+                                <Plus size={18} />
+                                <span>Add Banner</span>
+                            </button>
+                        </div>
+
+                        {/* Promotions Grid */}
+                        <div className="coupons-grid">
+                            {promotions.map(promo => (
+                                <div
+                                    key={promo._id}
+                                    className={`coupon-card promo-card ${!promo.isActive ? 'inactive' : ''}`}
+                                    style={{ borderColor: promo.isActive ? '#22c55e' : '#6b7280' }}
+                                >
+                                    <div className="coupon-card-header">
+                                        <div className="promo-position">#{promo.position}</div>
+                                        <button
+                                            className={`toggle-btn ${promo.isActive ? 'active' : ''}`}
+                                            onClick={() => togglePromotionActive(promo._id)}
+                                            title={promo.isActive ? 'Deactivate' : 'Activate'}
+                                        >
+                                            {promo.isActive ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+                                        </button>
+                                    </div>
+                                    <div className="promo-card-preview">
+                                        <img
+                                            src={promo.logo}
+                                            alt={promo.name}
+                                            onError={(e) => { e.target.src = '/images/stone.png'; }}
+                                        />
+                                    </div>
+                                    <div className="coupon-card-body">
+                                        <div className="coupon-code" style={{ fontSize: '1.1rem' }}>{promo.name}</div>
+                                        <div className="coupon-details" style={{ marginTop: '8px' }}>
+                                            <span>{promo.tagline}</span>
+                                        </div>
+                                        <div className="promo-link" style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '5px' }}>
+                                            {promo.link?.substring(0, 35)}...
+                                        </div>
+                                    </div>
+                                    <div className="coupon-card-actions">
+                                        <button
+                                            className="edit-btn"
+                                            onClick={() => openEditPromotionModal(promo)}
+                                        >
+                                            <Edit size={14} />
+                                            Edit
+                                        </button>
+                                        <button
+                                            className="delete-btn"
+                                            onClick={() => setShowPromotionDeleteConfirm(promo._id)}
+                                        >
+                                            <Trash2 size={14} />
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Promotion Add/Edit Modal */}
+                {showPromotionModal && (
+                    <div className="modal-overlay" onClick={() => setShowPromotionModal(false)}>
+                        <div className="modal-content coupon-modal" onClick={e => e.stopPropagation()}>
+                            <div className="modal-header">
+                                <h3>{editingPromotion ? '✏️ Edit Promotion' : '➕ Add Promotion'}</h3>
+                                <button className="modal-close" onClick={() => setShowPromotionModal(false)}>
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handlePromotionSubmit} className="coupon-form">
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Sponsor Name *</label>
+                                        <input
+                                            type="text"
+                                            value={promotionForm.name}
+                                            onChange={(e) => setPromotionForm({ ...promotionForm, name: e.target.value })}
+                                            placeholder="e.g., DragoHost"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Position</label>
+                                        <input
+                                            type="number"
+                                            value={promotionForm.position}
+                                            onChange={(e) => setPromotionForm({ ...promotionForm, position: e.target.value })}
+                                            placeholder="1, 2, 3..."
+                                            min="1"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Tagline</label>
+                                    <input
+                                        type="text"
+                                        value={promotionForm.tagline}
+                                        onChange={(e) => setPromotionForm({ ...promotionForm, tagline: e.target.value })}
+                                        placeholder="e.g., Premium Minecraft Hosting"
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Description *</label>
+                                    <textarea
+                                        value={promotionForm.description}
+                                        onChange={(e) => setPromotionForm({ ...promotionForm, description: e.target.value })}
+                                        placeholder="Full description of the sponsor..."
+                                        rows={3}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Features (comma separated)</label>
+                                    <input
+                                        type="text"
+                                        value={promotionForm.features}
+                                        onChange={(e) => setPromotionForm({ ...promotionForm, features: e.target.value })}
+                                        placeholder="24/7 Support, 100% Uptime, Premium Panel"
+                                    />
+                                </div>
+
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Link *</label>
+                                        <input
+                                            type="url"
+                                            value={promotionForm.link}
+                                            onChange={(e) => setPromotionForm({ ...promotionForm, link: e.target.value })}
+                                            placeholder="https://discord.gg/..."
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Button Text</label>
+                                        <input
+                                            type="text"
+                                            value={promotionForm.buttonText}
+                                            onChange={(e) => setPromotionForm({ ...promotionForm, buttonText: e.target.value })}
+                                            placeholder="Join Discord"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Logo Path</label>
+                                        <input
+                                            type="text"
+                                            value={promotionForm.logo}
+                                            onChange={(e) => setPromotionForm({ ...promotionForm, logo: e.target.value })}
+                                            placeholder="/images/stone.png"
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Gradient</label>
+                                        <select
+                                            value={promotionForm.gradient}
+                                            onChange={(e) => setPromotionForm({ ...promotionForm, gradient: e.target.value })}
+                                        >
+                                            <option value="linear-gradient(135deg, #1e3a5f, #0d1b2a)">Blue</option>
+                                            <option value="linear-gradient(135deg, #4a1942, #2d132c)">Purple</option>
+                                            <option value="linear-gradient(135deg, #1a4731, #0d2818)">Green</option>
+                                            <option value="linear-gradient(135deg, #5c3c1e, #2d1e0e)">Brown</option>
+                                            <option value="linear-gradient(135deg, #3d2c5a, #1e1630)">Violet</option>
+                                            <option value="linear-gradient(135deg, #5a2c2c, #301616)">Red</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="form-actions">
+                                    <button type="button" className="btn-cancel" onClick={() => setShowPromotionModal(false)}>
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="btn-submit">
+                                        {promotionLoading ? 'Saving...' : (editingPromotion ? 'Update' : 'Add Banner')}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* Promotion Delete Confirmation Modal */}
+                {showPromotionDeleteConfirm && (
+                    <div className="modal-overlay" onClick={() => setShowPromotionDeleteConfirm(null)}>
+                        <div className="modal-content" onClick={e => e.stopPropagation()}>
+                            <h3>⚠️ Delete Promotion</h3>
+                            <p>Are you sure you want to delete this promotion banner?</p>
+                            <p className="warning-text">This action cannot be undone!</p>
+                            <div className="modal-actions">
+                                <button
+                                    className="btn-cancel"
+                                    onClick={() => setShowPromotionDeleteConfirm(null)}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="btn-delete"
+                                    onClick={() => handlePromotionDelete(showPromotionDeleteConfirm)}
+                                >
+                                    Delete Banner
                                 </button>
                             </div>
                         </div>

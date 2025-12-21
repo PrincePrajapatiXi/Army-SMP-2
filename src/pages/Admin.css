@@ -1855,3 +1855,49 @@
         margin-top: -30px;
     }
 }
+
+/* ==================== PROMOTION CARD STYLES ==================== */
+
+.promo-card {
+    border-width: 2px !important;
+}
+
+.promo-card-preview {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    margin: 0 15px 10px;
+}
+
+.promo-card-preview img {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+}
+
+.promo-position {
+    background: linear-gradient(135deg, var(--primary), #ffc107);
+    color: black;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
+
+.promotions-content {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
