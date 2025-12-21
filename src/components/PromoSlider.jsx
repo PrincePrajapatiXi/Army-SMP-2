@@ -4,9 +4,14 @@ import './PromoSlider.css';
 const PromoSlider = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+    const [isPaused, setIsPaused] = useState(false);
+    const [progress, setProgress] = useState(0);
     const sliderRef = useRef(null);
     const touchStartX = useRef(0);
     const touchEndX = useRef(0);
+    const progressRef = useRef(null);
+
+    const SLIDE_DURATION = 6000; // 6 seconds per slide
 
     // Sponsor/Promo data - easily add more sponsors here!
     const promos = [
@@ -45,40 +50,80 @@ const PromoSlider = () => {
         }
     ];
 
-    // Auto slide every 5 seconds
+    // Progress bar animation
     useEffect(() => {
-        if (!isAutoPlaying) return;
+        if (!isAutoPlaying || isPaused) {
+            return;
+        }
 
-        const interval = setInterval(() => {
-            setCurrentSlide((prev) => (prev + 1) % promos.length);
-        }, 5000);
+        setProgress(0);
+        const startTime = Date.now();
 
-        return () => clearInterval(interval);
-    }, [isAutoPlaying, promos.length]);
+        const updateProgress = () => {
+            const elapsed = Date.now() - startTime;
+            const newProgress = Math.min((elapsed / SLIDE_DURATION) * 100, 100);
+            setProgress(newProgress);
+
+            if (newProgress < 100) {
+                progressRef.current = requestAnimationFrame(updateProgress);
+            } else {
+                setCurrentSlide((prev) => (prev + 1) % promos.length);
+            }
+        };
+
+        progressRef.current = requestAnimationFrame(updateProgress);
+
+        return () => {
+            if (progressRef.current) {
+                cancelAnimationFrame(progressRef.current);
+            }
+        };
+    }, [currentSlide, isAutoPlaying, isPaused, promos.length]);
+
+    // Keyboard navigation
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'ArrowLeft') {
+                prevSlide();
+            } else if (e.key === 'ArrowRight') {
+                nextSlide();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     // Handle navigation
     const goToSlide = (index) => {
         setCurrentSlide(index);
+        setProgress(0);
         setIsAutoPlaying(false);
-        // Resume auto-play after 10 seconds of inactivity
         setTimeout(() => setIsAutoPlaying(true), 10000);
     };
 
     const nextSlide = () => {
         setCurrentSlide((prev) => (prev + 1) % promos.length);
+        setProgress(0);
         setIsAutoPlaying(false);
         setTimeout(() => setIsAutoPlaying(true), 10000);
     };
 
     const prevSlide = () => {
         setCurrentSlide((prev) => (prev - 1 + promos.length) % promos.length);
+        setProgress(0);
         setIsAutoPlaying(false);
         setTimeout(() => setIsAutoPlaying(true), 10000);
     };
 
+    // Pause on hover
+    const handleMouseEnter = () => setIsPaused(true);
+    const handleMouseLeave = () => setIsPaused(false);
+
     // Touch/Swipe handlers
     const handleTouchStart = (e) => {
         touchStartX.current = e.touches[0].clientX;
+        setIsPaused(true);
     };
 
     const handleTouchMove = (e) => {
@@ -86,12 +131,13 @@ const PromoSlider = () => {
     };
 
     const handleTouchEnd = () => {
+        setIsPaused(false);
         const diff = touchStartX.current - touchEndX.current;
         if (Math.abs(diff) > 50) {
             if (diff > 0) {
-                nextSlide(); // Swipe left = next
+                nextSlide();
             } else {
-                prevSlide(); // Swipe right = prev
+                prevSlide();
             }
         }
     };
@@ -123,23 +169,40 @@ const PromoSlider = () => {
                 <div
                     className="promo-slider"
                     ref={sliderRef}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
                     onTouchStart={handleTouchStart}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
                     onMouseDown={handleMouseDown}
                     onMouseUp={handleMouseUp}
                 >
+                    {/* Progress Bar */}
+                    <div className="slider-progress-bar">
+                        <div
+                            className="slider-progress-fill"
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
+
                     {/* Navigation Arrows */}
-                    <button className="slider-arrow prev" onClick={prevSlide}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <button className="slider-arrow prev" onClick={prevSlide} aria-label="Previous slide">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                             <path d="M15 18l-6-6 6-6" />
                         </svg>
                     </button>
-                    <button className="slider-arrow next" onClick={nextSlide}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <button className="slider-arrow next" onClick={nextSlide} aria-label="Next slide">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                             <path d="M9 18l6-6-6-6" />
                         </svg>
                     </button>
+
+                    {/* Slide Counter */}
+                    <div className="slide-counter">
+                        <span className="current">{currentSlide + 1}</span>
+                        <span className="separator">/</span>
+                        <span className="total">{promos.length}</span>
+                    </div>
 
                     {/* Slides Container */}
                     <div
@@ -196,9 +259,20 @@ const PromoSlider = () => {
                                 key={index}
                                 className={`dot ${index === currentSlide ? 'active' : ''}`}
                                 onClick={() => goToSlide(index)}
+                                aria-label={`Go to slide ${index + 1}`}
                             />
                         ))}
                     </div>
+
+                    {/* Pause Indicator */}
+                    {isPaused && (
+                        <div className="pause-indicator">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                                <rect x="6" y="4" width="4" height="16" />
+                                <rect x="14" y="4" width="4" height="16" />
+                            </svg>
+                        </div>
+                    )}
                 </div>
             </div>
         </section>
