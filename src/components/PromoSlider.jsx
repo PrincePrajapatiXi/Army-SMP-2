@@ -15,7 +15,7 @@ const PromoSlider = () => {
             logo: '/images/dragohost-logo.png',
             name: 'DragoHost',
             tagline: 'Premium Minecraft Hosting',
-            description: 'DragoHost offers true 24/7 premium servers with guaranteed 100% uptime and premium control panel.',
+            description: 'DragoHost Offers True 24/7 Premium Servers For its Customers With A Premium Panel And A Guaranteed 100% Uptime Of The Servers You Host With Us!',
             features: ['24/7 Support', '100% Uptime', 'Premium Panel', 'DDoS Protection'],
             link: 'https://discord.gg/D9pGnUM2tH',
             buttonText: 'Join Discord',
