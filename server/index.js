@@ -12,6 +12,7 @@ const cartRouter = require('./routes/cart');
 const ordersRouter = require('./routes/orders');
 const serverStatusRouter = require('./routes/serverStatus');
 const adminRouter = require('./routes/admin');
+const couponsRouter = require('./routes/coupons');
 
 // Import email service
 const { verifyEmailConfig } = require('./services/email');
@@ -55,6 +56,7 @@ app.use('/api/cart', cartRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/server-status', serverStatusRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/coupons', couponsRouter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

@@ -3,7 +3,7 @@ import {
     Lock, LogOut, Package, TrendingUp, DollarSign,
     ShoppingCart, CheckCircle, XCircle, AlertCircle,
     Calendar, Filter, RefreshCw, Trash2, BarChart3, X,
-    Box, Edit, Plus, Image
+    Box, Edit, Plus, Image, Search, Ticket, ToggleLeft, ToggleRight
 } from 'lucide-react';
 import './Admin.css';
 
@@ -44,6 +44,25 @@ const Admin = () => {
         features: ''
     });
 
+    // Order Search State
+    const [orderSearch, setOrderSearch] = useState('');
+
+    // Coupon Management State
+    const [coupons, setCoupons] = useState([]);
+    const [couponLoading, setCouponLoading] = useState(false);
+    const [showCouponModal, setShowCouponModal] = useState(false);
+    const [editingCoupon, setEditingCoupon] = useState(null);
+    const [showCouponDeleteConfirm, setShowCouponDeleteConfirm] = useState(null);
+    const [couponForm, setCouponForm] = useState({
+        code: '',
+        discountType: 'percentage',
+        discountValue: '',
+        minOrderAmount: '',
+        maxDiscount: '',
+        usageLimit: '',
+        expiresAt: ''
+    });
+
     // Check if already logged in
     useEffect(() => {
         const adminAuth = sessionStorage.getItem('adminAuth');
@@ -57,6 +76,7 @@ const Admin = () => {
         if (isAuthenticated) {
             fetchOrders();
             fetchProducts();
+            fetchCoupons();
         }
     }, [isAuthenticated]);
 
@@ -237,6 +257,134 @@ const Admin = () => {
             fetchOrders();
         } catch (error) {
             console.error('Error updating status:', error);
+        }
+    };
+
+    // ==================== COUPON MANAGEMENT FUNCTIONS ====================
+
+    const fetchCoupons = async () => {
+        setCouponLoading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/coupons`);
+            const data = await response.json();
+            setCoupons(data || []);
+        } catch (error) {
+            console.error('Error fetching coupons:', error);
+        } finally {
+            setCouponLoading(false);
+        }
+    };
+
+    const resetCouponForm = () => {
+        setCouponForm({
+            code: '',
+            discountType: 'percentage',
+            discountValue: '',
+            minOrderAmount: '',
+            maxDiscount: '',
+            usageLimit: '',
+            expiresAt: ''
+        });
+        setEditingCoupon(null);
+    };
+
+    const openAddCouponModal = () => {
+        resetCouponForm();
+        setShowCouponModal(true);
+    };
+
+    const openEditCouponModal = (coupon) => {
+        setEditingCoupon(coupon);
+        setCouponForm({
+            code: coupon.code,
+            discountType: coupon.discountType,
+            discountValue: coupon.discountValue.toString(),
+            minOrderAmount: coupon.minOrderAmount?.toString() || '',
+            maxDiscount: coupon.maxDiscount?.toString() || '',
+            usageLimit: coupon.usageLimit?.toString() || '',
+            expiresAt: coupon.expiresAt ? new Date(coupon.expiresAt).toISOString().split('T')[0] : ''
+        });
+        setShowCouponModal(true);
+    };
+
+    const handleCouponSubmit = async (e) => {
+        e.preventDefault();
+        setCouponLoading(true);
+
+        const couponData = {
+            code: couponForm.code,
+            discountType: couponForm.discountType,
+            discountValue: parseFloat(couponForm.discountValue),
+            minOrderAmount: couponForm.minOrderAmount ? parseFloat(couponForm.minOrderAmount) : 0,
+            maxDiscount: couponForm.maxDiscount ? parseFloat(couponForm.maxDiscount) : null,
+            usageLimit: couponForm.usageLimit ? parseInt(couponForm.usageLimit) : null,
+            expiresAt: couponForm.expiresAt || null
+        };
+
+        try {
+            const url = editingCoupon
+                ? `${API_BASE_URL}/admin/coupons/${editingCoupon._id}`
+                : `${API_BASE_URL}/admin/coupons`;
+
+            const response = await fetch(url, {
+                method: editingCoupon ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(couponData)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setShowCouponModal(false);
+                resetCouponForm();
+                fetchCoupons();
+            } else {
+                alert(data.error || 'Failed to save coupon');
+            }
+        } catch (error) {
+            console.error('Error saving coupon:', error);
+            alert('Failed to save coupon');
+        } finally {
+            setCouponLoading(false);
+        }
+    };
+
+    const handleDeleteCoupon = async (couponId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/coupons/${couponId}`, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setShowCouponDeleteConfirm(null);
+                fetchCoupons();
+            } else {
+                alert(data.error || 'Failed to delete coupon');
+            }
+        } catch (error) {
+            console.error('Error deleting coupon:', error);
+            alert('Failed to delete coupon');
+        }
+    };
+
+    const toggleCouponActive = async (couponId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/coupons/${couponId}/toggle`, {
+                method: 'PUT'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                fetchCoupons();
+            } else {
+                alert(data.error || 'Failed to toggle coupon');
+            }
+        } catch (error) {
+            console.error('Error toggling coupon:', error);
+            alert('Failed to toggle coupon');
         }
     };
 
@@ -495,8 +643,18 @@ const Admin = () => {
             .reduce((sum, o) => sum + (o.total || 0), 0)
     };
 
-    // Filter orders by status and date range
+    // Filter orders by status, date range, and search
     const filteredOrders = orders.filter(o => {
+        // Search filter
+        if (orderSearch.trim()) {
+            const searchLower = orderSearch.toLowerCase().trim();
+            const matchesSearch =
+                o.orderNumber?.toLowerCase().includes(searchLower) ||
+                o.minecraftUsername?.toLowerCase().includes(searchLower) ||
+                o.email?.toLowerCase().includes(searchLower);
+            if (!matchesSearch) return false;
+        }
+
         // Status filter
         if (statusFilter !== 'all' && o.status !== statusFilter) return false;
 
@@ -603,6 +761,13 @@ const Admin = () => {
                     <Box size={20} />
                     <span>Products</span>
                 </button>
+                <button
+                    className={`mobile-nav-item ${activeTab === 'coupons' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('coupons')}
+                >
+                    <Ticket size={20} />
+                    <span>Coupons</span>
+                </button>
                 <button className="mobile-nav-item logout" onClick={handleLogout}>
                     <LogOut size={20} />
                     <span>Logout</span>
@@ -636,6 +801,13 @@ const Admin = () => {
                         <Box size={20} />
                         <span>Products</span>
                     </button>
+                    <button
+                        className={`sidebar-item ${activeTab === 'coupons' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('coupons')}
+                    >
+                        <Ticket size={20} />
+                        <span>Coupons</span>
+                    </button>
                 </nav>
                 <button className="logout-btn" onClick={handleLogout}>
                     <LogOut size={20} />
@@ -651,13 +823,14 @@ const Admin = () => {
                         {activeTab === 'dashboard' && '📊 Sales Analytics'}
                         {activeTab === 'orders' && '📦 Order Management'}
                         {activeTab === 'products' && '🛍️ Product Management'}
+                        {activeTab === 'coupons' && '🎟️ Coupon Management'}
                     </h1>
                     <button
                         className="refresh-btn"
-                        onClick={() => { fetchOrders(); fetchProducts(); }}
-                        disabled={loading || productLoading}
+                        onClick={() => { fetchOrders(); fetchProducts(); fetchCoupons(); }}
+                        disabled={loading || productLoading || couponLoading}
                     >
-                        <RefreshCw size={18} className={(loading || productLoading) ? 'spinning' : ''} />
+                        <RefreshCw size={18} className={(loading || productLoading || couponLoading) ? 'spinning' : ''} />
                         <span>Refresh</span>
                     </button>
                 </header>
@@ -816,6 +989,26 @@ const Admin = () => {
                         {/* Filters & Bulk Actions */}
                         <div className="orders-toolbar">
                             <div className="orders-filters">
+                                {/* Search Box */}
+                                <div className="order-search-box">
+                                    <Search size={18} />
+                                    <input
+                                        type="text"
+                                        placeholder="Search orders..."
+                                        value={orderSearch}
+                                        onChange={(e) => setOrderSearch(e.target.value)}
+                                        className="search-input"
+                                    />
+                                    {orderSearch && (
+                                        <button
+                                            className="clear-search-btn"
+                                            onClick={() => setOrderSearch('')}
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    )}
+                                </div>
+
                                 <Filter size={18} />
                                 <select
                                     value={statusFilter}
@@ -1039,6 +1232,95 @@ const Admin = () => {
                     </div>
                 )}
 
+                {/* Coupons Tab */}
+                {activeTab === 'coupons' && (
+                    <div className="coupons-content">
+                        {/* Coupons Toolbar */}
+                        <div className="coupons-toolbar">
+                            <div className="coupons-info">
+                                <Ticket size={18} />
+                                <span>{coupons.length} coupons</span>
+                            </div>
+                            <button className="add-coupon-btn" onClick={openAddCouponModal}>
+                                <Plus size={18} />
+                                <span>Add Coupon</span>
+                            </button>
+                        </div>
+
+                        {/* Coupons Grid */}
+                        <div className="coupons-grid">
+                            {coupons.map(coupon => (
+                                <div key={coupon._id} className={`coupon-card ${!coupon.isActive ? 'inactive' : ''}`}>
+                                    <div className="coupon-card-header">
+                                        <span className="coupon-code">{coupon.code}</span>
+                                        <button
+                                            className={`toggle-btn ${coupon.isActive ? 'active' : ''}`}
+                                            onClick={() => toggleCouponActive(coupon._id)}
+                                            title={coupon.isActive ? 'Deactivate' : 'Activate'}
+                                        >
+                                            {coupon.isActive ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+                                        </button>
+                                    </div>
+                                    <div className="coupon-card-body">
+                                        <div className="coupon-discount">
+                                            {coupon.discountType === 'percentage'
+                                                ? `${coupon.discountValue}% OFF`
+                                                : `₹${coupon.discountValue} OFF`
+                                            }
+                                        </div>
+                                        <div className="coupon-details">
+                                            {coupon.minOrderAmount > 0 && (
+                                                <span>Min: ₹{coupon.minOrderAmount}</span>
+                                            )}
+                                            {coupon.maxDiscount && coupon.discountType === 'percentage' && (
+                                                <span>Max: ₹{coupon.maxDiscount}</span>
+                                            )}
+                                            {coupon.usageLimit && (
+                                                <span>Uses: {coupon.usedCount}/{coupon.usageLimit}</span>
+                                            )}
+                                            {!coupon.usageLimit && (
+                                                <span>Uses: {coupon.usedCount}/∞</span>
+                                            )}
+                                        </div>
+                                        {coupon.expiresAt && (
+                                            <div className="coupon-expiry">
+                                                Expires: {new Date(coupon.expiresAt).toLocaleDateString('en-IN')}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="coupon-card-actions">
+                                        <button
+                                            className="edit-btn"
+                                            onClick={() => openEditCouponModal(coupon)}
+                                        >
+                                            <Edit size={16} />
+                                            Edit
+                                        </button>
+                                        <button
+                                            className="delete-btn"
+                                            onClick={() => setShowCouponDeleteConfirm(coupon._id)}
+                                        >
+                                            <Trash2 size={16} />
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {coupons.length === 0 && (
+                            <div className="no-coupons-admin">
+                                <Ticket size={48} />
+                                <p>No coupons found</p>
+                                <button className="add-coupon-btn" onClick={openAddCouponModal}>
+                                    <Plus size={18} />
+                                    <span>Create First Coupon</span>
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* Product Add/Edit Modal */}
                 {showProductModal && (
                     <div className="modal-overlay" onClick={() => { setShowProductModal(false); resetProductForm(); }}>
@@ -1186,6 +1468,151 @@ const Admin = () => {
                                     onClick={() => handleDeleteProduct(showProductDeleteConfirm)}
                                 >
                                     Delete Product
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Coupon Add/Edit Modal */}
+                {showCouponModal && (
+                    <div className="modal-overlay" onClick={() => { setShowCouponModal(false); resetCouponForm(); }}>
+                        <div className="coupon-modal-content" onClick={e => e.stopPropagation()}>
+                            <div className="modal-header">
+                                <h3>{editingCoupon ? '✏️ Edit Coupon' : '➕ Add New Coupon'}</h3>
+                                <button
+                                    className="modal-close-btn"
+                                    onClick={() => { setShowCouponModal(false); resetCouponForm(); }}
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleCouponSubmit} className="coupon-form">
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Coupon Code *</label>
+                                        <input
+                                            type="text"
+                                            value={couponForm.code}
+                                            onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value.toUpperCase() })}
+                                            placeholder="e.g., SAVE20"
+                                            required
+                                            style={{ textTransform: 'uppercase' }}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Discount Type *</label>
+                                        <select
+                                            value={couponForm.discountType}
+                                            onChange={(e) => setCouponForm({ ...couponForm, discountType: e.target.value })}
+                                            required
+                                        >
+                                            <option value="percentage">Percentage (%)</option>
+                                            <option value="fixed">Fixed Amount (₹)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Discount Value *</label>
+                                        <input
+                                            type="number"
+                                            value={couponForm.discountValue}
+                                            onChange={(e) => setCouponForm({ ...couponForm, discountValue: e.target.value })}
+                                            placeholder={couponForm.discountType === 'percentage' ? 'e.g., 20' : 'e.g., 50'}
+                                            min="1"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Min Order Amount</label>
+                                        <input
+                                            type="number"
+                                            value={couponForm.minOrderAmount}
+                                            onChange={(e) => setCouponForm({ ...couponForm, minOrderAmount: e.target.value })}
+                                            placeholder="0 = No minimum"
+                                            min="0"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-row">
+                                    {couponForm.discountType === 'percentage' && (
+                                        <div className="form-group">
+                                            <label>Max Discount (₹)</label>
+                                            <input
+                                                type="number"
+                                                value={couponForm.maxDiscount}
+                                                onChange={(e) => setCouponForm({ ...couponForm, maxDiscount: e.target.value })}
+                                                placeholder="Leave empty for no cap"
+                                                min="1"
+                                            />
+                                        </div>
+                                    )}
+                                    <div className="form-group">
+                                        <label>Usage Limit</label>
+                                        <input
+                                            type="number"
+                                            value={couponForm.usageLimit}
+                                            onChange={(e) => setCouponForm({ ...couponForm, usageLimit: e.target.value })}
+                                            placeholder="Leave empty for unlimited"
+                                            min="1"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Expiry Date</label>
+                                    <input
+                                        type="date"
+                                        value={couponForm.expiresAt}
+                                        onChange={(e) => setCouponForm({ ...couponForm, expiresAt: e.target.value })}
+                                    />
+                                    <small className="form-hint">Leave empty for no expiry</small>
+                                </div>
+
+                                <div className="modal-form-actions">
+                                    <button
+                                        type="button"
+                                        className="btn-cancel"
+                                        onClick={() => { setShowCouponModal(false); resetCouponForm(); }}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="btn-save"
+                                        disabled={couponLoading}
+                                    >
+                                        {couponLoading ? 'Saving...' : (editingCoupon ? 'Update Coupon' : 'Add Coupon')}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* Coupon Delete Confirmation Modal */}
+                {showCouponDeleteConfirm && (
+                    <div className="modal-overlay" onClick={() => setShowCouponDeleteConfirm(null)}>
+                        <div className="modal-content" onClick={e => e.stopPropagation()}>
+                            <h3>⚠️ Delete Coupon</h3>
+                            <p>Are you sure you want to delete this coupon?</p>
+                            <p className="warning-text">This action cannot be undone!</p>
+                            <div className="modal-actions">
+                                <button
+                                    className="btn-cancel"
+                                    onClick={() => setShowCouponDeleteConfirm(null)}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="btn-delete"
+                                    onClick={() => handleDeleteCoupon(showCouponDeleteConfirm)}
+                                >
+                                    Delete Coupon
                                 </button>
                             </div>
                         </div>
