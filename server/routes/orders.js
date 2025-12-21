@@ -7,7 +7,7 @@ const Order = require('../models/Order');
 // POST /api/orders/create - Create a new order
 router.post('/create', async (req, res) => {
     try {
-        const { minecraftUsername, email, items, platform, couponInfo } = req.body;
+        const { minecraftUsername, email, items, platform, couponInfo, transactionId } = req.body;
 
         if (!minecraftUsername) {
             return res.status(400).json({ error: 'Minecraft username is required' });
@@ -46,6 +46,10 @@ router.post('/create', async (req, res) => {
             totalDisplay: `₹${finalTotal.toFixed(2)}`,
             couponInfo: couponInfo || null, // Store coupon info for Discord notification
             status: 'pending', // pending, processing, completed, cancelled
+            // Payment tracking
+            transactionId: transactionId || null,
+            paymentStatus: transactionId ? 'pending' : 'pending', // Will be verified by admin
+            paymentMethod: 'UPI',
             createdAt: new Date(),
             updatedAt: new Date()
         };

@@ -92,6 +92,20 @@ const sendOrderNotification = async (order) => {
                 }
             );
 
+            // Add transaction ID if available
+            if (order.transactionId) {
+                fields.push({
+                    name: '💳 Transaction ID',
+                    value: `\`${order.transactionId}\``,
+                    inline: false
+                });
+                fields.push({
+                    name: '💰 Payment Status',
+                    value: '⏳ Pending Verification',
+                    inline: true
+                });
+            }
+
             const discordPayload = {
                 embeds: [{
                     title: `🛒 New Order: ${order.orderNumber}`,

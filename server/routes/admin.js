@@ -195,6 +195,76 @@ router.put('/orders/:id/status', async (req, res) => {
     }
 });
 
+// PUT /api/admin/orders/:id/payment - Update payment status
+router.put('/orders/:id/payment', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { paymentStatus } = req.body;
+
+        if (!['pending', 'paid', 'failed', 'refunded'].includes(paymentStatus)) {
+            return res.status(400).json({ error: 'Invalid payment status' });
+        }
+
+        const order = await Order.findOne({ $or: [{ id }, { orderNumber: id }] });
+
+        if (!order) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+
+        const previousPaymentStatus = order.paymentStatus;
+        order.paymentStatus = paymentStatus;
+        order.updatedAt = new Date();
+
+        if (paymentStatus === 'paid') {
+            order.paymentVerifiedAt = new Date();
+        }
+
+        await order.save();
+
+        // Send Discord notification for payment status change
+        if (previousPaymentStatus !== paymentStatus) {
+            const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+            if (DISCORD_WEBHOOK_URL) {
+                const statusEmoji = paymentStatus === 'paid' ? '✅' :
+                    paymentStatus === 'failed' ? '❌' :
+                        paymentStatus === 'refunded' ? '💸' : '⏳';
+                const color = paymentStatus === 'paid' ? 0x22c55e :
+                    paymentStatus === 'failed' ? 0xef4444 :
+                        paymentStatus === 'refunded' ? 0xf59e0b : 0xffa500;
+
+                const discordPayload = {
+                    embeds: [{
+                        title: `${statusEmoji} Payment ${paymentStatus.toUpperCase()}: ${order.orderNumber}`,
+                        color: color,
+                        fields: [
+                            { name: '🎮 Username', value: order.minecraftUsername, inline: true },
+                            { name: '💰 Amount', value: order.totalDisplay || `₹${order.total}`, inline: true },
+                            { name: '💳 Transaction ID', value: order.transactionId || 'Not provided', inline: true },
+                            { name: '📋 Order Status', value: order.status.toUpperCase(), inline: true }
+                        ],
+                        footer: { text: 'Army SMP 2 - Payment Update' },
+                        timestamp: new Date().toISOString()
+                    }]
+                };
+
+                fetch(DISCORD_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(discordPayload)
+                }).catch(err => console.error('Discord notification error:', err));
+            }
+        }
+
+        res.json({
+            message: 'Payment status updated successfully',
+            order
+        });
+    } catch (error) {
+        console.error('Error updating payment status:', error);
+        res.status(500).json({ error: 'Failed to update payment status' });
+    }
+});
+
 // DELETE /api/admin/orders/:id - Delete an order
 router.delete('/orders/:id', async (req, res) => {
     try {

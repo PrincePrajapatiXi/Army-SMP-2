@@ -28,6 +28,15 @@ const orderSchema = new mongoose.Schema({
         enum: ['pending', 'completed', 'cancelled', 'processing'],
         default: 'pending'
     },
+    // Payment tracking
+    paymentStatus: {
+        type: String,
+        enum: ['pending', 'paid', 'failed', 'refunded'],
+        default: 'pending'
+    },
+    transactionId: { type: String }, // UPI Transaction ID / UTR
+    paymentMethod: { type: String, default: 'UPI' },
+    paymentVerifiedAt: { type: Date },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });

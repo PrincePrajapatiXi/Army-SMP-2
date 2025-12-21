@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingBag, Check, Loader2, MessageCircle, Tag, X } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Check, Loader2, MessageCircle, Tag, X, CreditCard } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { ordersApi } from '../services/api';
 import { validateCoupon as validateCouponLocal } from '../data/coupons';
 import Confetti from '../components/Confetti';
+import UpiQrCode from '../components/UpiQrCode';
 import './Checkout.css';
 
 const API_BASE_URL = window.location.hostname === 'localhost'
@@ -20,6 +21,11 @@ const Checkout = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [orderSuccess, setOrderSuccess] = useState(null);
+
+    // Payment step state
+    const [showPayment, setShowPayment] = useState(false);
+    const [transactionId, setTransactionId] = useState('');
+    const [orderDetails, setOrderDetails] = useState(null);
 
     // Coupon state
     const [couponCode, setCouponCode] = useState('');
@@ -98,7 +104,8 @@ const Checkout = () => {
         setCouponError('');
     };
 
-    const handleSubmit = async (e) => {
+    // Proceed to payment step
+    const handleProceedToPayment = (e) => {
         e.preventDefault();
 
         if (!minecraftUsername.trim()) {
@@ -121,8 +128,27 @@ const Checkout = () => {
             return;
         }
 
-        // Always try to send order to backend first (for email notification)
-        // This ensures emails are sent even if cart was in local storage mode
+        setError(null);
+        setOrderDetails({
+            minecraftUsername: minecraftUsername.trim(),
+            email: email.trim(),
+            platform,
+            items: cartItems,
+            subtotal,
+            discount: discountAmount,
+            total: finalTotal,
+            couponCode: appliedCoupon?.coupon?.code || null
+        });
+        setShowPayment(true);
+    };
+
+    // Complete order with transaction ID
+    const handleCompleteOrder = async () => {
+        if (!transactionId.trim()) {
+            setError('Please enter your UPI Transaction ID');
+            return;
+        }
+
         try {
             setLoading(true);
             setError(null);
@@ -136,12 +162,19 @@ const Checkout = () => {
                 subtotal: (typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.-]+/g, ''))) * item.quantity
             }));
 
-            const result = await ordersApi.create(minecraftUsername.trim(), email.trim(), orderItems, platform, {
-                couponCode: appliedCoupon?.coupon?.code || null,
-                discount: discountAmount,
-                subtotal: subtotal,
-                finalTotal: finalTotal
-            });
+            const result = await ordersApi.create(
+                orderDetails.minecraftUsername,
+                orderDetails.email,
+                orderItems,
+                orderDetails.platform,
+                {
+                    couponCode: appliedCoupon?.coupon?.code || null,
+                    discount: discountAmount,
+                    subtotal: subtotal,
+                    finalTotal: finalTotal
+                },
+                transactionId.trim() // Pass transaction ID
+            );
 
             setOrderSuccess({
                 ...result.order,
@@ -149,18 +182,19 @@ const Checkout = () => {
                 discount: discountAmount,
                 subtotal: subtotal,
                 total: finalTotal,
-                totalDisplay: `₹${finalTotal.toFixed(2)}`
+                totalDisplay: `₹${finalTotal.toFixed(2)}`,
+                transactionId: transactionId.trim()
             });
             await clearCart();
 
         } catch (err) {
             console.error('Order failed:', err);
             // If API fails, switch to local mode
-            const orderDetails = {
+            const orderDataLocal = {
                 orderNumber: `LOCAL-${Date.now().toString(36).toUpperCase()}`,
-                minecraftUsername: minecraftUsername.trim(),
-                email: email.trim(),
-                platform: platform,
+                minecraftUsername: orderDetails.minecraftUsername,
+                email: orderDetails.email,
+                platform: orderDetails.platform,
                 items: cartItems.map(item => ({
                     id: item.id,
                     name: item.name,
@@ -173,10 +207,11 @@ const Checkout = () => {
                 couponApplied: appliedCoupon?.coupon?.code || null,
                 total: finalTotal,
                 totalDisplay: `₹${finalTotal.toFixed(2)}`,
+                transactionId: transactionId.trim(),
                 status: 'pending'
             };
 
-            setOrderSuccess(orderDetails);
+            setOrderSuccess(orderDataLocal);
             await clearCart();
         } finally {
             setLoading(false);
@@ -208,6 +243,10 @@ const Checkout = () => {
 
                         <div className="order-details">
                             <p><strong>Minecraft Username:</strong> {orderSuccess.minecraftUsername}</p>
+                            {orderSuccess.transactionId && (
+                                <p><strong>Transaction ID:</strong> <code className="txn-id">{orderSuccess.transactionId}</code></p>
+                            )}
+                            <p><strong>Payment Status:</strong> <span className="payment-pending-badge">⏳ Pending Verification</span></p>
                             {orderSuccess.couponApplied && (
                                 <p><strong>Coupon Applied:</strong> <span className="coupon-badge">{orderSuccess.couponApplied}</span></p>
                             )}
@@ -228,6 +267,14 @@ const Checkout = () => {
                             ))}
                         </div>
 
+                        <div className="payment-verification-note">
+                            <CreditCard size={24} />
+                            <p>
+                                <strong>Payment will be verified by admin.</strong><br />
+                                Your items will be delivered within 24 hours after payment verification.
+                            </p>
+                        </div>
+
                         {isLocalOrder ? (
                             <div className="discord-contact">
                                 <MessageCircle size={24} />
@@ -241,7 +288,7 @@ const Checkout = () => {
                             </div>
                         ) : (
                             <p className="delivery-note">
-                                Your items will be delivered to your Minecraft account within 24 hours.
+                                Your items will be delivered to your Minecraft account within 24 hours after payment verification.
                                 Join our Discord for support!
                             </p>
                         )}
@@ -272,6 +319,96 @@ const Checkout = () => {
                         <Link to="/store" className="btn btn-primary">
                             Browse Store
                         </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Payment Step
+    if (showPayment) {
+        return (
+            <div className="checkout-page">
+                <div className="checkout-container">
+                    <div className="checkout-header">
+                        <button onClick={() => setShowPayment(false)} className="back-btn">
+                            <ArrowLeft size={20} />
+                            Back to Details
+                        </button>
+                        <h1>Payment</h1>
+                    </div>
+
+                    <div className="payment-content">
+                        {/* Order Summary */}
+                        <div className="payment-summary">
+                            <h2>Order Summary</h2>
+                            <div className="summary-items-compact">
+                                {orderDetails.items.map(item => (
+                                    <div key={item.id} className="summary-item-compact">
+                                        <span>{item.name} × {item.quantity}</span>
+                                        <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            {orderDetails.couponCode && (
+                                <div className="coupon-applied-summary">
+                                    <span>Coupon: {orderDetails.couponCode}</span>
+                                    <span className="discount-amount">-₹{discountAmount.toFixed(2)}</span>
+                                </div>
+                            )}
+                            <div className="summary-total-compact">
+                                <span>Total</span>
+                                <span className="total-amount">₹{finalTotal.toFixed(2)}</span>
+                            </div>
+                        </div>
+
+                        {/* UPI QR Code */}
+                        <div className="payment-qr-section">
+                            <UpiQrCode
+                                amount={finalTotal}
+                                orderId={orderDetails.minecraftUsername}
+                            />
+
+                            {/* Transaction ID Input */}
+                            <div className="transaction-input-section">
+                                <label htmlFor="transaction-id">
+                                    Enter UPI Transaction ID / UTR Number
+                                </label>
+                                <input
+                                    type="text"
+                                    id="transaction-id"
+                                    value={transactionId}
+                                    onChange={(e) => setTransactionId(e.target.value)}
+                                    placeholder="e.g., 4839284729837"
+                                    disabled={loading}
+                                />
+                                <small>You can find this in your UPI app payment history</small>
+                            </div>
+
+                            {error && (
+                                <div className="error-message">
+                                    {error}
+                                </div>
+                            )}
+
+                            <button
+                                onClick={handleCompleteOrder}
+                                className="btn btn-primary complete-payment-btn"
+                                disabled={loading || !transactionId.trim()}
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 size={20} className="spinner" />
+                                        Processing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Check size={20} />
+                                        I Have Paid - Complete Order
+                                    </>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -389,7 +526,7 @@ const Checkout = () => {
                     </div>
 
                     {/* Checkout Form */}
-                    <form onSubmit={handleSubmit} className="checkout-form">
+                    <form onSubmit={handleProceedToPayment} className="checkout-form">
                         <h2>Delivery Information</h2>
 
                         {error && (
@@ -454,21 +591,12 @@ const Checkout = () => {
                             className="btn btn-primary checkout-btn"
                             disabled={loading}
                         >
-                            {loading ? (
-                                <>
-                                    <Loader2 size={20} className="spinner" />
-                                    Processing...
-                                </>
-                            ) : (
-                                <>
-                                    <ShoppingBag size={20} />
-                                    Place Order - ₹{finalTotal.toFixed(2)}
-                                </>
-                            )}
+                            <CreditCard size={20} />
+                            Proceed to Payment - ₹{finalTotal.toFixed(2)}
                         </button>
 
                         <p className="payment-note">
-                            Payment will be collected separately. Our team will contact you via Discord.
+                            Pay via UPI (GPay, PhonePe, Paytm) with secure QR code
                         </p>
                     </form>
                 </div>
