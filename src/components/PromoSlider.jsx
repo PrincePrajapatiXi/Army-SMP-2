@@ -1,11 +1,53 @@
 import { useState, useEffect, useRef } from 'react';
 import './PromoSlider.css';
 
+const API_BASE_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:5000/api'
+    : 'https://army-smp-2.onrender.com/api';
+
+// Fallback promos if API is empty
+const defaultPromos = [
+    {
+        _id: '1',
+        logo: '/images/dragohost-logo.png',
+        name: 'DragoHost',
+        tagline: 'Premium Minecraft Hosting',
+        description: 'DragoHost Offers True 24/7 Premium Servers For its Customers With A Premium Panel And A Guaranteed 100% Uptime Of The Servers You Host With Us!',
+        features: ['24/7 Support', '100% Uptime', 'Premium Panel', 'DDoS Protection'],
+        link: 'https://discord.gg/D9pGnUM2tH',
+        buttonText: 'Join Discord',
+        gradient: 'linear-gradient(135deg, #1e3a5f, #0d1b2a)'
+    },
+    {
+        _id: '2',
+        logo: '/images/stone.png',
+        name: 'YourBrand',
+        tagline: 'Your Amazing Service',
+        description: 'Want your brand featured here? Contact us for promotional partnerships and reach thousands of Minecraft players!',
+        features: ['Wide Reach', 'Gaming Audience', 'Premium Placement', 'Custom Design'],
+        link: 'https://discord.gg/EBmGM2jsdt',
+        buttonText: 'Contact Us',
+        gradient: 'linear-gradient(135deg, #4a1942, #2d132c)'
+    },
+    {
+        _id: '3',
+        logo: '/images/Beacon.png',
+        name: 'PartnerSpot',
+        tagline: 'Advertise With Us',
+        description: 'Reach our active Minecraft community! Premium advertising slots available for gaming brands, servers, and services.',
+        features: ['High Visibility', 'Active Users', 'Gaming Niche', 'Affordable Rates'],
+        link: 'https://discord.gg/EBmGM2jsdt',
+        buttonText: 'Get Featured',
+        gradient: 'linear-gradient(135deg, #1a4731, #0d2818)'
+    }
+];
+
 const PromoSlider = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isAutoPlaying, setIsAutoPlaying] = useState(true);
     const [isPaused, setIsPaused] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [promos, setPromos] = useState(defaultPromos);
     const sliderRef = useRef(null);
     const touchStartX = useRef(0);
     const touchEndX = useRef(0);
@@ -14,42 +56,22 @@ const PromoSlider = () => {
 
     const SLIDE_DURATION = 6000; // 6 seconds per slide
 
-    // Sponsor/Promo data - easily add more sponsors here!
-    const promos = [
-        {
-            id: 1,
-            logo: '/images/dragohost-logo.png',
-            name: 'DragoHost',
-            tagline: 'Premium Minecraft Hosting',
-            description: 'DragoHost Offers True 24/7 Premium Servers For its Customers With A Premium Panel And A Guaranteed 100% Uptime Of The Servers You Host With Us!',
-            features: ['24/7 Support', '100% Uptime', 'Premium Panel', 'DDoS Protection'],
-            link: 'https://discord.gg/D9pGnUM2tH',
-            buttonText: 'Join Discord',
-            gradient: 'linear-gradient(135deg, #1e3a5f, #0d1b2a)'
-        },
-        {
-            id: 2,
-            logo: '/images/stone.png',
-            name: 'YourBrand',
-            tagline: 'Your Amazing Service',
-            description: 'Want your brand featured here? Contact us for promotional partnerships and reach thousands of Minecraft players!',
-            features: ['Wide Reach', 'Gaming Audience', 'Premium Placement', 'Custom Design'],
-            link: 'https://discord.gg/EBmGM2jsdt',
-            buttonText: 'Contact Us',
-            gradient: 'linear-gradient(135deg, #4a1942, #2d132c)'
-        },
-        {
-            id: 3,
-            logo: '/images/Beacon.png',
-            name: 'PartnerSpot',
-            tagline: 'Advertise With Us',
-            description: 'Reach our active Minecraft community! Premium advertising slots available for gaming brands, servers, and services.',
-            features: ['High Visibility', 'Active Users', 'Gaming Niche', 'Affordable Rates'],
-            link: 'https://discord.gg/EBmGM2jsdt',
-            buttonText: 'Get Featured',
-            gradient: 'linear-gradient(135deg, #1a4731, #0d2818)'
-        }
-    ];
+    // Fetch promotions from API
+    useEffect(() => {
+        const fetchPromos = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/promotions`);
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    setPromos(data);
+                }
+                // If API returns empty, keep default promos
+            } catch (error) {
+                console.log('Using default promotions');
+            }
+        };
+        fetchPromos();
+    }, []);
 
     // Progress bar animation
     useEffect(() => {
@@ -244,7 +266,7 @@ const PromoSlider = () => {
                     >
                         {promos.map((promo, index) => (
                             <div
-                                key={promo.id}
+                                key={promo._id || promo.id || index}
                                 className={`promo-slide ${index === currentSlide ? 'active' : ''}`}
                                 style={{ background: promo.gradient }}
                             >
