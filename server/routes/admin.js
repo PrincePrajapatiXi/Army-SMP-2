@@ -9,19 +9,72 @@ const Promotion = require('../models/Promotion');
 // Admin password from environment variable (secure)
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Prince_Uday';
 
-// POST /api/admin/login - Secure admin authentication
+// Login attempt tracking (in-memory for simplicity)
+const loginAttempts = {
+    failedAttempts: 0,
+    lockoutUntil: null,
+    MAX_ATTEMPTS: 3,
+    LOCKOUT_DURATION: 1 * 60 * 1000  // 1 minute in ms (change to 2 * 60 * 60 * 1000 for 2 hours)
+};
+
+// POST /api/admin/login - Secure admin authentication with rate limiting
 router.post('/login', (req, res) => {
     try {
         const { password } = req.body;
+        const now = Date.now();
+
+        // Check if currently locked out
+        if (loginAttempts.lockoutUntil && now < loginAttempts.lockoutUntil) {
+            const remainingMs = loginAttempts.lockoutUntil - now;
+            const remainingMins = Math.ceil(remainingMs / 60000);
+            const remainingSecs = Math.ceil(remainingMs / 1000);
+            return res.status(429).json({
+                success: false,
+                error: `Too many failed attempts. Try again in ${remainingMins > 1 ? remainingMins + ' minutes' : remainingSecs + ' seconds'}`,
+                locked: true,
+                lockoutUntil: loginAttempts.lockoutUntil,
+                remainingMs
+            });
+        }
+
+        // Reset lockout if time has passed
+        if (loginAttempts.lockoutUntil && now >= loginAttempts.lockoutUntil) {
+            loginAttempts.failedAttempts = 0;
+            loginAttempts.lockoutUntil = null;
+        }
 
         if (!password) {
             return res.status(400).json({ success: false, error: 'Password required' });
         }
 
         if (password === ADMIN_PASSWORD) {
+            // Successful login - reset attempts
+            loginAttempts.failedAttempts = 0;
+            loginAttempts.lockoutUntil = null;
             return res.json({ success: true, message: 'Login successful' });
         } else {
-            return res.status(401).json({ success: false, error: 'Invalid password' });
+            // Failed login - increment attempts
+            loginAttempts.failedAttempts++;
+            const remainingAttempts = loginAttempts.MAX_ATTEMPTS - loginAttempts.failedAttempts;
+
+            // Check if should lockout
+            if (loginAttempts.failedAttempts >= loginAttempts.MAX_ATTEMPTS) {
+                loginAttempts.lockoutUntil = now + loginAttempts.LOCKOUT_DURATION;
+                const lockoutMins = Math.ceil(loginAttempts.LOCKOUT_DURATION / 60000);
+                return res.status(429).json({
+                    success: false,
+                    error: `Account locked. Too many failed attempts. Try again in ${lockoutMins} minute(s).`,
+                    locked: true,
+                    lockoutUntil: loginAttempts.lockoutUntil,
+                    remainingMs: loginAttempts.LOCKOUT_DURATION
+                });
+            }
+
+            return res.status(401).json({
+                success: false,
+                error: `Invalid password. ${remainingAttempts} attempt(s) remaining.`,
+                attemptsRemaining: remainingAttempts
+            });
         }
     } catch (error) {
         console.error('Login error:', error);
