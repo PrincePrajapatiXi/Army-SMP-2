@@ -53,6 +53,9 @@ const PromoSlider = () => {
     const touchEndX = useRef(0);
     const progressRef = useRef(null);
     const isDragging = useRef(false);
+    const remainingTime = useRef(6000);
+    const pauseStartTime = useRef(null);
+    const slideStartTime = useRef(Date.now());
 
     const SLIDE_DURATION = 6000; // 6 seconds per slide
 
@@ -73,18 +76,50 @@ const PromoSlider = () => {
         fetchPromos();
     }, []);
 
-    // Auto-slide with CSS animation
+    // Reset timer when slide changes
     useEffect(() => {
-        if (!isAutoPlaying || isPaused) {
+        remainingTime.current = SLIDE_DURATION;
+        slideStartTime.current = Date.now();
+        setProgress(0);
+    }, [currentSlide]);
+
+    // Auto-slide with pause/resume support
+    useEffect(() => {
+        if (!isAutoPlaying) return;
+
+        if (isPaused) {
+            // Store when we paused
+            if (!pauseStartTime.current) {
+                const elapsed = Date.now() - slideStartTime.current;
+                remainingTime.current = Math.max(SLIDE_DURATION - elapsed, 0);
+                pauseStartTime.current = Date.now();
+            }
             return;
+        }
+
+        // Resuming - update start time
+        if (pauseStartTime.current) {
+            slideStartTime.current = Date.now();
+            pauseStartTime.current = null;
         }
 
         const timer = setTimeout(() => {
             setCurrentSlide((prev) => (prev + 1) % promos.length);
-        }, SLIDE_DURATION);
+        }, remainingTime.current);
 
-        return () => clearTimeout(timer);
-    }, [currentSlide, isAutoPlaying, isPaused, promos.length]);
+        // Progress animation
+        const progressInterval = setInterval(() => {
+            const elapsed = Date.now() - slideStartTime.current;
+            const totalElapsed = SLIDE_DURATION - remainingTime.current + elapsed;
+            const newProgress = Math.min((totalElapsed / SLIDE_DURATION) * 100, 100);
+            setProgress(newProgress);
+        }, 50);
+
+        return () => {
+            clearTimeout(timer);
+            clearInterval(progressInterval);
+        };
+    }, [isAutoPlaying, isPaused, promos.length]);
 
     // Keyboard navigation
     useEffect(() => {
@@ -218,8 +253,8 @@ const PromoSlider = () => {
                     {/* Progress Bar */}
                     <div className="slider-progress-bar">
                         <div
-                            key={currentSlide}
-                            className={`slider-progress-fill ${isPaused ? 'paused' : ''}`}
+                            className="slider-progress-fill"
+                            style={{ width: `${progress}%` }}
                         />
                     </div>
 

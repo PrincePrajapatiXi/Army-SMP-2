@@ -50,22 +50,7 @@
     height: 100%;
     background: linear-gradient(90deg, var(--primary), #ffc107);
     box-shadow: 0 0 10px var(--primary);
-    width: 0%;
-    animation: progressFill 6s linear forwards;
-}
-
-.slider-progress-fill.paused {
-    animation-play-state: paused;
-}
-
-@keyframes progressFill {
-    from {
-        width: 0%;
-    }
-
-    to {
-        width: 100%;
-    }
+    transition: width 0.05s linear;
 }
 
 /* Slide Counter */
