@@ -4,13 +4,20 @@ import { Copy, Check, Smartphone } from 'lucide-react';
 import './UpiQrCode.css';
 
 const UPI_ID = 'princeprajapti2589-2@okicici';
-const MERCHANT_NAME = 'Army SMP';
+const MERCHANT_NAME = 'ArmySMP';
 
 const UpiQrCode = ({ amount, orderId, onCopy }) => {
     const [copied, setCopied] = React.useState(false);
 
-    // Generate UPI deep link with locked amount
-    const upiLink = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(MERCHANT_NAME)}&am=${amount.toFixed(2)}&cu=INR&tn=Order${orderId || 'ARMY'}`;
+    // Ensure amount is a valid number
+    const validAmount = Math.max(0, parseFloat(amount) || 0);
+
+    // Clean orderId - remove special characters and spaces
+    const cleanOrderId = (orderId || 'ORDER').toString().replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
+
+    // Generate UPI deep link with proper encoding
+    // Format: upi://pay?pa=UPI_ID&pn=NAME&am=AMOUNT&cu=INR&tn=NOTE
+    const upiLink = `upi://pay?pa=${UPI_ID}&pn=${MERCHANT_NAME}&am=${validAmount.toFixed(2)}&cu=INR&tn=${cleanOrderId}`;
 
     const handleCopyUpi = () => {
         navigator.clipboard.writeText(UPI_ID);
