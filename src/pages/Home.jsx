@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Features from '../components/Features';
 import FeaturedRanks from '../components/FeaturedRanks';
-import Sponsor from '../components/Sponsor';
+import PromoSlider from '../components/PromoSlider';
 import Modal from '../components/Modal';
 import { Link } from 'react-router-dom';
 
@@ -241,7 +241,7 @@ const Home = () => {
             </section>
 
             <FeaturedRanks />
-            <Sponsor />
+            <PromoSlider />
             <Features />
 
             <Modal
