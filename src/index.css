@@ -59,6 +59,21 @@ button {
   background: none;
 }
 
+/* Global spinning animation */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Utilities */
 .container {
   max-width: 1200px;
