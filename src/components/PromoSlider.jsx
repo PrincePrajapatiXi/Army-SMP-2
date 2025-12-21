@@ -10,6 +10,7 @@ const PromoSlider = () => {
     const touchStartX = useRef(0);
     const touchEndX = useRef(0);
     const progressRef = useRef(null);
+    const isDragging = useRef(false);
 
     const SLIDE_DURATION = 6000; // 6 seconds per slide
 
@@ -118,11 +119,15 @@ const PromoSlider = () => {
 
     // Pause on hover
     const handleMouseEnter = () => setIsPaused(true);
-    const handleMouseLeave = () => setIsPaused(false);
+    const handleMouseLeave = () => {
+        setIsPaused(false);
+        isDragging.current = false;
+    };
 
     // Touch/Swipe handlers
     const handleTouchStart = (e) => {
         touchStartX.current = e.touches[0].clientX;
+        touchEndX.current = e.touches[0].clientX;
         setIsPaused(true);
     };
 
@@ -140,14 +145,24 @@ const PromoSlider = () => {
                 prevSlide();
             }
         }
+        // Reset touch values
+        touchStartX.current = 0;
+        touchEndX.current = 0;
     };
 
-    // Mouse drag handlers
+    // Mouse drag handlers - only on slides container, not buttons
     const handleMouseDown = (e) => {
+        // Don't start drag if clicking on buttons
+        if (e.target.closest('.slider-arrow') || e.target.closest('.dot') || e.target.closest('.promo-cta')) {
+            return;
+        }
+        isDragging.current = true;
         touchStartX.current = e.clientX;
     };
 
     const handleMouseUp = (e) => {
+        if (!isDragging.current) return;
+
         const diff = touchStartX.current - e.clientX;
         if (Math.abs(diff) > 50) {
             if (diff > 0) {
@@ -156,6 +171,24 @@ const PromoSlider = () => {
                 prevSlide();
             }
         }
+        isDragging.current = false;
+        touchStartX.current = 0;
+    };
+
+    // Handle button clicks separately to prevent interference
+    const handlePrevClick = (e) => {
+        e.stopPropagation();
+        prevSlide();
+    };
+
+    const handleNextClick = (e) => {
+        e.stopPropagation();
+        nextSlide();
+    };
+
+    const handleDotClick = (e, index) => {
+        e.stopPropagation();
+        goToSlide(index);
     };
 
     return (
@@ -186,12 +219,12 @@ const PromoSlider = () => {
                     </div>
 
                     {/* Navigation Arrows */}
-                    <button className="slider-arrow prev" onClick={prevSlide} aria-label="Previous slide">
+                    <button className="slider-arrow prev" onClick={handlePrevClick} aria-label="Previous slide">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                             <path d="M15 18l-6-6 6-6" />
                         </svg>
                     </button>
-                    <button className="slider-arrow next" onClick={nextSlide} aria-label="Next slide">
+                    <button className="slider-arrow next" onClick={handleNextClick} aria-label="Next slide">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                             <path d="M9 18l6-6-6-6" />
                         </svg>
@@ -258,7 +291,7 @@ const PromoSlider = () => {
                             <button
                                 key={index}
                                 className={`dot ${index === currentSlide ? 'active' : ''}`}
-                                onClick={() => goToSlide(index)}
+                                onClick={(e) => handleDotClick(e, index)}
                                 aria-label={`Go to slide ${index + 1}`}
                             />
                         ))}
