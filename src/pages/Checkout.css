@@ -592,3 +592,184 @@
 .discord-contact .btn:hover {
     background: #f0f0f0;
 }
+
+/* Payment Step Styles */
+.payment-content {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 30px;
+}
+
+@media (max-width: 768px) {
+    .payment-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+.payment-summary {
+    background: var(--bg-surface);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 24px;
+    height: fit-content;
+}
+
+.payment-summary h2 {
+    font-size: 1.25rem;
+    margin-bottom: 16px;
+    color: var(--text-primary);
+}
+
+.summary-items-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.summary-item-compact {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.coupon-applied-summary {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background: rgba(34, 197, 94, 0.1);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+    color: #22c55e;
+}
+
+.summary-total-compact {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 2px solid var(--primary);
+}
+
+.summary-total-compact .total-amount {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.payment-qr-section {
+    background: var(--bg-surface);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.transaction-input-section {
+    margin-top: 24px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+.transaction-input-section label {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.transaction-input-section input {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--bg-dark);
+    border: 2px solid var(--card-border);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-family: 'Consolas', 'Monaco', monospace;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+.transaction-input-section input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.15);
+}
+
+.transaction-input-section input::placeholder {
+    font-family: inherit;
+    letter-spacing: normal;
+}
+
+.transaction-input-section small {
+    display: block;
+    margin-top: 8px;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.complete-payment-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 16px;
+    font-size: 1.1rem;
+}
+
+.complete-payment-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Transaction ID in success */
+.txn-id {
+    background: var(--bg-surface);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9rem;
+    border: 1px solid var(--card-border);
+}
+
+.payment-pending-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(255, 170, 0, 0.2);
+    color: #ffaa00;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.payment-verification-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(255, 85, 0, 0.1), rgba(255, 170, 0, 0.1));
+    border: 1px solid rgba(255, 85, 0, 0.3);
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+
+.payment-verification-note svg {
+    color: var(--primary);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.payment-verification-note p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.payment-verification-note strong {
+    color: var(--text-primary);
+}

@@ -1,0 +1,238 @@
+.upi-qr-container {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.upi-qr-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.upi-qr-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.upi-qr-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.upi-qr-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary));
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite linear;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.qr-wrapper {
+    display: inline-block;
+    padding: 15px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    margin-bottom: 20px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 8px 48px rgba(255, 85, 0, 0.4);
+    }
+}
+
+.upi-amount {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 20px;
+    background: rgba(255, 85, 0, 0.1);
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.amount-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.amount-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1;
+}
+
+.amount-locked {
+    font-size: 0.8rem;
+    color: #22c55e;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.upi-id-section {
+    margin-bottom: 20px;
+}
+
+.upi-label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.upi-id-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.upi-id {
+    background: var(--bg-dark);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    border: 1px solid var(--card-border);
+    font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.copy-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.85rem;
+}
+
+.copy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 85, 0, 0.4);
+}
+
+.copy-btn.copied {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.upi-apps {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.upi-apps span:first-child {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.app-icons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.app-icon {
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
+
+.upi-note {
+    margin-top: 16px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .upi-qr-card {
+        padding: 20px 15px;
+    }
+
+    .qr-wrapper {
+        padding: 10px;
+    }
+
+    .qr-wrapper svg {
+        width: 160px !important;
+        height: 160px !important;
+    }
+
+    .amount-value {
+        font-size: 2rem;
+    }
+
+    .upi-id {
+        font-size: 0.8rem;
+        padding: 8px 12px;
+    }
+
+    .upi-id-row {
+        flex-direction: column;
+    }
+
+    .app-icons {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
