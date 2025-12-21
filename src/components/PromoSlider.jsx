@@ -73,34 +73,17 @@ const PromoSlider = () => {
         fetchPromos();
     }, []);
 
-    // Progress bar animation
+    // Auto-slide with CSS animation
     useEffect(() => {
         if (!isAutoPlaying || isPaused) {
             return;
         }
 
-        setProgress(0);
-        const startTime = Date.now();
+        const timer = setTimeout(() => {
+            setCurrentSlide((prev) => (prev + 1) % promos.length);
+        }, SLIDE_DURATION);
 
-        const updateProgress = () => {
-            const elapsed = Date.now() - startTime;
-            const newProgress = Math.min((elapsed / SLIDE_DURATION) * 100, 100);
-            setProgress(newProgress);
-
-            if (newProgress < 100) {
-                progressRef.current = requestAnimationFrame(updateProgress);
-            } else {
-                setCurrentSlide((prev) => (prev + 1) % promos.length);
-            }
-        };
-
-        progressRef.current = requestAnimationFrame(updateProgress);
-
-        return () => {
-            if (progressRef.current) {
-                cancelAnimationFrame(progressRef.current);
-            }
-        };
+        return () => clearTimeout(timer);
     }, [currentSlide, isAutoPlaying, isPaused, promos.length]);
 
     // Keyboard navigation
@@ -235,8 +218,8 @@ const PromoSlider = () => {
                     {/* Progress Bar */}
                     <div className="slider-progress-bar">
                         <div
-                            className="slider-progress-fill"
-                            style={{ width: `${progress}%` }}
+                            key={currentSlide}
+                            className={`slider-progress-fill ${isPaused ? 'paused' : ''}`}
                         />
                     </div>
 
