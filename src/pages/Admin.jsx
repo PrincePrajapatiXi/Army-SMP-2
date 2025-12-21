@@ -1193,10 +1193,6 @@ const Admin = () => {
                                             alt={product.name}
                                             onError={(e) => { e.target.src = '/images/stone.png'; }}
                                         />
-                                        <div
-                                            className="product-color-badge"
-                                            style={{ backgroundColor: product.color }}
-                                        />
                                     </div>
                                     <div className="product-card-info">
                                         <h4>{product.name}</h4>
