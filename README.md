@@ -1,76 +1,158 @@
 # Army SMP Store ⚔️
 
-![Army SMP Banner](public/vite.svg) (*Replace with actual banner if available*)
+![Army SMP Banner](public/images/logo.png)
 
-Welcome to the official **Army SMP Store** frontend source code. This is a modern, responsive, and high-performance React application built for the Army SMP Minecraft server community. It allows players to purchase Ranks, Keys, Crates, and Coins seamlessly.
+Welcome to the official **Army SMP Store** – a modern, responsive, and high-performance React application built for the Army SMP Minecraft server community. Purchase Ranks, Keys, Crates, and Coins seamlessly!
+
+🌐 **Live Site**: [army-smp2.vercel.app](https://army-smp2.vercel.app)
+
+---
 
 ## 🚀 Features
 
-- **Store System**: Browse and purchase items with a smooth, category-based UI.
-- **Dark Mode Aesthetic**: A premium, "gaming" inspired dark theme with energetic accent colors.
-- **Ranks & Features**: Detailed breakdown of server ranks and benefits.
-- **Product Modal**: fast and responsive product details view.
-- **Mobile Optimized**: Fully responsive design that looks great on Phones, Tablets, and Desktops.
-- **Copy IP**: Easy "Click to Copy" Server IP functionality on the home page.
+### 🛒 Store System
+- **Category-based UI** – Browse Ranks, Keys, Crates, Coins
+- **Product Modal** – Fast and responsive product details view
+- **Shopping Cart** – Add/remove items with quantity controls
+- **Coupon System** – Apply discount codes at checkout
+- **Order History** – Track your previous orders
+
+### 🔍 Search with Auto-suggestions
+- **Recent Searches** – Saved to localStorage
+- **Popular Searches** – Quick access to trending items
+- **Product Suggestions** – Live search with highlighted matching text
+- **Keyboard Navigation** – Arrow keys + Enter + Escape support
+
+### 🎉 Confetti Celebration
+- Canvas-based confetti animation on order success
+- 200+ colorful particles with physics simulation
+
+### 💫 Smooth Page Transitions
+- Fade + Slide animations between pages
+- Respects reduced motion preferences
+
+### ⚡ Performance Optimized
+- **Code Splitting** – React.lazy for all pages
+- **Skeleton Loaders** – Premium loading states
+- **Lazy Loading** – Pages load on-demand
+
+### 🎨 Premium UI/UX
+- Dark mode gaming aesthetic
+- Glassmorphism effects
+- Mobile-first responsive design
+- Promo slider with smooth animations
+
+### 🔐 Admin Panel
+- Secure password-protected access
+- Sales analytics dashboard
+- Order management
+- Product management (CRUD)
+- Coupon management
+
+---
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: [React.js](https://react.dev/)
-- **Build Tool**: [Vite](https://vitejs.dev/)
-- **Styling**: Vanilla CSS (Optimized with CSS Variables)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **Routing**: React Router DOM
+| Category | Technology |
+|----------|-----------|
+| Frontend | React.js 18 |
+| Build Tool | Vite |
+| Styling | Vanilla CSS + CSS Variables |
+| Icons | Lucide React |
+| Routing | React Router DOM |
+| Backend | Node.js + Express |
+| Database | MongoDB |
+| Hosting | Vercel (Frontend) + Render (Backend) |
+
+---
 
 ## 📂 Project Structure
 
 ```bash
 src/
-├── components/      # Reusable UI components (Navbar, Footer, ProductCard, etc.)
-├── data/           # Static data for Products (Ranks, Keys, etc.)
-├── pages/          # Main route pages (Home, Store)
-├── App.jsx         # Main application layout
-├── index.css       # Global styles and variables
-└── main.jsx        # Entry point
+├── components/       # Reusable UI components
+│   ├── Navbar.jsx
+│   ├── Footer.jsx
+│   ├── ProductCard.jsx
+│   ├── CartDrawer.jsx
+│   ├── Confetti.jsx      # Order success celebration
+│   ├── PageTransition.jsx # Route animations
+│   ├── PageLoader.jsx     # Lazy loading fallback
+│   └── SkeletonCard.jsx   # Loading skeletons
+├── context/          # React Context
+│   └── CartContext.jsx
+├── data/             # Static data
+│   ├── products.js
+│   └── coupons.js
+├── pages/            # Route pages (lazy loaded)
+│   ├── Home.jsx
+│   ├── Store.jsx
+│   ├── Checkout.jsx
+│   ├── OrderHistory.jsx
+│   └── Admin/
+├── services/         # API services
+├── App.jsx           # Main app with code splitting
+├── index.css         # Global styles
+└── main.jsx          # Entry point
+
+server/
+├── models/           # MongoDB schemas
+├── routes/           # Express routes
+└── index.js          # Server entry
 ```
+
+---
 
 ## ⚡ Getting Started
 
-Follow these steps to run the project locally on your machine.
-
 ### Prerequisites
-- [Node.js](https://nodejs.org/) (Version 16 or higher)
-- npm (Node Package Manager)
+- [Node.js](https://nodejs.org/) v16+
+- npm or yarn
+- MongoDB (for backend)
 
 ### Installation
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/Start-Army-SMP/website.git
-    cd website
-    ```
+```bash
+# Clone the repository
+git clone https://github.com/PrincePrajapatiXi/Army-SMP-2.git
+cd Army-SMP-2
 
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
+# Install dependencies
+npm install
 
-3.  **Run the development server:**
-    ```bash
-    npm run dev
-    ```
+# Run development server
+npm run dev
 
-4.  **Open in Browser:**
-    Go to `http://localhost:5173/` to prevent conflicts, check your terminal for the exact port.
+# Open in browser
+# http://localhost:5173/
+```
 
-## 📝 Customization
+### Backend Setup
 
-- **Change Colors**: Edit `src/index.css` and modify the `:root` variables (`--primary`, `--accent`, etc.).
-- **Update Products**: Edit `src/data/products.js` to add or remove store items.
-- **Update Server IP**: Edit `src/pages/Home.jsx` to change the IP address.
+```bash
+cd server
+npm install
+npm start
+# Server runs on http://localhost:5000
+```
+
+---
+
+## 🎨 Customization
+
+| What | Where |
+|------|-------|
+| Colors | `src/index.css` → `:root` variables |
+| Products | `src/data/products.js` or Admin Panel |
+| Server IP | `src/pages/Home.jsx` |
+| Logo | `public/images/logo.png` |
+
+---
 
 ## 📄 License
 
-This project is proprietary software for Army SMP. Unauthorized distribution involves copy-right infringement.
+This project is proprietary software for Army SMP. Unauthorized distribution involves copyright infringement.
 
 ---
-*Built with ❤️ for the Army SMP Community.*
+
+*Built with ❤️ for the Army SMP Community*
