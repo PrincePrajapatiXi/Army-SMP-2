@@ -4,7 +4,7 @@
 
 Welcome to the official **Army SMP Store** – a modern, responsive, and high-performance React application built for the Army SMP Minecraft server community. Purchase Ranks, Keys, Crates, and Coins seamlessly!
 
-🌐 **Live Site**: [army-smp2.vercel.app](https://army-smp2.vercel.app)
+🌐 **Live Site**: [armysmp2.vercel.app](https://armysmp2.vercel.app)
 
 ---
 
