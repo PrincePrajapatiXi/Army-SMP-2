@@ -3,8 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingBag, Check, Loader2, MessageCircle, Tag, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { ordersApi } from '../services/api';
-import { validateCoupon } from '../data/coupons';
+import { validateCoupon as validateCouponLocal } from '../data/coupons';
 import './Checkout.css';
+
+const API_BASE_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:5000/api'
+    : 'https://army-smp-2.onrender.com/api';
 
 const Checkout = () => {
     const navigate = useNavigate();
@@ -26,8 +30,8 @@ const Checkout = () => {
     const discountAmount = appliedCoupon?.discountAmount || 0;
     const finalTotal = subtotal - discountAmount;
 
-    // Apply coupon
-    const handleApplyCoupon = () => {
+    // Apply coupon - try API first (MongoDB), fallback to local
+    const handleApplyCoupon = async () => {
         if (!couponCode.trim()) {
             setCouponError('Please enter a coupon code');
             return;
@@ -36,20 +40,55 @@ const Checkout = () => {
         setCouponLoading(true);
         setCouponError('');
 
-        // Simulate slight delay for UX
-        setTimeout(() => {
-            const result = validateCoupon(couponCode.trim(), subtotal);
+        try {
+            // Try API first (coupons from Admin Panel / MongoDB)
+            const response = await fetch(`${API_BASE_URL}/coupons/apply`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    code: couponCode.trim(),
+                    orderTotal: subtotal
+                })
+            });
 
-            if (result.valid) {
-                setAppliedCoupon(result);
+            const data = await response.json();
+
+            if (data.success) {
+                setAppliedCoupon({
+                    valid: true,
+                    coupon: { code: data.couponCode },
+                    discountAmount: data.discount,
+                    message: `Coupon applied! You save ₹${data.discount.toFixed(2)}!`
+                });
                 setCouponCode('');
                 setCouponError('');
             } else {
-                setCouponError(result.error);
+                // API coupon not found, try local coupons
+                const localResult = validateCouponLocal(couponCode.trim(), subtotal);
+                if (localResult.valid) {
+                    setAppliedCoupon(localResult);
+                    setCouponCode('');
+                    setCouponError('');
+                } else {
+                    setCouponError(data.error || localResult.error);
+                    setAppliedCoupon(null);
+                }
+            }
+        } catch (err) {
+            // API failed, fallback to local validation
+            console.log('API coupon validation failed, using local:', err);
+            const localResult = validateCouponLocal(couponCode.trim(), subtotal);
+            if (localResult.valid) {
+                setAppliedCoupon(localResult);
+                setCouponCode('');
+                setCouponError('');
+            } else {
+                setCouponError(localResult.error);
                 setAppliedCoupon(null);
             }
+        } finally {
             setCouponLoading(false);
-        }, 300);
+        }
     };
 
     // Remove coupon
