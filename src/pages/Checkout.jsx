@@ -4,6 +4,7 @@ import { ArrowLeft, ShoppingBag, Check, Loader2, MessageCircle, Tag, X } from 'l
 import { useCart } from '../context/CartContext';
 import { ordersApi } from '../services/api';
 import { validateCoupon as validateCouponLocal } from '../data/coupons';
+import Confetti from '../components/Confetti';
 import './Checkout.css';
 
 const API_BASE_URL = window.location.hostname === 'localhost'
@@ -194,6 +195,9 @@ const Checkout = () => {
 
         return (
             <div className="checkout-page">
+                {/* Confetti Celebration */}
+                <Confetti isActive={true} duration={5000} particleCount={200} />
+
                 <div className="checkout-container">
                     <div className="order-success">
                         <div className="success-icon">
