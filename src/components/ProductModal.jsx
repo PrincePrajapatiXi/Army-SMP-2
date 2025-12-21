@@ -9,14 +9,27 @@ const Modal = ({ isOpen, onClose, product }) => {
 
     useEffect(() => {
         if (isOpen) {
+            // Scroll to top and disable body scroll
+            window.scrollTo(0, 0);
             document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.body.style.top = `-${window.scrollY}px`;
             setQuantity(1);
             setAddedToCart(false);
         } else {
-            document.body.style.overflow = 'unset';
+            const scrollY = document.body.style.top;
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+            document.body.style.top = '';
+            window.scrollTo(0, parseInt(scrollY || '0') * -1);
         }
         return () => {
-            document.body.style.overflow = 'unset';
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+            document.body.style.top = '';
         };
     }, [isOpen]);
 
