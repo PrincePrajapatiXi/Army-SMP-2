@@ -46,50 +46,52 @@ const Modal = ({ isOpen, onClose, product }) => {
             position: 'fixed',
             top: 0,
             left: 0,
-            width: '100%',
-            height: '100%',
-            backgroundColor: 'rgba(0,0,0,0.8)',
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.85)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 2000,
             backdropFilter: 'blur(5px)',
-            animation: 'fadeIn 0.2s ease-out',
-            overflowY: 'auto',
-            padding: '20px'
+            padding: '20px',
+            boxSizing: 'border-box'
         }} onClick={onClose}>
             <div style={{
                 backgroundColor: 'var(--bg-surface)',
                 borderRadius: '16px',
-                width: '90%',
-                maxWidth: '500px',
-                maxHeight: '85vh',
+                width: '100%',
+                maxWidth: '420px',
                 display: 'flex',
                 flexDirection: 'column',
-                position: 'relative',
                 border: '1px solid rgba(255,255,255,0.1)',
                 boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-                transform: 'translateY(0)',
-                animation: 'float 0.3s ease-out',
-                margin: 'auto',
-                overflowY: 'auto'
+                animation: 'float 0.3s ease-out'
             }} onClick={e => e.stopPropagation()}>
 
-                <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-                    <h2 style={{ fontSize: '1.5rem', margin: 0 }}>{product.name}</h2>
-                    <button onClick={onClose} style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer' }}><X /></button>
+                {/* Header */}
+                <div style={{
+                    padding: '16px 20px',
+                    borderBottom: '1px solid rgba(255,255,255,0.05)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}>
+                    <h2 style={{ fontSize: '1.25rem', margin: 0 }}>{product.name}</h2>
+                    <button onClick={onClose} style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}><X /></button>
                 </div>
 
-                <div style={{ padding: '2rem', overflowY: 'auto' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}>
-                        <img src={product.image || 'https://via.placeholder.com/150'} alt={product.name} style={{ width: '120px', borderRadius: '12px', objectFit: 'contain' }} />
+                {/* Content */}
+                <div style={{ padding: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+                        <img src={product.image || 'https://via.placeholder.com/150'} alt={product.name} style={{ width: '80px', height: '80px', borderRadius: '12px', objectFit: 'contain' }} />
                     </div>
 
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', lineHeight: '1.6' }}>
-                        {product.description || "Unlock exclusive features and abilities with this package. Includes priority access, custom cosmetics, and more."}
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: '1.5', fontSize: '0.9rem', textAlign: 'center' }}>
+                        {product.description || "Unlock exclusive features with this package."}
                     </p>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                         <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>{product.price}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--bg-dark)', padding: '5px 10px', borderRadius: '8px' }}>
                             <button
@@ -100,8 +102,7 @@ const Modal = ({ isOpen, onClose, product }) => {
                                     padding: '5px 10px',
                                     background: 'none',
                                     border: 'none',
-                                    cursor: quantity > 1 ? 'pointer' : 'not-allowed',
-                                    transition: 'all 0.2s ease'
+                                    cursor: quantity > 1 ? 'pointer' : 'not-allowed'
                                 }}
                             >-</button>
                             <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: 'bold' }}>{quantity}</span>
@@ -113,8 +114,7 @@ const Modal = ({ isOpen, onClose, product }) => {
                                     padding: '5px 10px',
                                     background: 'none',
                                     border: 'none',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease'
+                                    cursor: 'pointer'
                                 }}
                             >+</button>
                         </div>
@@ -126,12 +126,15 @@ const Modal = ({ isOpen, onClose, product }) => {
                         style={{
                             width: '100%',
                             justifyContent: 'center',
-                            padding: '15px',
+                            padding: '14px',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '10px',
                             backgroundColor: addedToCart ? '#22c55e' : 'var(--primary)',
-                            transition: 'all 0.3s ease'
+                            transition: 'all 0.3s ease',
+                            borderRadius: '10px',
+                            fontSize: '1rem',
+                            fontWeight: '600'
                         }}
                     >
                         {addedToCart ? (

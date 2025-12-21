@@ -815,3 +815,133 @@
     display: block;
     margin-bottom: 4px;
 }
+
+/* UTR Popup Modal */
+.utr-popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 3000;
+}
+
+.utr-popup-modal {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 2px solid rgba(245, 158, 11, 0.5);
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    animation: popupSlide 0.3s ease-out;
+}
+
+@keyframes popupSlide {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.utr-popup-icon {
+    font-size: 4rem;
+    margin-bottom: 16px;
+}
+
+.utr-popup-modal h2 {
+    color: #f59e0b;
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+}
+
+.utr-popup-modal p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+.utr-popup-modal p strong {
+    color: white;
+}
+
+.utr-popup-warning {
+    color: #ef4444 !important;
+    font-weight: 600;
+    padding: 12px;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 8px;
+    margin-top: 16px;
+}
+
+.utr-popup-btn {
+    margin-top: 20px;
+    width: 100%;
+    padding: 16px !important;
+    font-size: 1rem !important;
+}
+
+/* Mobile Responsive - Payment Page */
+@media (max-width: 768px) {
+    .checkout-container {
+        padding: 16px;
+    }
+
+    .checkout-header h1 {
+        font-size: 1.25rem;
+    }
+
+    .payment-content {
+        grid-template-columns: 1fr !important;
+        gap: 16px;
+    }
+
+    .payment-summary,
+    .payment-qr-section {
+        padding: 16px;
+    }
+
+    .payment-qr-section {
+        order: -1;
+        /* QR first on mobile */
+    }
+
+    .upi-qr-container {
+        padding: 16px;
+    }
+
+    .qr-wrapper svg {
+        width: 160px !important;
+        height: 160px !important;
+    }
+
+    .utr-warning-banner {
+        padding: 12px;
+        margin-bottom: 16px;
+    }
+
+    .summary-total-compact .total-amount {
+        font-size: 1.5rem;
+    }
+
+    .complete-payment-btn {
+        padding: 14px !important;
+        font-size: 1rem !important;
+    }
+
+    .transaction-input-section {
+        padding: 16px;
+    }
+
+    .transaction-input-section input {
+        font-size: 1rem;
+        padding: 12px;
+    }
+}
