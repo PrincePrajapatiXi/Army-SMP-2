@@ -4,6 +4,7 @@ const { sendStatusUpdateNotification } = require('../services/email');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const Coupon = require('../models/Coupon');
+const Promotion = require('../models/Promotion');
 
 // Admin password from environment variable (secure)
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Prince_Uday';
@@ -396,4 +397,146 @@ router.put('/coupons/:id/toggle', async (req, res) => {
     }
 });
 
+// ==================== PROMOTIONS MANAGEMENT ====================
+
+// GET /api/admin/promotions - Get all promotions
+router.get('/promotions', async (req, res) => {
+    try {
+        const promotions = await Promotion.find().sort({ position: 1 });
+        res.json(promotions);
+    } catch (error) {
+        console.error('Error fetching promotions:', error);
+        res.status(500).json({ error: 'Failed to fetch promotions' });
+    }
+});
+
+// POST /api/admin/promotions - Create new promotion
+router.post('/promotions', async (req, res) => {
+    try {
+        const { name, logo, tagline, description, features, link, buttonText, gradient, position, isActive } = req.body;
+
+        if (!name || !description || !link) {
+            return res.status(400).json({ error: 'Name, description, and link are required' });
+        }
+
+        // Get max position if not provided
+        let actualPosition = position;
+        if (!actualPosition) {
+            const maxPromo = await Promotion.findOne().sort({ position: -1 });
+            actualPosition = maxPromo ? maxPromo.position + 1 : 1;
+        }
+
+        const promotion = new Promotion({
+            name,
+            logo: logo || '/images/stone.png',
+            tagline: tagline || 'Your Amazing Service',
+            description,
+            features: features || [],
+            link,
+            buttonText: buttonText || 'Learn More',
+            gradient: gradient || 'linear-gradient(135deg, #1e3a5f, #0d1b2a)',
+            position: actualPosition,
+            isActive: isActive !== undefined ? isActive : true
+        });
+
+        await promotion.save();
+        res.status(201).json({ success: true, message: 'Promotion created successfully', promotion });
+    } catch (error) {
+        console.error('Error creating promotion:', error);
+        res.status(500).json({ error: 'Failed to create promotion' });
+    }
+});
+
+// PUT /api/admin/promotions/:id - Update promotion
+router.put('/promotions/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, logo, tagline, description, features, link, buttonText, gradient, position, isActive } = req.body;
+
+        const promotion = await Promotion.findById(id);
+        if (!promotion) {
+            return res.status(404).json({ error: 'Promotion not found' });
+        }
+
+        if (name) promotion.name = name;
+        if (logo) promotion.logo = logo;
+        if (tagline) promotion.tagline = tagline;
+        if (description) promotion.description = description;
+        if (features) promotion.features = features;
+        if (link) promotion.link = link;
+        if (buttonText) promotion.buttonText = buttonText;
+        if (gradient) promotion.gradient = gradient;
+        if (position !== undefined) promotion.position = position;
+        if (isActive !== undefined) promotion.isActive = isActive;
+
+        await promotion.save();
+        res.json({ success: true, message: 'Promotion updated successfully', promotion });
+    } catch (error) {
+        console.error('Error updating promotion:', error);
+        res.status(500).json({ error: 'Failed to update promotion' });
+    }
+});
+
+// DELETE /api/admin/promotions/:id - Delete promotion
+router.delete('/promotions/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const promotion = await Promotion.findByIdAndDelete(id);
+
+        if (!promotion) {
+            return res.status(404).json({ error: 'Promotion not found' });
+        }
+
+        res.json({ success: true, message: 'Promotion deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting promotion:', error);
+        res.status(500).json({ error: 'Failed to delete promotion' });
+    }
+});
+
+// PUT /api/admin/promotions/:id/toggle - Toggle promotion active status
+router.put('/promotions/:id/toggle', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const promotion = await Promotion.findById(id);
+
+        if (!promotion) {
+            return res.status(404).json({ error: 'Promotion not found' });
+        }
+
+        promotion.isActive = !promotion.isActive;
+        await promotion.save();
+
+        res.json({
+            success: true,
+            message: `Promotion ${promotion.isActive ? 'activated' : 'deactivated'} successfully`,
+            promotion
+        });
+    } catch (error) {
+        console.error('Error toggling promotion:', error);
+        res.status(500).json({ error: 'Failed to toggle promotion status' });
+    }
+});
+
+// PUT /api/admin/promotions/reorder - Reorder promotions
+router.put('/promotions/reorder', async (req, res) => {
+    try {
+        const { promotions } = req.body; // Array of { id, position }
+
+        if (!promotions || !Array.isArray(promotions)) {
+            return res.status(400).json({ error: 'Invalid promotions array' });
+        }
+
+        for (const item of promotions) {
+            await Promotion.findByIdAndUpdate(item.id, { position: item.position });
+        }
+
+        res.json({ success: true, message: 'Promotions reordered successfully' });
+    } catch (error) {
+        console.error('Error reordering promotions:', error);
+        res.status(500).json({ error: 'Failed to reorder promotions' });
+    }
+});
+
 module.exports = router;
+
