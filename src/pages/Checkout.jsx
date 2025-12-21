@@ -338,6 +338,15 @@ const Checkout = () => {
                         <h1>Payment</h1>
                     </div>
 
+                    {/* Important Warning Banner */}
+                    <div className="utr-warning-banner">
+                        <span className="warning-icon">⚠️</span>
+                        <div className="warning-text">
+                            <strong>IMPORTANT:</strong> After completing payment, you MUST enter the UTR/Transaction ID below.
+                            Payment without UTR will NOT be processed.
+                        </div>
+                    </div>
+
                     <div className="payment-content">
                         {/* Order Summary */}
                         <div className="payment-summary">
@@ -360,19 +369,11 @@ const Checkout = () => {
                                 <span>Total</span>
                                 <span className="total-amount">₹{finalTotal.toFixed(2)}</span>
                             </div>
-                        </div>
 
-                        {/* UPI QR Code */}
-                        <div className="payment-qr-section">
-                            <UpiQrCode
-                                amount={finalTotal}
-                                orderId={orderDetails.minecraftUsername}
-                            />
-
-                            {/* Transaction ID Input */}
-                            <div className="transaction-input-section">
+                            {/* Transaction ID Input - Moved here for visibility */}
+                            <div className="transaction-input-section" style={{ marginTop: '20px' }}>
                                 <label htmlFor="transaction-id">
-                                    Enter UPI Transaction ID / UTR Number
+                                    Enter UPI Transaction ID / UTR Number <span style={{ color: '#ef4444' }}>*</span>
                                 </label>
                                 <input
                                     type="text"
@@ -382,8 +383,16 @@ const Checkout = () => {
                                     placeholder="e.g., 4839284729837"
                                     disabled={loading}
                                 />
-                                <small>You can find this in your UPI app payment history</small>
+                                <small>Find this in your UPI app → Payment History</small>
                             </div>
+                        </div>
+
+                        {/* UPI QR Code */}
+                        <div className="payment-qr-section">
+                            <UpiQrCode
+                                amount={finalTotal}
+                                orderId={orderDetails.minecraftUsername}
+                            />
 
                             {error && (
                                 <div className="error-message">

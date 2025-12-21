@@ -773,3 +773,45 @@
 .payment-verification-note strong {
     color: var(--text-primary);
 }
+
+/* UTR Warning Banner */
+.utr-warning-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.1));
+    border: 2px solid rgba(245, 158, 11, 0.5);
+    border-radius: 12px;
+    margin-bottom: 24px;
+    animation: pulse-warning 2s infinite;
+}
+
+@keyframes pulse-warning {
+
+    0%,
+    100% {
+        border-color: rgba(245, 158, 11, 0.5);
+    }
+
+    50% {
+        border-color: rgba(245, 158, 11, 0.9);
+    }
+}
+
+.utr-warning-banner .warning-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.utr-warning-banner .warning-text {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.utr-warning-banner .warning-text strong {
+    color: #f59e0b;
+    display: block;
+    margin-bottom: 4px;
+}

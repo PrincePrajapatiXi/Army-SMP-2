@@ -65,15 +65,6 @@ const UpiQrCode = ({ amount, orderId, onCopy }) => {
                         </button>
                     </div>
                 </div>
-
-                <div className="upi-apps">
-                    <span>Pay using any UPI app:</span>
-                    <div className="app-icons">
-                        <span className="app-icon">📱 GPay</span>
-                        <span className="app-icon">📱 PhonePe</span>
-                        <span className="app-icon">📱 Paytm</span>
-                    </div>
-                </div>
             </div>
 
             <p className="upi-note">
