@@ -1182,7 +1182,11 @@ const Admin = () => {
                         {/* Products Grid */}
                         <div className="products-grid">
                             {products.map(product => (
-                                <div key={product.id} className="admin-product-card">
+                                <div
+                                    key={product.id}
+                                    className="admin-product-card"
+                                    style={{ borderColor: product.color || 'var(--card-border)' }}
+                                >
                                     <div className="product-card-image">
                                         <img
                                             src={product.image}
