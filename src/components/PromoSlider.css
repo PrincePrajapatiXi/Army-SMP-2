@@ -34,16 +34,100 @@
     cursor: grabbing;
 }
 
+/* Progress Bar */
+.slider-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    z-index: 20;
+    overflow: hidden;
+}
+
+.slider-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), #ffc107);
+    transition: width 0.05s linear;
+    box-shadow: 0 0 10px var(--primary);
+}
+
+/* Slide Counter */
+.slide-counter {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    z-index: 15;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.slide-counter .current {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.slide-counter .separator {
+    color: rgba(255, 255, 255, 0.3);
+    margin: 0 4px;
+}
+
+.slide-counter .total {
+    color: var(--text-secondary);
+}
+
+/* Pause Indicator */
+.pause-indicator {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    padding: 8px 12px;
+    border-radius: 8px;
+    z-index: 15;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 /* Slides Container */
 .slides-container {
     display: flex;
-    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .promo-slide {
     min-width: 100%;
     padding: 60px 40px;
     box-sizing: border-box;
+    opacity: 0.7;
+    transition: opacity 0.4s ease;
+}
+
+.promo-slide.active {
+    opacity: 1;
 }
 
 .promo-content {
@@ -67,6 +151,23 @@
     justify-content: center;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.promo-slide.active .promo-logo-wrap {
+    animation: logoFloat 3s ease-in-out infinite;
+}
+
+@keyframes logoFloat {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
 }
 
 .promo-logo {
@@ -123,6 +224,12 @@
     border-radius: 20px;
     font-size: 0.85rem;
     color: var(--text-secondary);
+    transition: all 0.3s ease;
+}
+
+.feature-tag:hover {
+    background: rgba(255, 107, 53, 0.15);
+    border-color: var(--primary);
 }
 
 /* CTA Button */
@@ -150,10 +257,10 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 45px;
-    height: 45px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    width: 50px;
+    height: 50px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -166,8 +273,10 @@
 }
 
 .slider-arrow:hover {
-    background: rgba(255, 107, 53, 0.3);
+    background: var(--primary);
     border-color: var(--primary);
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.5);
 }
 
 .slider-arrow.prev {
@@ -179,40 +288,57 @@
 }
 
 .slider-arrow svg {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
 }
 
 /* Dots Navigation */
 .slider-dots {
     display: flex;
     justify-content: center;
-    gap: 12px;
+    gap: 14px;
     padding: 20px 0;
     position: absolute;
-    bottom: 10px;
+    bottom: 15px;
     left: 50%;
     transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    border-radius: 30px;
+    padding: 10px 20px;
 }
 
 .dot {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.3);
     border: none;
     cursor: pointer;
     transition: all 0.3s ease;
+    position: relative;
+}
+
+.dot::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
 }
 
 .dot:hover {
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.6);
 }
 
 .dot.active {
     background: var(--primary);
-    transform: scale(1.2);
-    box-shadow: 0 0 10px var(--primary);
+    transform: scale(1.3);
+}
+
+.dot.active::after {
+    border-color: var(--primary);
 }
 
 /* Mobile Responsive */
@@ -226,7 +352,7 @@
     }
 
     .promo-slide {
-        padding: 40px 20px 60px;
+        padding: 50px 20px 70px;
     }
 
     .promo-content {
@@ -258,8 +384,8 @@
     }
 
     .slider-arrow {
-        width: 35px;
-        height: 35px;
+        width: 40px;
+        height: 40px;
     }
 
     .slider-arrow.prev {
@@ -271,14 +397,25 @@
     }
 
     .slider-arrow svg {
-        width: 18px;
-        height: 18px;
+        width: 20px;
+        height: 20px;
+    }
+
+    .slide-counter {
+        top: 15px;
+        right: 15px;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
+    .pause-indicator {
+        display: none;
     }
 }
 
 @media (max-width: 480px) {
     .promo-slide {
-        padding: 30px 15px 55px;
+        padding: 40px 15px 65px;
     }
 
     .promo-name {
@@ -293,5 +430,15 @@
     .promo-cta {
         padding: 12px 24px;
         font-size: 0.9rem;
+    }
+
+    .slider-dots {
+        padding: 8px 15px;
+        gap: 10px;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
     }
 }
