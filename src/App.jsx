@@ -5,7 +5,7 @@ import Home from './pages/Home';
 import Store from './pages/Store';
 import Checkout from './pages/Checkout';
 import OrderHistory from './pages/OrderHistory';
-import Admin from './pages/Admin';
+import Admin from './pages/Admin/index';
 import Footer from './components/Footer';
 
 // Layout wrapper to hide navbar/footer on admin page
