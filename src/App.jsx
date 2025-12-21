@@ -1,12 +1,18 @@
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import Store from './pages/Store';
-import Checkout from './pages/Checkout';
-import OrderHistory from './pages/OrderHistory';
-import Admin from './pages/Admin/index';
 import Footer from './components/Footer';
+import PageTransition from './components/PageTransition';
+import PageLoader from './components/PageLoader';
+
+// Lazy load pages for code splitting
+// This reduces initial bundle size by loading pages only when needed
+const Home = lazy(() => import('./pages/Home'));
+const Store = lazy(() => import('./pages/Store'));
+const Checkout = lazy(() => import('./pages/Checkout'));
+const OrderHistory = lazy(() => import('./pages/OrderHistory'));
+const Admin = lazy(() => import('./pages/Admin/index'));
 
 // Layout wrapper to hide navbar/footer on admin page
 function Layout({ children }) {
@@ -16,7 +22,14 @@ function Layout({ children }) {
   return (
     <div className="app-container">
       {!isAdminPage && <Navbar />}
-      <main>{children}</main>
+      <PageTransition>
+        <main>
+          {/* Suspense provides fallback UI while lazy components load */}
+          <Suspense fallback={<PageLoader />}>
+            {children}
+          </Suspense>
+        </main>
+      </PageTransition>
       {!isAdminPage && <Footer />}
     </div>
   );
@@ -41,5 +54,3 @@ function App() {
 }
 
 export default App;
-
-

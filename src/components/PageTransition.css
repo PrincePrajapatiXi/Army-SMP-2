@@ -1,0 +1,69 @@
+/* Page Transition Styles */
+.page-transition {
+    width: 100%;
+    min-height: 100%;
+}
+
+/* Enter Animation */
+.page-transition-enter {
+    animation: pageEnter 0.4s ease-out forwards;
+}
+
+/* Exit Animation */
+.page-transition-exit {
+    animation: pageExit 0.2s ease-in forwards;
+}
+
+@keyframes pageEnter {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pageExit {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+/* Smooth scroll behavior for page content */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Prevent layout shift during transition */
+.page-transition>* {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* Optional: Add a subtle blur effect during transition */
+.page-transition-exit>* {
+    filter: blur(1px);
+    transition: filter 0.2s ease;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+
+    .page-transition-enter,
+    .page-transition-exit {
+        animation: none;
+    }
+
+    .page-transition-exit>* {
+        filter: none;
+    }
+}
