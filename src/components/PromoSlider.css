@@ -49,8 +49,10 @@
 .slider-progress-fill {
     height: 100%;
     background: linear-gradient(90deg, var(--primary), #ffc107);
-    box-shadow: 0 0 10px var(--primary);
-    transition: width 0.05s linear;
+    /* Smooth transition with GPU acceleration */
+    transition: width 0.1s linear;
+    will-change: width;
+    transform: translateZ(0);
 }
 
 /* Slide Counter */
@@ -115,7 +117,9 @@
 /* Slides Container */
 .slides-container {
     display: flex;
-    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: transform 0.5s ease-out;
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .promo-slide {
@@ -123,7 +127,8 @@
     padding: 60px 40px;
     box-sizing: border-box;
     opacity: 0.7;
-    transition: opacity 0.4s ease;
+    transition: opacity 0.3s ease;
+    will-change: opacity;
 }
 
 .promo-slide.active {
@@ -162,11 +167,11 @@
 
     0%,
     100% {
-        transform: translateY(0);
+        transform: translateY(0) translateZ(0);
     }
 
     50% {
-        transform: translateY(-8px);
+        transform: translateY(-5px) translateZ(0);
     }
 }
 

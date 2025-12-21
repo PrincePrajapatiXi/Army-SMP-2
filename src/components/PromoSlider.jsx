@@ -107,13 +107,13 @@ const PromoSlider = () => {
             setCurrentSlide((prev) => (prev + 1) % promos.length);
         }, remainingTime.current);
 
-        // Progress animation
+        // Progress animation - reduced frequency for smoother performance
         const progressInterval = setInterval(() => {
             const elapsed = Date.now() - slideStartTime.current;
             const totalElapsed = SLIDE_DURATION - remainingTime.current + elapsed;
             const newProgress = Math.min((totalElapsed / SLIDE_DURATION) * 100, 100);
             setProgress(newProgress);
-        }, 50);
+        }, 100);
 
         return () => {
             clearTimeout(timer);
