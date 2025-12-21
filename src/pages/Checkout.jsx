@@ -26,6 +26,7 @@ const Checkout = () => {
     const [showPayment, setShowPayment] = useState(false);
     const [transactionId, setTransactionId] = useState('');
     const [orderDetails, setOrderDetails] = useState(null);
+    const [showUtrPopup, setShowUtrPopup] = useState(false); // Dismissible popup
 
     // Coupon state
     const [couponCode, setCouponCode] = useState('');
@@ -139,7 +140,7 @@ const Checkout = () => {
             total: finalTotal,
             couponCode: appliedCoupon?.coupon?.code || null
         });
-        setShowPayment(true);
+        setShowUtrPopup(true); // Show warning popup first
     };
 
     // Complete order with transaction ID
@@ -319,6 +320,36 @@ const Checkout = () => {
                         <Link to="/store" className="btn btn-primary">
                             Browse Store
                         </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // UTR Warning Popup
+    if (showUtrPopup) {
+        return (
+            <div className="checkout-page">
+                <div className="utr-popup-overlay">
+                    <div className="utr-popup-modal">
+                        <div className="utr-popup-icon">⚠️</div>
+                        <h2>Important Payment Notice</h2>
+                        <p>
+                            After completing your UPI payment, you <strong>MUST</strong> enter the
+                            <strong> UTR / Transaction ID</strong> to confirm your order.
+                        </p>
+                        <p className="utr-popup-warning">
+                            ❌ Orders without valid Transaction ID will NOT be processed!
+                        </p>
+                        <button
+                            className="btn btn-primary utr-popup-btn"
+                            onClick={() => {
+                                setShowUtrPopup(false);
+                                setShowPayment(true);
+                            }}
+                        >
+                            ✓ I Understand, Proceed to Payment
+                        </button>
                     </div>
                 </div>
             </div>
