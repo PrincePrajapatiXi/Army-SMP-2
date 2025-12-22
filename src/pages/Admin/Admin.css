@@ -2760,21 +2760,74 @@
     /* Products Grid Mobile - KEEP 2 per row */
     .products-grid {
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: 10px;
+        gap: 8px;
     }
 
+    /* Compact Product Card for Mobile */
     .admin-product-card {
-        padding: 14px;
+        padding: 10px;
+        border-radius: 10px;
     }
 
-    .product-form-modal .modal-content {
+    .product-card-image {
+        height: 80px !important;
+        margin-bottom: 8px;
+    }
+
+    .product-card-image img {
+        max-height: 70px !important;
+        object-fit: contain;
+    }
+
+    .product-card-info {
+        gap: 2px;
+    }
+
+    .product-card-info h4 {
+        font-size: 0.85rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .product-category {
+        font-size: 0.65rem !important;
+    }
+
+    .product-price {
+        font-size: 0.95rem !important;
+    }
+
+    /* Compact buttons side by side */
+    .product-card-actions {
+        flex-direction: row !important;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .product-card-actions .edit-btn,
+    .product-card-actions .delete-btn {
+        flex: 1;
+        padding: 6px 8px !important;
+        font-size: 0.7rem;
+        gap: 4px;
+    }
+
+    .product-card-actions svg {
+        width: 12px !important;
+        height: 12px !important;
+    }
+
+    .product-form-modal .modal-content,
+    .product-modal-content {
         max-height: 90vh;
-        padding: 16px;
+        padding: 14px;
+        margin: 10px;
     }
 
     .form-row {
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
     }
 
     /* Coupons Grid Mobile - KEEP 2 per row */
