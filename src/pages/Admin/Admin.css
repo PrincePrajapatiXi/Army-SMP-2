@@ -2460,41 +2460,82 @@
 
 /* ===== COMPREHENSIVE MOBILE RESPONSIVE STYLES ===== */
 
-/* Admin Layout Mobile */
+/* Admin Layout Mobile - 1024px Tablet */
 @media (max-width: 1024px) {
-    .admin-layout {
+    .admin-page {
         flex-direction: column;
+        padding-bottom: 70px;
+        /* Space for bottom nav */
     }
 
     .admin-sidebar {
-        position: fixed;
-        top: 0;
-        left: -280px;
-        height: 100vh;
-        z-index: 1100;
-        transition: left 0.3s ease;
-    }
-
-    .admin-sidebar.open {
-        left: 0;
+        display: none;
+        /* Hide sidebar on mobile */
     }
 
     .admin-main {
         margin-left: 0;
         width: 100%;
+        padding: 16px;
+    }
+
+    /* Show mobile bottom navigation */
+    .admin-mobile-nav {
+        display: flex !important;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--bg-surface);
+        border-top: 1px solid var(--card-border);
+        padding: 8px 0;
+        z-index: 1000;
+        justify-content: space-around;
+        gap: 4px;
+    }
+
+    .mobile-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 8px 12px;
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 0.7rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-radius: 8px;
+        min-width: 56px;
+    }
+
+    .mobile-nav-item:hover,
+    .mobile-nav-item.active {
+        color: var(--primary);
+        background: rgba(255, 107, 53, 0.1);
+    }
+
+    .mobile-nav-item svg {
+        width: 20px;
+        height: 20px;
     }
 
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        gap: 10px;
     }
 
     .stat-card {
-        padding: 16px;
+        padding: 12px;
     }
 
     .stat-value {
-        font-size: 1.25rem;
+        font-size: 1.1rem;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
     }
 }
 
@@ -2584,43 +2625,99 @@
         min-width: unset;
     }
 
-    /* Orders List Mobile */
+    /* Orders List Mobile - COMPACT HORIZONTAL CARDS */
     .orders-list-admin {
-        gap: 12px;
+        gap: 8px;
     }
 
     .admin-order-card {
-        padding: 14px;
+        padding: 12px;
+        border-radius: 10px;
     }
 
     .order-card-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .order-select-info {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
     }
 
     .order-main-info {
-        flex-direction: column;
-        gap: 4px;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
     }
 
     .order-number {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .order-date {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
     }
 
     .status-select {
-        width: 100%;
+        padding: 6px 10px;
+        font-size: 0.75rem;
+        min-width: 90px;
+    }
+
+    /* Compact order body - show key info in single row */
+    .order-card-body {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px 0;
+        border-top: 1px solid var(--card-border);
         margin-top: 8px;
     }
 
-    .order-card-body {
-        flex-direction: column;
-        gap: 12px;
+    .order-customer {
+        flex: 1;
+        min-width: 120px;
     }
 
-    .order-customer p,
+    .order-customer p {
+        font-size: 0.75rem;
+        margin-bottom: 2px;
+    }
+
     .order-items-list {
-        font-size: 0.85rem;
+        display: none;
+        /* Hide items on mobile for compact view */
+    }
+
+    .order-card-footer {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 8px;
+        border-top: 1px solid var(--card-border);
+        margin-top: 4px;
+    }
+
+    .order-total-badge {
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    .coupon-info {
+        font-size: 0.7rem;
+    }
+
+    /* Show items in a more compact way in header */
+    .order-customer p:not(:first-child):not(:nth-child(2)) {
+        display: none;
+        /* Hide extra info on mobile */
     }
 
     /* Products Grid Mobile */
