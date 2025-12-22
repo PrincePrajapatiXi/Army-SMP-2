@@ -2833,29 +2833,123 @@
     /* Coupons Grid Mobile - KEEP 2 per row */
     .coupons-grid {
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: 10px;
+        gap: 8px;
     }
 
+    /* Compact Coupon Card for Mobile */
     .coupon-card {
-        padding: 14px;
+        padding: 10px;
+        border-radius: 10px;
     }
 
-    .coupon-modal .modal-content {
-        padding: 16px;
+    .coupon-card-header {
+        margin-bottom: 6px;
+    }
+
+    .coupon-code {
+        font-size: 0.8rem !important;
+        padding: 4px 8px !important;
+    }
+
+    .toggle-btn svg {
+        width: 16px !important;
+        height: 16px !important;
+    }
+
+    .coupon-card-body {
+        gap: 4px;
+    }
+
+    .coupon-discount {
+        font-size: 1rem !important;
+    }
+
+    .coupon-details {
+        font-size: 0.65rem !important;
+        gap: 4px;
+    }
+
+    .coupon-expiry {
+        font-size: 0.6rem !important;
+    }
+
+    /* Compact coupon buttons */
+    .coupon-card-actions {
+        flex-direction: row !important;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .coupon-card-actions .edit-btn,
+    .coupon-card-actions .delete-btn {
+        flex: 1;
+        padding: 6px 8px !important;
+        font-size: 0.7rem;
+        gap: 4px;
+    }
+
+    .coupon-card-actions svg {
+        width: 12px !important;
+        height: 12px !important;
+    }
+
+    .coupon-modal-content {
+        padding: 14px;
+        margin: 10px;
     }
 
     /* Promotions Grid Mobile - KEEP 2 per row */
     .promotions-grid {
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: 10px;
+        gap: 8px;
     }
 
+    /* Compact Promotion Card for Mobile */
     .promotion-card {
-        padding: 14px;
+        padding: 10px;
+        border-radius: 10px;
     }
 
-    .promotion-modal .modal-content {
-        padding: 16px;
+    .promotion-card-header h4 {
+        font-size: 0.85rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .promotion-badge {
+        font-size: 0.6rem !important;
+        padding: 2px 6px !important;
+    }
+
+    .promotion-card-body {
+        font-size: 0.7rem;
+        gap: 4px;
+    }
+
+    /* Compact promotion buttons */
+    .promotion-card-actions {
+        flex-direction: row !important;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .promotion-card-actions .edit-btn,
+    .promotion-card-actions .delete-btn {
+        flex: 1;
+        padding: 6px 8px !important;
+        font-size: 0.7rem;
+        gap: 4px;
+    }
+
+    .promotion-card-actions svg {
+        width: 12px !important;
+        height: 12px !important;
+    }
+
+    .promotion-modal-content {
+        padding: 14px;
+        margin: 10px;
     }
 
     /* Chart Container */
