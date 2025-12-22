@@ -61,8 +61,25 @@ const PromotionsTab = ({
                             <div className="coupon-details" style={{ marginTop: '8px' }}>
                                 <span>{promo.tagline}</span>
                             </div>
-                            <div className="promo-link" style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '5px' }}>
-                                {promo.link?.substring(0, 35)}...
+                            <div className="promo-link" style={{ fontSize: '0.75rem', marginTop: '5px' }}>
+                                <a
+                                    href={promo.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        color: '#60a5fa',
+                                        textDecoration: 'none',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                    }}
+                                >
+                                    🔗 {promo.link?.includes('discord') ? 'Discord' :
+                                        promo.link?.includes('youtube') ? 'YouTube' :
+                                            promo.link?.includes('instagram') ? 'Instagram' :
+                                                promo.link?.includes('twitter') || promo.link?.includes('x.com') ? 'Twitter' :
+                                                    promo.buttonText || 'Visit Link'}
+                                </a>
                             </div>
                         </div>
                         <div className="coupon-card-actions">
