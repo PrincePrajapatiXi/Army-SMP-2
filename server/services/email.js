@@ -293,124 +293,126 @@ const sendStatusUpdateNotification = async (order, newStatus) => {
     }
 };
 
-// Send OTP Email (for authentication)
+// Send OTP Email (for authentication) - Uses Resend for reliable delivery
 const sendOTPEmail = async (email, otp, type, userName = 'User') => {
     console.log(`📧 Sending OTP email to ${email} for ${type}`);
 
     const isVerification = type === 'emailVerification';
-    const title = isVerification ? '✉️ Verify Your Email' : '🔐 Password Reset Request';
-    const description = isVerification
-        ? `Hello **${userName}**! Please verify your email address to complete your registration.`
-        : `Hello **${userName}**! You requested to reset your password.`;
-    const color = isVerification ? 0x22c55e : 0xf59e0b; // Green or Orange
+    const subject = isVerification
+        ? `🔐 Verify Your Email - Army SMP 2`
+        : `🔐 Password Reset OTP - Army SMP 2`;
 
-    // Try Discord Webhook first (logs OTP for development/testing)
+    const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 10px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #f97316; margin: 0;">Army SMP 2</h1>
+                <p style="color: #9ca3af; margin-top: 5px;">Minecraft Server Store</p>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.05); padding: 30px; border-radius: 10px; text-align: center;">
+                <h2 style="color: #ffffff; margin-top: 0;">${isVerification ? 'Verify Your Email' : 'Reset Your Password'}</h2>
+                <p style="color: #d1d5db;">Hello <strong>${userName}</strong>!</p>
+                <p style="color: #d1d5db;">${isVerification
+            ? 'Use the code below to verify your email address:'
+            : 'Use the code below to reset your password:'}</p>
+                
+                <div style="background: linear-gradient(135deg, #f97316, #ea580c); padding: 20px; border-radius: 10px; margin: 20px 0;">
+                    <span style="font-size: 36px; font-weight: bold; color: white; letter-spacing: 8px;">${otp}</span>
+                </div>
+                
+                <p style="color: #9ca3af; font-size: 14px;">This code will expire in 10 minutes.</p>
+                <p style="color: #9ca3af; font-size: 14px;">If you didn't request this, please ignore this email.</p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <p style="color: #6b7280; font-size: 12px;">© 2024 Army SMP 2. All rights reserved.</p>
+            </div>
+        </div>
+    `;
+
+    // Try Resend first (most reliable on Render)
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (RESEND_API_KEY) {
+        try {
+            const { Resend } = require('resend');
+            const resend = new Resend(RESEND_API_KEY);
+
+            const { data, error } = await resend.emails.send({
+                from: 'Army SMP 2 <onboarding@resend.dev>',
+                to: email,
+                subject: subject,
+                html: htmlContent
+            });
+
+            if (error) {
+                console.error('❌ Resend error:', error);
+            } else {
+                console.log('✅ OTP email sent via Resend:', data.id);
+                return { success: true, method: 'resend', id: data.id };
+            }
+        } catch (resendError) {
+            console.error('❌ Resend failed:', resendError.message);
+        }
+    } else {
+        console.log('⚠️ RESEND_API_KEY not configured');
+    }
+
+    // Discord notification for admin (backup/logging)
     if (DISCORD_WEBHOOK_URL) {
         try {
+            const title = isVerification ? '✉️ Verify Your Email' : '🔐 Password Reset Request';
+            const description = isVerification
+                ? `Hello **${userName}**! Please verify your email address.`
+                : `Hello **${userName}**! Password reset requested.`;
+            const color = isVerification ? 0x22c55e : 0xf59e0b;
+
             const discordPayload = {
                 embeds: [{
                     title: title,
                     color: color,
                     description: description,
                     fields: [
-                        {
-                            name: '📧 Email',
-                            value: email,
-                            inline: true
-                        },
-                        {
-                            name: '🔑 OTP Code',
-                            value: `\`${otp}\``,
-                            inline: true
-                        },
-                        {
-                            name: '⏰ Valid For',
-                            value: '10 minutes',
-                            inline: true
-                        },
-                        {
-                            name: '📋 Type',
-                            value: isVerification ? 'Email Verification' : 'Password Reset',
-                            inline: true
-                        }
+                        { name: '📧 Email', value: email, inline: true },
+                        { name: '🔑 OTP Code', value: `\`${otp}\``, inline: true },
+                        { name: '⏰ Valid For', value: '10 minutes', inline: true },
+                        { name: '📋 Type', value: isVerification ? 'Email Verification' : 'Password Reset', inline: true }
                     ],
-                    footer: {
-                        text: 'Army SMP 2 - Authentication'
-                    },
+                    footer: { text: 'Army SMP 2 - Authentication' },
                     timestamp: new Date().toISOString()
                 }]
             };
 
-            const response = await fetch(DISCORD_WEBHOOK_URL, {
+            await fetch(DISCORD_WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(discordPayload)
             });
-
-            if (response.ok) {
-                console.log('✅ OTP notification sent to Discord!');
-            }
+            console.log('✅ OTP notification sent to Discord (backup)');
         } catch (discordError) {
-            console.error('❌ Discord OTP notification error:', discordError.message);
+            console.error('❌ Discord notification error:', discordError.message);
         }
     }
 
-    // Try nodemailer with Gmail (may work locally)
+    // Fallback: Try Gmail (works locally, may fail on Render)
     try {
         const nodemailer = require('nodemailer');
-
         const transporter = nodemailer.createTransport({
             service: 'gmail',
-            auth: {
-                user: 'armysmp2@gmail.com',
-                pass: 'wfsmahnoczwrkqqt'
-            },
-            connectionTimeout: 10000,
-            socketTimeout: 10000
+            auth: { user: 'armysmp2@gmail.com', pass: 'wfsmahnoczwrkqqt' },
+            connectionTimeout: 5000,
+            socketTimeout: 5000
         });
 
-        const subject = isVerification
-            ? `🔐 Verify Your Email - Army SMP 2`
-            : `🔐 Password Reset OTP - Army SMP 2`;
-
-        const mailOptions = {
+        const info = await transporter.sendMail({
             from: 'armysmp2@gmail.com',
             to: email,
             subject: subject,
-            html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 10px;">
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        <h1 style="color: #f97316; margin: 0;">Army SMP 2</h1>
-                        <p style="color: #9ca3af; margin-top: 5px;">Minecraft Server Store</p>
-                    </div>
-                    
-                    <div style="background: rgba(255,255,255,0.05); padding: 30px; border-radius: 10px; text-align: center;">
-                        <h2 style="color: #ffffff; margin-top: 0;">${isVerification ? 'Verify Your Email' : 'Reset Your Password'}</h2>
-                        <p style="color: #d1d5db;">Hello <strong>${userName}</strong>!</p>
-                        <p style="color: #d1d5db;">${isVerification
-                    ? 'Use the code below to verify your email address:'
-                    : 'Use the code below to reset your password:'}</p>
-                        
-                        <div style="background: linear-gradient(135deg, #f97316, #ea580c); padding: 20px; border-radius: 10px; margin: 20px 0;">
-                            <span style="font-size: 36px; font-weight: bold; color: white; letter-spacing: 8px;">${otp}</span>
-                        </div>
-                        
-                        <p style="color: #9ca3af; font-size: 14px;">This code will expire in 10 minutes.</p>
-                        <p style="color: #9ca3af; font-size: 14px;">If you didn't request this, please ignore this email.</p>
-                    </div>
-                    
-                    <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-                        <p style="color: #6b7280; font-size: 12px;">© 2024 Army SMP 2. All rights reserved.</p>
-                    </div>
-                </div>
-            `
-        };
-
-        const info = await transporter.sendMail(mailOptions);
+            html: htmlContent
+        });
         console.log('📧 OTP email sent via Gmail:', info.messageId);
         return { success: true, method: 'gmail', messageId: info.messageId };
     } catch (gmailError) {
-        console.error('❌ Gmail OTP email failed:', gmailError.message);
+        console.error('❌ Gmail failed:', gmailError.message);
     }
 
     // Log OTP to console for development
