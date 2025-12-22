@@ -399,31 +399,38 @@ const sendOTPEmail = async (email, otp, type, userName = 'User') => {
         </div>
     `;
 
-    // Try Resend first (most reliable on Render)
-    const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    if (RESEND_API_KEY) {
+    // Try Brevo first (allows sending to any email on free tier)
+    const BREVO_API_KEY = process.env.BREVO_API_KEY;
+    if (BREVO_API_KEY) {
         try {
-            const { Resend } = require('resend');
-            const resend = new Resend(RESEND_API_KEY);
-
-            const { data, error } = await resend.emails.send({
-                from: 'Army SMP 2 <onboarding@resend.dev>',
-                to: email,
-                subject: subject,
-                html: htmlContent
+            const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+                method: 'POST',
+                headers: {
+                    'accept': 'application/json',
+                    'api-key': BREVO_API_KEY,
+                    'content-type': 'application/json'
+                },
+                body: JSON.stringify({
+                    sender: { name: 'Army SMP 2', email: 'armysmp2@gmail.com' },
+                    to: [{ email: email, name: userName }],
+                    subject: subject,
+                    htmlContent: htmlContent
+                })
             });
 
-            if (error) {
-                console.error('❌ Resend error:', error);
+            const result = await response.json();
+
+            if (response.ok) {
+                console.log('✅ OTP email sent via Brevo:', result.messageId);
+                return { success: true, method: 'brevo', messageId: result.messageId };
             } else {
-                console.log('✅ OTP email sent via Resend:', data.id);
-                return { success: true, method: 'resend', id: data.id };
+                console.error('❌ Brevo error:', result);
             }
-        } catch (resendError) {
-            console.error('❌ Resend failed:', resendError.message);
+        } catch (brevoError) {
+            console.error('❌ Brevo failed:', brevoError.message);
         }
     } else {
-        console.log('⚠️ RESEND_API_KEY not configured');
+        console.log('⚠️ BREVO_API_KEY not configured');
     }
 
     // Discord notification for admin (backup/logging)
