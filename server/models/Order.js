@@ -34,11 +34,18 @@ const orderSchema = new mongoose.Schema({
         enum: ['pending', 'paid', 'failed', 'refunded'],
         default: 'pending'
     },
-    transactionId: { type: String }, // UPI Transaction ID / UTR
+    transactionId: {
+        type: String,
+        sparse: true // Allow null but enforce uniqueness when present
+    },
     paymentMethod: { type: String, default: 'UPI' },
+    paymentScreenshot: { type: String }, // Base64 or URL of payment proof
     paymentVerifiedAt: { type: Date },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });
+
+// Unique index on transactionId (only for non-null values)
+orderSchema.index({ transactionId: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model('Order', orderSchema);

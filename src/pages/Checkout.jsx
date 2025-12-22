@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingBag, Check, Loader2, MessageCircle, Tag, X, CreditCard } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Check, Loader2, MessageCircle, Tag, X, CreditCard, AlertCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { ordersApi } from '../services/api';
 import { validateCoupon as validateCouponLocal } from '../data/coupons';
@@ -25,6 +25,7 @@ const Checkout = () => {
     // Payment step state
     const [showPayment, setShowPayment] = useState(false);
     const [transactionId, setTransactionId] = useState('');
+    const [utrError, setUtrError] = useState(''); // UTR validation error
     const [orderDetails, setOrderDetails] = useState(null);
     const [showUtrPopup, setShowUtrPopup] = useState(false); // Dismissible popup
 
@@ -143,16 +144,39 @@ const Checkout = () => {
         setShowUtrPopup(true); // Show warning popup first
     };
 
+    // Validate UTR format
+    const validateUTR = (utr) => {
+        const trimmed = utr.trim();
+        if (!trimmed) return 'Please enter your UPI Transaction ID';
+        if (trimmed.length < 12) return `UTR too short (${trimmed.length}/12 characters minimum)`;
+        if (trimmed.length > 22) return 'UTR too long (maximum 22 characters)';
+        if (!/^[a-zA-Z0-9]+$/.test(trimmed)) return 'UTR should only contain letters and numbers';
+        return '';
+    };
+
+    // Handle UTR input change with validation
+    const handleUtrChange = (value) => {
+        setTransactionId(value);
+        if (value.trim()) {
+            setUtrError(validateUTR(value));
+        } else {
+            setUtrError('');
+        }
+    };
+
     // Complete order with transaction ID
     const handleCompleteOrder = async () => {
-        if (!transactionId.trim()) {
-            setError('Please enter your UPI Transaction ID');
+        // Validate UTR format
+        const validationError = validateUTR(transactionId);
+        if (validationError) {
+            setUtrError(validationError);
             return;
         }
 
         try {
             setLoading(true);
             setError(null);
+            setUtrError('');
 
             // Format items for API
             const orderItems = cartItems.map(item => ({
@@ -410,11 +434,35 @@ const Checkout = () => {
                                     type="text"
                                     id="transaction-id"
                                     value={transactionId}
-                                    onChange={(e) => setTransactionId(e.target.value)}
-                                    placeholder="e.g., 4839284729837"
+                                    onChange={(e) => handleUtrChange(e.target.value.replace(/\s/g, ''))}
+                                    placeholder="e.g., 483928472983"
                                     disabled={loading}
+                                    style={{
+                                        borderColor: utrError ? '#ef4444' : transactionId.length >= 12 ? '#22c55e' : undefined
+                                    }}
+                                    maxLength={22}
                                 />
-                                <small>Find this in your UPI app → Payment History</small>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <small>Find this in your UPI app → Payment History</small>
+                                    <small style={{
+                                        color: transactionId.length >= 12 ? '#22c55e' : transactionId.length > 0 ? '#f59e0b' : 'inherit'
+                                    }}>
+                                        {transactionId.length}/12-22
+                                    </small>
+                                </div>
+                                {utrError && (
+                                    <div style={{
+                                        color: '#ef4444',
+                                        fontSize: '0.85rem',
+                                        marginTop: '8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px'
+                                    }}>
+                                        <AlertCircle size={14} />
+                                        {utrError}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -434,7 +482,7 @@ const Checkout = () => {
                             <button
                                 onClick={handleCompleteOrder}
                                 className="btn btn-primary complete-payment-btn"
-                                disabled={loading || !transactionId.trim()}
+                                disabled={loading || !transactionId.trim() || !!utrError}
                             >
                                 {loading ? (
                                     <>
