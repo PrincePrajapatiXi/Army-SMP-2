@@ -2458,6 +2458,324 @@
     animation: spin 0.8s linear infinite;
 }
 
+/* ===== COMPREHENSIVE MOBILE RESPONSIVE STYLES ===== */
+
+/* Admin Layout Mobile */
+@media (max-width: 1024px) {
+    .admin-layout {
+        flex-direction: column;
+    }
+
+    .admin-sidebar {
+        position: fixed;
+        top: 0;
+        left: -280px;
+        height: 100vh;
+        z-index: 1100;
+        transition: left 0.3s ease;
+    }
+
+    .admin-sidebar.open {
+        left: 0;
+    }
+
+    .admin-main {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .stat-card {
+        padding: 16px;
+    }
+
+    .stat-value {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 768px) {
+
+    /* Stats Grid Mobile */
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        padding: 14px;
+        gap: 10px;
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .stat-value {
+        font-size: 1.1rem;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+    }
+
+    /* Admin Header Mobile */
+    .admin-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 16px;
+    }
+
+    .admin-header h1 {
+        font-size: 1.3rem;
+    }
+
+    /* Mobile Nav */
+    .mobile-nav {
+        display: flex !important;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 8px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .mobile-nav button {
+        flex-shrink: 0;
+        padding: 10px 16px;
+        font-size: 0.85rem;
+    }
+
+    /* Orders Toolbar */
+    .orders-toolbar {
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .orders-filters {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .order-search-box {
+        width: 100%;
+        order: -1;
+    }
+
+    .filter-select {
+        flex: 1;
+        min-width: 100px;
+    }
+
+    .date-filter {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .date-filter input {
+        width: 100%;
+        min-width: unset;
+    }
+
+    /* Orders List Mobile */
+    .orders-list-admin {
+        gap: 12px;
+    }
+
+    .admin-order-card {
+        padding: 14px;
+    }
+
+    .order-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .order-main-info {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .order-number {
+        font-size: 0.9rem;
+    }
+
+    .status-select {
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    .order-card-body {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .order-customer p,
+    .order-items-list {
+        font-size: 0.85rem;
+    }
+
+    /* Products Grid Mobile */
+    .products-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px;
+    }
+
+    .admin-product-card {
+        padding: 14px;
+    }
+
+    .product-form-modal .modal-content {
+        max-height: 90vh;
+        padding: 16px;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* Coupons Grid Mobile */
+    .coupons-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px;
+    }
+
+    .coupon-card {
+        padding: 14px;
+    }
+
+    .coupon-modal .modal-content {
+        padding: 16px;
+    }
+
+    /* Promotions Grid Mobile */
+    .promotions-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px;
+    }
+
+    .promotion-card {
+        padding: 14px;
+    }
+
+    .promotion-modal .modal-content {
+        padding: 16px;
+    }
+
+    /* Chart Container */
+    .chart-container {
+        padding: 16px;
+    }
+
+    .chart-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .chart-period-selector {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .period-btn {
+        flex: 1;
+        min-width: 60px;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+
+    /* Bulk Actions */
+    .bulk-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .bulk-actions button {
+        width: 100%;
+    }
+
+    /* Modal Responsive */
+    .modal-content {
+        margin: 16px;
+        padding: 16px;
+        max-width: calc(100vw - 32px);
+    }
+}
+
+@media (max-width: 480px) {
+
+    /* Extra small screens */
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        flex-direction: row;
+        justify-content: flex-start;
+    }
+
+    .admin-header h1 {
+        font-size: 1.1rem;
+    }
+
+    .mobile-nav button {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+
+    .tab-btn {
+        padding: 10px 14px;
+        font-size: 0.8rem;
+    }
+
+    /* Order Cards Smaller */
+    .admin-order-card {
+        padding: 12px;
+    }
+
+    .order-card-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .order-total-badge {
+        align-self: flex-end;
+    }
+
+    /* Add/Edit Buttons */
+    .add-btn {
+        padding: 10px 16px;
+        font-size: 0.85rem;
+    }
+
+    /* Tables */
+    .admin-order-card,
+    .admin-product-card,
+    .coupon-card,
+    .promotion-card {
+        border-radius: 12px;
+    }
+
+    /* Input Fields */
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 12px;
+        font-size: 0.9rem;
+    }
+}
+
 /* Users Tab Responsive */
 @media (max-width: 1024px) {
     .user-info-grid {
