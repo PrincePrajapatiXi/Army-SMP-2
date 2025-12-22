@@ -1007,52 +1007,69 @@
         padding: 12px;
     }
 
-    /* Payment Content */
+    /* Payment Content - Mobile First Layout */
     .payment-content {
         grid-template-columns: 1fr !important;
-        gap: 16px;
+        gap: 12px;
     }
 
-    .payment-summary,
+    .payment-summary {
+        padding: 14px;
+        order: 1;
+        /* UTR input section FIRST */
+    }
+
     .payment-qr-section {
-        padding: 16px;
+        padding: 14px;
+        order: 2;
+        /* QR code SECOND */
     }
 
-    .payment-qr-section {
-        order: -1;
-    }
-
+    /* Smaller QR on mobile */
     .upi-qr-container {
-        padding: 12px;
+        padding: 10px;
     }
 
     .qr-wrapper svg {
-        width: 150px !important;
-        height: 150px !important;
+        width: 120px !important;
+        height: 120px !important;
     }
 
     .utr-warning-banner {
-        padding: 12px;
-        margin-bottom: 16px;
-        font-size: 0.85rem;
+        padding: 10px;
+        margin-bottom: 12px;
+        font-size: 0.8rem;
     }
 
     .summary-total-compact .total-amount {
-        font-size: 1.4rem;
+        font-size: 1.2rem;
+    }
+
+    /* UTR Input - Make it prominent */
+    .transaction-input-section {
+        padding: 14px;
+        background: rgba(255, 107, 53, 0.08);
+        border: 2px solid var(--primary);
+        border-radius: 12px;
+        margin-top: 12px;
+    }
+
+    .transaction-input-section label {
+        font-size: 0.9rem;
+        color: var(--primary);
+        font-weight: 600;
+    }
+
+    .transaction-input-section input {
+        font-size: 1.1rem;
+        padding: 14px;
+        text-align: center;
+        letter-spacing: 2px;
     }
 
     .complete-payment-btn {
         padding: 14px !important;
         font-size: 0.95rem !important;
-    }
-
-    .transaction-input-section {
-        padding: 14px;
-    }
-
-    .transaction-input-section input {
-        font-size: 0.95rem;
-        padding: 12px;
     }
 
     /* UTR Popup */
