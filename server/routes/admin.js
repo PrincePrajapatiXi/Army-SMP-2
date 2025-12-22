@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { sendStatusUpdateNotification } = require('../services/email');
+const { sendStatusUpdateNotification, sendOTPEmail } = require('../services/email');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const Coupon = require('../models/Coupon');
 const Promotion = require('../models/Promotion');
+const User = require('../models/User');
+const OTP = require('../models/OTP');
 
 // Admin password from environment variable (secure)
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Prince_Uday';
@@ -658,6 +660,113 @@ router.put('/promotions/reorder', async (req, res) => {
     } catch (error) {
         console.error('Error reordering promotions:', error);
         res.status(500).json({ error: 'Failed to reorder promotions' });
+    }
+});
+
+// ==================== USER MANAGEMENT ====================
+
+// GET /api/admin/users - Get all users with order statistics
+router.get('/users', async (req, res) => {
+    try {
+        const users = await User.find().sort({ createdAt: -1 });
+        const orders = await Order.find();
+
+        // Calculate order stats for each user
+        const usersWithStats = users.map(user => {
+            // Match orders by email or minecraftUsername
+            const userOrders = orders.filter(order =>
+                (order.email && order.email.toLowerCase() === user.email.toLowerCase()) ||
+                (order.minecraftUsername && user.minecraftUsername &&
+                    order.minecraftUsername.toLowerCase() === user.minecraftUsername.toLowerCase())
+            );
+
+            const completedOrders = userOrders.filter(o => o.status !== 'cancelled');
+
+            return {
+                id: user._id,
+                email: user.email,
+                username: user.username,
+                name: user.name,
+                minecraftUsername: user.minecraftUsername || '',
+                avatar: user.avatar,
+                authProvider: user.authProvider,
+                isEmailVerified: user.isEmailVerified,
+                isBlocked: user.isBlocked || false,
+                blockedAt: user.blockedAt,
+                createdAt: user.createdAt,
+                orderCount: userOrders.length,
+                totalSpent: completedOrders.reduce((sum, o) => sum + (o.total || 0), 0)
+            };
+        });
+
+        res.json(usersWithStats);
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({ error: 'Failed to fetch users' });
+    }
+});
+
+// PUT /api/admin/users/:id/block - Toggle block/unblock user
+router.put('/users/:id/block', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findById(id);
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Toggle block status
+        user.isBlocked = !user.isBlocked;
+        user.blockedAt = user.isBlocked ? new Date() : null;
+        await user.save();
+
+        res.json({
+            success: true,
+            message: `User ${user.isBlocked ? 'blocked' : 'unblocked'} successfully`,
+            user: {
+                id: user._id,
+                email: user.email,
+                isBlocked: user.isBlocked,
+                blockedAt: user.blockedAt
+            }
+        });
+    } catch (error) {
+        console.error('Error toggling user block:', error);
+        res.status(500).json({ error: 'Failed to update user status' });
+    }
+});
+
+// POST /api/admin/users/:id/reset-password - Send password reset email
+router.post('/users/:id/reset-password', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findById(id);
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Check if user uses OAuth
+        if (user.authProvider !== 'local') {
+            return res.status(400).json({
+                error: `This user uses ${user.authProvider} login. Password cannot be reset.`
+            });
+        }
+
+        // Generate OTP for password reset
+        const otp = await OTP.createOTP(user.email, 'passwordReset');
+
+        // Send password reset email
+        await sendOTPEmail(user.email, otp, 'passwordReset', user.name);
+
+        res.json({
+            success: true,
+            message: `Password reset email sent to ${user.email}`
+        });
+    } catch (error) {
+        console.error('Error sending password reset:', error);
+        res.status(500).json({ error: 'Failed to send password reset email' });
     }
 });
 

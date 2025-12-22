@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     LogOut, Package, TrendingUp, Box, Ticket, Megaphone,
-    RefreshCw, BarChart3
+    RefreshCw, BarChart3, Users
 } from 'lucide-react';
 import './Admin.css';
 
@@ -10,6 +10,7 @@ import useOrders from './hooks/useOrders';
 import useProducts from './hooks/useProducts';
 import useCoupons from './hooks/useCoupons';
 import usePromotions from './hooks/usePromotions';
+import useUsers from './hooks/useUsers';
 
 // Components
 import AdminLogin from './AdminLogin';
@@ -18,6 +19,7 @@ import OrdersTab from './components/OrdersTab';
 import ProductsTab from './components/ProductsTab';
 import CouponsTab from './components/CouponsTab';
 import PromotionsTab from './components/PromotionsTab';
+import UsersTab from './components/UsersTab';
 
 const Admin = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -28,6 +30,7 @@ const Admin = () => {
     const productsHook = useProducts();
     const couponsHook = useCoupons();
     const promotionsHook = usePromotions();
+    const usersHook = useUsers();
 
     // Check if already logged in
     useEffect(() => {
@@ -44,6 +47,7 @@ const Admin = () => {
             productsHook.fetchProducts();
             couponsHook.fetchCoupons();
             promotionsHook.fetchPromotions();
+            usersHook.fetchUsers();
         }
     }, [isAuthenticated]);
 
@@ -58,9 +62,10 @@ const Admin = () => {
         productsHook.fetchProducts();
         couponsHook.fetchCoupons();
         promotionsHook.fetchPromotions();
+        usersHook.fetchUsers();
     };
 
-    const isLoading = ordersHook.loading || productsHook.loading || couponsHook.loading || promotionsHook.loading;
+    const isLoading = ordersHook.loading || productsHook.loading || couponsHook.loading || promotionsHook.loading || usersHook.loading;
 
     // Login Screen
     if (!isAuthenticated) {
@@ -105,6 +110,13 @@ const Admin = () => {
                 >
                     <Megaphone size={20} />
                     <span>Promos</span>
+                </button>
+                <button
+                    className={`mobile-nav-item ${activeTab === 'users' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('users')}
+                >
+                    <Users size={20} />
+                    <span>Users</span>
                 </button>
                 <button className="mobile-nav-item logout" onClick={handleLogout}>
                     <LogOut size={20} />
@@ -153,6 +165,13 @@ const Admin = () => {
                         <Megaphone size={20} />
                         <span>Promotions</span>
                     </button>
+                    <button
+                        className={`sidebar-item ${activeTab === 'users' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('users')}
+                    >
+                        <Users size={20} />
+                        <span>Users</span>
+                    </button>
                 </nav>
                 <button className="logout-btn" onClick={handleLogout}>
                     <LogOut size={20} />
@@ -170,6 +189,7 @@ const Admin = () => {
                         {activeTab === 'products' && '🛍️ Product Management'}
                         {activeTab === 'coupons' && '🎟️ Coupon Management'}
                         {activeTab === 'promotions' && '📣 Promotion Banners'}
+                        {activeTab === 'users' && '👥 User Management'}
                     </h1>
                     <button
                         className="refresh-btn"
@@ -267,6 +287,19 @@ const Admin = () => {
                         handleDelete={promotionsHook.handleDelete}
                         toggleActive={promotionsHook.toggleActive}
                         closeModal={promotionsHook.closeModal}
+                    />
+                )}
+
+                {/* Users Tab */}
+                {activeTab === 'users' && (
+                    <UsersTab
+                        users={usersHook.users}
+                        filteredUsers={usersHook.getFilteredUsers()}
+                        loading={usersHook.loading}
+                        userSearch={usersHook.userSearch}
+                        setUserSearch={usersHook.setUserSearch}
+                        toggleBlockUser={usersHook.toggleBlockUser}
+                        sendPasswordReset={usersHook.sendPasswordReset}
                     />
                 )}
             </main>
