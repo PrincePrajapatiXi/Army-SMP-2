@@ -72,8 +72,12 @@ router.post('/signup', async (req, res) => {
         // Generate OTP for email verification
         const otp = await OTP.createOTP(email, 'emailVerification');
 
-        // Send OTP email
-        await sendOTPEmail(email, otp, 'emailVerification', name);
+        // Send OTP email (non-blocking - don't fail signup if email fails)
+        try {
+            await sendOTPEmail(email, otp, 'emailVerification', name);
+        } catch (emailError) {
+            console.error('OTP email failed, but signup continues:', emailError.message);
+        }
 
         // Generate token
         const token = generateToken(user._id);
@@ -82,7 +86,7 @@ router.post('/signup', async (req, res) => {
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
@@ -93,6 +97,7 @@ router.post('/signup', async (req, res) => {
             user: user.toPublicJSON(),
             requiresVerification: true
         });
+
 
     } catch (error) {
         console.error('Signup error:', error);
@@ -169,7 +174,7 @@ router.post('/login', async (req, res) => {
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
