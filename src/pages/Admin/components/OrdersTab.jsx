@@ -205,6 +205,21 @@ const OrdersTab = ({
                                 <p><strong>🎮 Username:</strong> {order.minecraftUsername}</p>
                                 <p><strong>📧 Email:</strong> {order.email || 'N/A'}</p>
                                 <p><strong>🎯 Platform:</strong> {order.platform || 'Java'}</p>
+                                {order.transactionId && (
+                                    <p style={{ marginTop: '8px' }}>
+                                        <strong>💳 UTR:</strong>{' '}
+                                        <code style={{
+                                            background: 'rgba(255, 107, 53, 0.15)',
+                                            padding: '4px 8px',
+                                            borderRadius: '4px',
+                                            fontFamily: 'monospace',
+                                            color: 'var(--primary)',
+                                            fontSize: '0.9rem'
+                                        }}>
+                                            {order.transactionId}
+                                        </code>
+                                    </p>
+                                )}
                             </div>
                             <div className="order-items-list">
                                 <strong>📦 Items:</strong>

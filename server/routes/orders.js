@@ -7,7 +7,7 @@ const Order = require('../models/Order');
 // POST /api/orders/create - Create a new order
 router.post('/create', async (req, res) => {
     try {
-        const { minecraftUsername, email, items, platform, couponInfo, transactionId } = req.body;
+        const { minecraftUsername, email, items, platform, couponInfo, transactionId, paymentScreenshot } = req.body;
 
         if (!minecraftUsername) {
             return res.status(400).json({ error: 'Minecraft username is required' });
@@ -18,6 +18,32 @@ router.post('/create', async (req, res) => {
 
         if (cart.length === 0) {
             return res.status(400).json({ error: 'Cart is empty' });
+        }
+
+        // UTR/Transaction ID Validation
+        if (transactionId) {
+            const trimmedUTR = transactionId.trim();
+
+            // Format validation: UTR should be 12-22 alphanumeric characters
+            const utrRegex = /^[a-zA-Z0-9]{12,22}$/;
+            if (!utrRegex.test(trimmedUTR)) {
+                return res.status(400).json({
+                    error: 'Invalid UTR format. UTR should be 12-22 alphanumeric characters.',
+                    field: 'transactionId'
+                });
+            }
+
+            // Duplicate check: Same UTR cannot be used twice
+            const existingOrder = await Order.findOne({
+                transactionId: trimmedUTR
+            });
+            if (existingOrder) {
+                return res.status(400).json({
+                    error: 'This Transaction ID has already been used for another order. Please enter a different UTR.',
+                    field: 'transactionId',
+                    duplicate: true
+                });
+            }
         }
 
         // Calculate subtotal (before discount)
@@ -47,7 +73,8 @@ router.post('/create', async (req, res) => {
             couponInfo: couponInfo || null, // Store coupon info for Discord notification
             status: 'pending', // pending, processing, completed, cancelled
             // Payment tracking
-            transactionId: transactionId || null,
+            transactionId: transactionId ? transactionId.trim() : null,
+            paymentScreenshot: paymentScreenshot || null,
             paymentStatus: transactionId ? 'pending' : 'pending', // Will be verified by admin
             paymentMethod: 'UPI',
             createdAt: new Date(),
