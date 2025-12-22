@@ -8,19 +8,20 @@ const Promotion = require('../models/Promotion');
 const User = require('../models/User');
 const OTP = require('../models/OTP');
 
-// Admin password from environment variable (secure)
+// Admin credentials from environment variable (secure)
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Prince_Uday';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'princeprajapati0321@gmail.com';
 
 // Login attempt tracking (in-memory for simplicity)
 const loginAttempts = {
     failedAttempts: 0,
     lockoutUntil: null,
     MAX_ATTEMPTS: 3,
-    LOCKOUT_DURATION: 24 * 60 * 60 * 1000  // 1 minute in ms (change to 2 * 60 * 60 * 1000 for 2 hours)
+    LOCKOUT_DURATION: 24 * 60 * 60 * 1000  // 24 hours in ms
 };
 
-// POST /api/admin/login - Secure admin authentication with rate limiting
-router.post('/login', (req, res) => {
+// POST /api/admin/login - Step 1: Verify password and send OTP
+router.post('/login', async (req, res) => {
     try {
         const { password } = req.body;
         const now = Date.now();
@@ -50,10 +51,34 @@ router.post('/login', (req, res) => {
         }
 
         if (password === ADMIN_PASSWORD) {
-            // Successful login - reset attempts
+            // Password correct - Generate and send OTP for 2FA
             loginAttempts.failedAttempts = 0;
             loginAttempts.lockoutUntil = null;
-            return res.json({ success: true, message: 'Login successful' });
+
+            // Generate OTP
+            const otp = await OTP.createOTP(ADMIN_EMAIL, 'admin2FA');
+
+            // Send OTP email
+            try {
+                await sendOTPEmail(ADMIN_EMAIL, otp, 'admin2FA', 'Admin');
+
+                // Mask email for display
+                const emailParts = ADMIN_EMAIL.split('@');
+                const maskedEmail = emailParts[0].substring(0, 3) + '***@' + emailParts[1];
+
+                return res.json({
+                    success: true,
+                    requires2FA: true,
+                    message: `OTP sent to ${maskedEmail}`,
+                    email: maskedEmail
+                });
+            } catch (emailError) {
+                console.error('Failed to send 2FA OTP:', emailError);
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to send verification code. Please try again.'
+                });
+            }
         } else {
             // Failed login - increment attempts
             loginAttempts.failedAttempts++;
@@ -81,6 +106,58 @@ router.post('/login', (req, res) => {
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ success: false, error: 'Login failed' });
+    }
+});
+
+// POST /api/admin/verify-2fa - Step 2: Verify OTP to complete login
+router.post('/verify-2fa', async (req, res) => {
+    try {
+        const { otp } = req.body;
+
+        if (!otp) {
+            return res.status(400).json({ success: false, error: 'Verification code required' });
+        }
+
+        // Verify OTP
+        const result = await OTP.verifyOTP(ADMIN_EMAIL, otp, 'admin2FA');
+
+        if (result.valid) {
+            return res.json({
+                success: true,
+                message: 'Login successful! Welcome Admin.'
+            });
+        } else {
+            return res.status(401).json({
+                success: false,
+                error: result.message || 'Invalid or expired verification code'
+            });
+        }
+    } catch (error) {
+        console.error('2FA verification error:', error);
+        res.status(500).json({ success: false, error: 'Verification failed' });
+    }
+});
+
+// POST /api/admin/resend-2fa - Resend OTP
+router.post('/resend-2fa', async (req, res) => {
+    try {
+        // Generate new OTP
+        const otp = await OTP.createOTP(ADMIN_EMAIL, 'admin2FA');
+
+        // Send OTP email
+        await sendOTPEmail(ADMIN_EMAIL, otp, 'admin2FA', 'Admin');
+
+        // Mask email for display
+        const emailParts = ADMIN_EMAIL.split('@');
+        const maskedEmail = emailParts[0].substring(0, 3) + '***@' + emailParts[1];
+
+        res.json({
+            success: true,
+            message: `New OTP sent to ${maskedEmail}`
+        });
+    } catch (error) {
+        console.error('Resend 2FA error:', error);
+        res.status(500).json({ success: false, error: 'Failed to resend code' });
     }
 });
 
