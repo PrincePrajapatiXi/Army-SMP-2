@@ -57,6 +57,14 @@ const userSchema = new mongoose.Schema({
         type: String,
         trim: true,
         default: ''
+    },
+    isBlocked: {
+        type: Boolean,
+        default: false
+    },
+    blockedAt: {
+        type: Date,
+        default: null
     }
 }, {
     timestamps: true
@@ -91,6 +99,8 @@ userSchema.methods.toPublicJSON = function () {
         isEmailVerified: this.isEmailVerified,
         minecraftUsername: this.minecraftUsername,
         phone: this.phone,
+        isBlocked: this.isBlocked,
+        blockedAt: this.blockedAt,
         createdAt: this.createdAt
     };
 };
