@@ -126,12 +126,81 @@ const sendOrderNotification = async (order) => {
 
             if (response.ok) {
                 console.log('📧 Discord notification sent successfully!');
-                return { success: true, method: 'discord' };
             } else {
                 console.log('⚠️ Discord webhook failed:', response.status);
             }
         } catch (discordError) {
             console.error('❌ Discord webhook error:', discordError.message);
+        }
+    }
+
+    // Send email notification via Resend (reliable on Render)
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (RESEND_API_KEY) {
+        try {
+            const { Resend } = require('resend');
+            const resend = new Resend(RESEND_API_KEY);
+
+            const itemsHtml = order.items.map(item =>
+                `<tr><td style="padding: 8px; border-bottom: 1px solid #333;">${item.name}</td><td style="padding: 8px; border-bottom: 1px solid #333; text-align: center;">${item.quantity}</td><td style="padding: 8px; border-bottom: 1px solid #333; text-align: right;">₹${item.subtotal}</td></tr>`
+            ).join('');
+
+            const totalAmount = order.couponInfo?.finalTotal
+                ? `₹${order.couponInfo.finalTotal.toFixed(2)}`
+                : order.totalDisplay;
+
+            const htmlContent = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 10px;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h1 style="color: #f97316; margin: 0;">🛒 New Order!</h1>
+                        <p style="color: #9ca3af; margin-top: 5px;">Order #${order.orderNumber}</p>
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; margin-bottom: 15px;">
+                        <h3 style="color: #f97316; margin-top: 0;">Customer Info</h3>
+                        <p style="color: #d1d5db; margin: 5px 0;">🎮 <strong>Minecraft:</strong> ${order.minecraftUsername}</p>
+                        <p style="color: #d1d5db; margin: 5px 0;">📧 <strong>Email:</strong> ${order.email || 'Not provided'}</p>
+                        <p style="color: #d1d5db; margin: 5px 0;">🎯 <strong>Platform:</strong> ${order.platform}</p>
+                        ${order.transactionId ? `<p style="color: #d1d5db; margin: 5px 0;">💳 <strong>Transaction ID:</strong> ${order.transactionId}</p>` : ''}
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; margin-bottom: 15px;">
+                        <h3 style="color: #f97316; margin-top: 0;">Order Items</h3>
+                        <table style="width: 100%; color: #d1d5db; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid #f97316;">
+                                    <th style="padding: 8px; text-align: left;">Item</th>
+                                    <th style="padding: 8px; text-align: center;">Qty</th>
+                                    <th style="padding: 8px; text-align: right;">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>${itemsHtml}</tbody>
+                        </table>
+                        ${order.couponInfo?.couponCode ? `<p style="color: #22c55e; margin-top: 10px;">🎁 Coupon: ${order.couponInfo.couponCode} (-₹${order.couponInfo.discount.toFixed(2)})</p>` : ''}
+                        <p style="color: #f97316; font-size: 20px; font-weight: bold; margin-top: 15px; text-align: right;">Total: ${totalAmount}</p>
+                    </div>
+
+                    <div style="text-align: center; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <p style="color: #6b7280; font-size: 12px;">Order Time: ${formatDate(order.createdAt)}</p>
+                    </div>
+                </div>
+            `;
+
+            const { data, error } = await resend.emails.send({
+                from: 'Army SMP 2 <onboarding@resend.dev>',
+                to: ADMIN_EMAIL,
+                subject: `🛒 New Order: ${order.orderNumber} - ${totalAmount}`,
+                html: htmlContent
+            });
+
+            if (error) {
+                console.error('❌ Resend order email error:', error);
+            } else {
+                console.log('✅ Order email sent via Resend:', data.id);
+                return { success: true, method: 'resend', id: data.id };
+            }
+        } catch (resendError) {
+            console.error('❌ Resend order email failed:', resendError.message);
         }
     }
 
