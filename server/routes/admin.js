@@ -10,7 +10,7 @@ const OTP = require('../models/OTP');
 
 // Admin credentials from environment variable (secure)
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Prince_Uday';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'princeprajapati0321@gmail.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'armysmp2@gmail.com';
 
 // Login attempt tracking (in-memory for simplicity)
 const loginAttempts = {

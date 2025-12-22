@@ -109,7 +109,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
             const data = await response.json();
 
             if (data.success) {
-                sessionStorage.setItem('adminAuth', 'true');
+                sessionStorage.setItem('adminAuth_v2', 'true');
                 onLoginSuccess();
             } else {
                 setLoginError(data.error || 'Invalid verification code');

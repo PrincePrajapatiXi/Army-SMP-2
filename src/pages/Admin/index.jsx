@@ -34,7 +34,7 @@ const Admin = () => {
 
     // Check if already logged in
     useEffect(() => {
-        const adminAuth = sessionStorage.getItem('adminAuth');
+        const adminAuth = sessionStorage.getItem('adminAuth_v2');
         if (adminAuth === 'true') {
             setIsAuthenticated(true);
         }
@@ -53,7 +53,7 @@ const Admin = () => {
 
     const handleLogout = () => {
         setIsAuthenticated(false);
-        sessionStorage.removeItem('adminAuth');
+        sessionStorage.removeItem('adminAuth_v2');
         ordersHook.setSelectedOrders([]);
     };
 
