@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
+import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import PageTransition from './components/PageTransition';
@@ -14,14 +15,24 @@ const Checkout = lazy(() => import('./pages/Checkout'));
 const OrderHistory = lazy(() => import('./pages/OrderHistory'));
 const Admin = lazy(() => import('./pages/Admin/index'));
 
-// Layout wrapper to hide navbar/footer on admin page
+// Auth pages
+const Login = lazy(() => import('./pages/Login'));
+const Signup = lazy(() => import('./pages/Signup'));
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const Profile = lazy(() => import('./pages/Profile'));
+const OAuthCallback = lazy(() => import('./pages/OAuthCallback'));
+
+// Layout wrapper to hide navbar/footer on admin and auth pages
 function Layout({ children }) {
   const location = useLocation();
   const isAdminPage = location.pathname === '/admin';
+  const isAuthPage = ['/login', '/signup', '/verify-email', '/forgot-password', '/reset-password', '/oauth-callback'].includes(location.pathname);
 
   return (
     <div className="app-container">
-      {!isAdminPage && <Navbar />}
+      {!isAdminPage && !isAuthPage && <Navbar />}
       <PageTransition>
         <main>
           {/* Suspense provides fallback UI while lazy components load */}
@@ -30,26 +41,37 @@ function Layout({ children }) {
           </Suspense>
         </main>
       </PageTransition>
-      {!isAdminPage && <Footer />}
+      {!isAdminPage && !isAuthPage && <Footer />}
     </div>
   );
 }
 
 function App() {
   return (
-    <CartProvider>
-      <Router>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/store" element={<Store />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/orders" element={<OrderHistory />} />
-            <Route path="/admin" element={<Admin />} />
-          </Routes>
-        </Layout>
-      </Router>
-    </CartProvider>
+    <AuthProvider>
+      <CartProvider>
+        <Router>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/store" element={<Store />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/orders" element={<OrderHistory />} />
+              <Route path="/admin" element={<Admin />} />
+
+              {/* Auth Routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/oauth-callback" element={<OAuthCallback />} />
+            </Routes>
+          </Layout>
+        </Router>
+      </CartProvider>
+    </AuthProvider>
   );
 }
 

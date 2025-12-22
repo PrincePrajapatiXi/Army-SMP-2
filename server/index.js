@@ -3,6 +3,7 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
+const cookieParser = require('cookie-parser');
 // path imported above
 const mongoose = require('mongoose');
 
@@ -14,9 +15,15 @@ const serverStatusRouter = require('./routes/serverStatus');
 const adminRouter = require('./routes/admin');
 const couponsRouter = require('./routes/coupons');
 const promotionsRouter = require('./routes/promotions');
+const authRouter = require('./routes/auth');
+const userRouter = require('./routes/user');
+
 
 // Import email service
 const { verifyEmailConfig } = require('./services/email');
+
+// Import passport for OAuth
+const passport = require('./services/passport');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -38,6 +45,10 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use(cookieParser());
+
+// Initialize Passport for OAuth
+app.use(passport.initialize());
 
 // Session configuration for cart persistence
 app.use(session({
@@ -59,6 +70,8 @@ app.use('/api/server-status', serverStatusRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/coupons', couponsRouter);
 app.use('/api/promotions', promotionsRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/user', userRouter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
