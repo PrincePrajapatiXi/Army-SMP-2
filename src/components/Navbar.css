@@ -6,10 +6,10 @@
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 1000;
+    z-index: var(--z-navbar);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 1rem 0;
-    transition: all 0.3s ease;
+    padding: var(--space-4) 0;
+    transition: var(--transition-normal);
 }
 
 .navbar:hover {
@@ -29,10 +29,10 @@
 }
 
 .nav-logo-img {
-    height: 70px;
+    height: 60px;
     width: auto;
     object-fit: contain;
-    transition: all 0.3s ease;
+    transition: var(--transition-normal);
     filter: drop-shadow(0 0 10px rgba(255, 107, 53, 0.3));
 }
 
@@ -47,15 +47,15 @@
 
 .nav-links {
     display: flex;
-    gap: 2.5rem;
+    gap: var(--space-10);
 }
 
 .nav-item {
     color: var(--text-secondary);
     font-weight: 500;
-    transition: all 0.3s ease;
+    transition: var(--transition-normal);
     position: relative;
-    padding: 8px 0;
+    padding: var(--space-2) 0;
 }
 
 .nav-item::before {
@@ -97,7 +97,7 @@
 .nav-actions {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: var(--space-6);
 }
 
 .cart-btn {

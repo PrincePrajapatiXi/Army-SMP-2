@@ -2,13 +2,13 @@
 .store-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 2rem;
+    gap: var(--space-8);
     width: 100%;
 }
 
 .store-header {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: var(--space-8);
 }
 
 .store-title {
@@ -26,8 +26,8 @@
 /* Search & Sort Bar */
 .search-sort-bar {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
     flex-wrap: wrap;
 }
 
@@ -102,13 +102,10 @@
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
-    box-shadow:
-        0 10px 40px rgba(0, 0, 0, 0.5),
-        0 0 0 1px rgba(255, 107, 53, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    box-shadow: var(--shadow-xl), 0 0 0 1px rgba(255, 107, 53, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     max-height: 400px;
     overflow-y: auto;
-    z-index: 1000;
+    z-index: var(--z-dropdown);
     animation: suggestionsSlideIn 0.2s ease-out;
 }
 
@@ -248,10 +245,10 @@
 }
 
 /* Mobile Adjustments */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
     .search-suggestions {
         max-height: 300px;
-        border-radius: 12px;
+        border-radius: var(--radius-md);
     }
 
     .suggestion-item {
@@ -371,10 +368,10 @@
 }
 
 /* Mobile Responsive */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
     .search-sort-bar {
         flex-direction: column;
-        gap: 0.75rem;
+        gap: var(--space-3);
     }
 
     .search-box {
