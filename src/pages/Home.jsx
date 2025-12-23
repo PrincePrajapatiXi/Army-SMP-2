@@ -164,10 +164,7 @@ const Home = () => {
                         marginBottom: '2.5rem',
                         maxWidth: '650px',
                         margin: '0 auto 2.5rem',
-                        lineHeight: 1.7,
-                        opacity: 0,
-                        animation: 'fadeInUp 0.4s ease forwards',
-                        animationDelay: '0.3s'
+                        lineHeight: 1.7
                     }}>
                         Join the ultimate Minecraft adventure. Survival, PvP, and an amazing community await you.
                     </p>
@@ -176,10 +173,7 @@ const Home = () => {
                         display: 'flex',
                         gap: '20px',
                         justifyContent: 'center',
-                        flexWrap: 'wrap',
-                        opacity: 0,
-                        animation: 'fadeInUp 0.4s ease forwards',
-                        animationDelay: '0.5s'
+                        flexWrap: 'wrap'
                     }}>
                         <button
                             className="btn btn-primary"
@@ -212,10 +206,7 @@ const Home = () => {
                         background: 'rgba(255, 255, 255, 0.05)',
                         backdropFilter: 'blur(10px)',
                         borderRadius: '50px',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        opacity: 0,
-                        animation: 'fadeInUp 0.4s ease forwards',
-                        animationDelay: '0.7s'
+                        border: '1px solid rgba(255, 255, 255, 0.1)'
                     }}>
                         <span style={{
                             width: '10px',
