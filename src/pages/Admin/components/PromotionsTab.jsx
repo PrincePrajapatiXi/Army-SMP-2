@@ -1,5 +1,6 @@
 import React from 'react';
 import { Megaphone, Plus, Edit, Trash2, ToggleLeft, ToggleRight, X } from 'lucide-react';
+import ImageUploader from '../../../components/ImageUploader';
 
 const PromotionsTab = ({
     promotions,
@@ -178,30 +179,28 @@ const PromotionsTab = ({
                                 </div>
                             </div>
 
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Logo Path</label>
-                                    <input
-                                        type="text"
-                                        value={form.logo}
-                                        onChange={(e) => setForm({ ...form, logo: e.target.value })}
-                                        placeholder="/images/logo.png"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>Gradient</label>
-                                    <select
-                                        value={form.gradient}
-                                        onChange={(e) => setForm({ ...form, gradient: e.target.value })}
-                                    >
-                                        <option value="linear-gradient(135deg, #1e3a5f, #0d1b2a)">Blue</option>
-                                        <option value="linear-gradient(135deg, #4a1942, #2d132c)">Purple</option>
-                                        <option value="linear-gradient(135deg, #1a4731, #0d2818)">Green</option>
-                                        <option value="linear-gradient(135deg, #5c3c1e, #2d1e0e)">Brown</option>
-                                        <option value="linear-gradient(135deg, #3d2c5a, #1e1630)">Violet</option>
-                                        <option value="linear-gradient(135deg, #5a2c2c, #301616)">Red</option>
-                                    </select>
-                                </div>
+                            <div className="form-group full-width">
+                                <label>Sponsor Logo</label>
+                                <ImageUploader
+                                    value={form.logo}
+                                    onChange={(url) => setForm({ ...form, logo: url })}
+                                    placeholder="Drag & drop sponsor logo"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Gradient</label>
+                                <select
+                                    value={form.gradient}
+                                    onChange={(e) => setForm({ ...form, gradient: e.target.value })}
+                                >
+                                    <option value="linear-gradient(135deg, #1e3a5f, #0d1b2a)">Blue</option>
+                                    <option value="linear-gradient(135deg, #4a1942, #2d132c)">Purple</option>
+                                    <option value="linear-gradient(135deg, #1a4731, #0d2818)">Green</option>
+                                    <option value="linear-gradient(135deg, #5c3c1e, #2d1e0e)">Brown</option>
+                                    <option value="linear-gradient(135deg, #3d2c5a, #1e1630)">Violet</option>
+                                    <option value="linear-gradient(135deg, #5a2c2c, #301616)">Red</option>
+                                </select>
                             </div>
 
                             <div className="form-actions">

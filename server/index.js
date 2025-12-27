@@ -17,6 +17,7 @@ const couponsRouter = require('./routes/coupons');
 const promotionsRouter = require('./routes/promotions');
 const authRouter = require('./routes/auth');
 const userRouter = require('./routes/user');
+const uploadRouter = require('./routes/upload');
 
 
 // Import email service
@@ -72,6 +73,7 @@ app.use('/api/coupons', couponsRouter);
 app.use('/api/promotions', promotionsRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/user', userRouter);
+app.use('/api/upload', uploadRouter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
