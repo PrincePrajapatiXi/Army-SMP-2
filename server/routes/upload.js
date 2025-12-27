@@ -38,15 +38,10 @@ router.post('/', upload.single('image'), async (req, res) => {
         const b64 = Buffer.from(req.file.buffer).toString('base64');
         const dataURI = `data:${req.file.mimetype};base64,${b64}`;
 
-        // Upload to Cloudinary
-        const result = await cloudinary.uploader.upload(dataURI, {
-            folder: 'army-smp', // Organize in a folder
-            resource_type: 'image',
-            transformation: [
-                { width: 500, height: 500, crop: 'limit' }, // Max dimensions
-                { quality: 'auto:good' }, // Auto optimize quality
-                { fetch_format: 'auto' } // Auto format (webp, etc.)
-            ]
+        // Upload to Cloudinary using unsigned upload preset
+        const result = await cloudinary.uploader.unsigned_upload(dataURI, 'army-smp-upload', {
+            folder: 'army-smp',
+            resource_type: 'image'
         });
 
         res.json({
