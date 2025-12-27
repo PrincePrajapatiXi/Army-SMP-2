@@ -1,5 +1,6 @@
 import React from 'react';
-import { Box, Plus, Edit, Trash2, X, Image } from 'lucide-react';
+import { Box, Plus, Edit, Trash2, X } from 'lucide-react';
+import ImageUploader from '../../../components/ImageUploader';
 
 const ProductsTab = ({
     products,
@@ -152,17 +153,12 @@ const ProductsTab = ({
                             </div>
 
                             <div className="form-group">
-                                <label>Image Path</label>
-                                <div className="image-input-wrapper">
-                                    <Image size={18} />
-                                    <input
-                                        type="text"
-                                        value={form.image}
-                                        onChange={(e) => setForm({ ...form, image: e.target.value })}
-                                        placeholder="/images/stone.png"
-                                    />
-                                </div>
-                                <small className="form-hint">Use: /images/stone.png, /images/Beacon.png, or /images/bedrock.png</small>
+                                <label>Product Image</label>
+                                <ImageUploader
+                                    value={form.image}
+                                    onChange={(url) => setForm({ ...form, image: url })}
+                                    placeholder="Drag & drop product image"
+                                />
                             </div>
 
                             <div className="form-group">

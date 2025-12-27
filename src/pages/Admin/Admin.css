@@ -1369,6 +1369,10 @@
     gap: 8px;
 }
 
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
 .form-group label {
     color: var(--text-secondary);
     font-size: 0.9rem;
