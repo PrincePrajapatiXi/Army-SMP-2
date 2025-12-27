@@ -78,7 +78,8 @@ const ImageUploader = ({ value, onChange, placeholder = "Drag & drop image or cl
             clearInterval(progressInterval);
 
             if (!response.ok) {
-                throw new Error('Upload failed');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || errorData.error || 'Upload failed');
             }
 
             const data = await response.json();
@@ -96,7 +97,7 @@ const ImageUploader = ({ value, onChange, placeholder = "Drag & drop image or cl
 
         } catch (err) {
             console.error('Upload error:', err);
-            setError('Upload failed. Please try again.');
+            setError(err.message || 'Upload failed. Please try again.');
             setIsUploading(false);
             setUploadProgress(0);
         }
