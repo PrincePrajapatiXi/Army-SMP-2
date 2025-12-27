@@ -31,7 +31,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
             animation: 'fadeIn 0.2s ease-out'
         }} onClick={onClose}>
             <div style={{
-                backgroundColor: 'var(--bg-surface)',
+                backgroundColor: '#12121a',
                 borderRadius: '16px',
                 width: '90%',
                 maxWidth: '500px',
