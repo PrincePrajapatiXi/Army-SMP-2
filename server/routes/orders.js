@@ -3,6 +3,18 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { sendOrderNotification } = require('../services/email');
 const Order = require('../models/Order');
+const Coupon = require('../models/Coupon');
+
+// XSS Sanitization helper - remove HTML tags and scripts
+const sanitizeInput = (str) => {
+    if (!str || typeof str !== 'string') return str;
+    return str
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;')
+        .replace(/\//g, '&#x2F;');
+};
 
 // POST /api/orders/create - Create a new order
 router.post('/create', async (req, res) => {
@@ -12,6 +24,9 @@ router.post('/create', async (req, res) => {
         if (!minecraftUsername) {
             return res.status(400).json({ error: 'Minecraft username is required' });
         }
+
+        // Sanitize username to prevent XSS
+        const sanitizedUsername = sanitizeInput(minecraftUsername.trim());
 
         // Get cart from request body OR session (fallback)
         const cart = items && items.length > 0 ? items : (req.session?.cart || []);
@@ -57,12 +72,12 @@ router.post('/create', async (req, res) => {
         const orderData = {
             id: uuidv4(),
             orderNumber: `ARMY-${Date.now().toString(36).toUpperCase()}`,
-            minecraftUsername: minecraftUsername.trim(),
+            minecraftUsername: sanitizedUsername, // Use sanitized username
             email: email || null,
             platform: platform || 'Java', // Java or Bedrock
             items: cart.map(item => ({
                 id: item.id,
-                name: item.name,
+                name: sanitizeInput(item.name), // Sanitize item names too
                 price: item.price,
                 quantity: item.quantity,
                 subtotal: item.price * item.quantity
@@ -84,6 +99,20 @@ router.post('/create', async (req, res) => {
         // Save order to MongoDB
         const order = new Order(orderData);
         await order.save();
+
+        // Increment coupon usage count if coupon was used
+        if (couponInfo && couponInfo.couponCode) {
+            try {
+                await Coupon.findOneAndUpdate(
+                    { code: couponInfo.couponCode.toUpperCase().trim() },
+                    { $inc: { usedCount: 1 } }
+                );
+                console.log(`✅ Coupon ${couponInfo.couponCode} usage incremented`);
+            } catch (couponErr) {
+                console.error('Failed to increment coupon usage:', couponErr);
+                // Don't fail the order for this
+            }
+        }
 
         // Clear cart after order
         if (req.session) {
@@ -145,8 +174,10 @@ router.get('/:id', async (req, res) => {
 // GET /api/orders/user/:username - Get orders by Minecraft username
 router.get('/user/:username', async (req, res) => {
     try {
+        // Sanitize: escape regex special chars to prevent regex injection
+        const sanitizedUsername = req.params.username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const userOrders = await Order.find({
-            minecraftUsername: { $regex: new RegExp(`^${req.params.username}$`, 'i') }
+            minecraftUsername: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') }
         }).sort({ createdAt: -1 }); // Newest first
 
         res.json(userOrders);
@@ -160,8 +191,10 @@ router.get('/user/:username', async (req, res) => {
 router.get('/email/:email', async (req, res) => {
     try {
         const email = decodeURIComponent(req.params.email).toLowerCase();
+        // Sanitize: escape regex special chars to prevent regex injection
+        const sanitizedEmail = email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const userOrders = await Order.find({
-            email: { $regex: new RegExp(`^${email}$`, 'i') }
+            email: { $regex: new RegExp(`^${sanitizedEmail}$`, 'i') }
         }).sort({ createdAt: -1 }); // Newest first
 
         res.json(userOrders);

@@ -82,11 +82,29 @@ const Admin = () => {
         position: 1
     });
 
-    // Check if already logged in
+    // Admin JWT Token state
+    const [adminToken, setAdminToken] = useState(null);
+
+    // Check if already logged in (validate stored token)
     useEffect(() => {
-        const adminAuth = sessionStorage.getItem('adminAuth');
-        if (adminAuth === 'true') {
-            setIsAuthenticated(true);
+        const storedToken = localStorage.getItem('adminToken');
+        if (storedToken) {
+            // Verify token is still valid by making a test request
+            fetch(`${API_BASE_URL}/admin/orders`, {
+                headers: { 'Authorization': `Bearer ${storedToken}` }
+            })
+                .then(res => {
+                    if (res.ok) {
+                        setAdminToken(storedToken);
+                        setIsAuthenticated(true);
+                    } else {
+                        // Token expired or invalid
+                        localStorage.removeItem('adminToken');
+                    }
+                })
+                .catch(() => {
+                    localStorage.removeItem('adminToken');
+                });
         }
     }, []);
 
@@ -98,7 +116,7 @@ const Admin = () => {
             fetchCoupons();
             fetchPromotions();
         }
-    }, [isAuthenticated]);
+    }, [isAuthenticated, adminToken]);
 
     // Initialize charts when orders or period change
     useEffect(() => {
@@ -107,7 +125,40 @@ const Admin = () => {
         }
     }, [orders, isAuthenticated, activeTab, chartPeriod]);
 
-    // Secure Login via Backend API
+    // 2FA State
+    const [requires2FA, setRequires2FA] = useState(false);
+    const [otpCode, setOtpCode] = useState('');
+    const [maskedEmail, setMaskedEmail] = useState('');
+
+    // Helper function for authenticated API calls
+    const authFetch = async (url, options = {}) => {
+        const token = adminToken || localStorage.getItem('adminToken');
+        if (!token) {
+            setIsAuthenticated(false);
+            throw new Error('No admin token');
+        }
+
+        const response = await fetch(url, {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                ...options.headers
+            }
+        });
+
+        if (response.status === 401) {
+            // Token expired, logout
+            localStorage.removeItem('adminToken');
+            setAdminToken(null);
+            setIsAuthenticated(false);
+            throw new Error('Session expired');
+        }
+
+        return response;
+    };
+
+    // Step 1: Submit password
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoginLoading(true);
@@ -122,9 +173,16 @@ const Admin = () => {
 
             const data = await response.json();
 
-            if (data.success) {
+            if (data.success && data.requires2FA) {
+                // Password correct, need 2FA
+                setRequires2FA(true);
+                setMaskedEmail(data.email || '***@***.***');
+                setLoginError('');
+            } else if (data.success && data.token) {
+                // Direct login (if 2FA is disabled)
+                localStorage.setItem('adminToken', data.token);
+                setAdminToken(data.token);
                 setIsAuthenticated(true);
-                sessionStorage.setItem('adminAuth', 'true');
                 setLoginError('');
             } else {
                 setLoginError(data.error || 'Invalid password');
@@ -137,18 +195,70 @@ const Admin = () => {
         }
     };
 
+    // Step 2: Verify OTP
+    const handleVerify2FA = async (e) => {
+        e.preventDefault();
+        setLoginLoading(true);
+        setLoginError('');
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/verify-2fa`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ otp: otpCode })
+            });
+
+            const data = await response.json();
+
+            if (data.success && data.token) {
+                localStorage.setItem('adminToken', data.token);
+                setAdminToken(data.token);
+                setIsAuthenticated(true);
+                setRequires2FA(false);
+                setOtpCode('');
+                setLoginError('');
+            } else {
+                setLoginError(data.error || 'Invalid verification code');
+            }
+        } catch (error) {
+            console.error('2FA error:', error);
+            setLoginError('Verification failed. Please try again.');
+        } finally {
+            setLoginLoading(false);
+        }
+    };
+
+    // Resend 2FA OTP
+    const handleResend2FA = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/resend-2fa`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            if (data.success) {
+                setLoginError('New code sent!');
+            } else {
+                setLoginError(data.error || 'Failed to resend code');
+            }
+        } catch (error) {
+            setLoginError('Failed to resend code');
+        }
+    };
+
     const handleLogout = () => {
         setIsAuthenticated(false);
-        sessionStorage.removeItem('adminAuth');
+        setAdminToken(null);
+        localStorage.removeItem('adminToken');
         setSelectedOrders([]);
+        setRequires2FA(false);
+        setOtpCode('');
     };
 
     const fetchOrders = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/orders`, {
-                credentials: 'include'
-            });
+            const response = await authFetch(`${API_BASE_URL}/admin/orders`);
             const data = await response.json();
             setOrders(data || []);
         } catch (error) {
@@ -163,7 +273,7 @@ const Admin = () => {
     const fetchProducts = async () => {
         setProductLoading(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/products`);
+            const response = await authFetch(`${API_BASE_URL}/admin/products`);
             const data = await response.json();
             setProducts(data || []);
         } catch (error) {
@@ -224,9 +334,8 @@ const Admin = () => {
                 ? `${API_BASE_URL}/admin/products/${editingProduct.id}`
                 : `${API_BASE_URL}/admin/products`;
 
-            const response = await fetch(url, {
+            const response = await authFetch(url, {
                 method: editingProduct ? 'PUT' : 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(productData)
             });
 
@@ -249,7 +358,7 @@ const Admin = () => {
 
     const handleDeleteProduct = async (productId) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/products/${productId}`, {
+            const response = await authFetch(`${API_BASE_URL}/admin/products/${productId}`, {
                 method: 'DELETE'
             });
 
@@ -269,9 +378,8 @@ const Admin = () => {
 
     const updateOrderStatus = async (orderId, newStatus) => {
         try {
-            await fetch(`${API_BASE_URL}/admin/orders/${orderId}/status`, {
+            await authFetch(`${API_BASE_URL}/admin/orders/${orderId}/status`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus })
             });
             fetchOrders();
@@ -285,7 +393,7 @@ const Admin = () => {
     const fetchCoupons = async () => {
         setCouponLoading(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/coupons`);
+            const response = await authFetch(`${API_BASE_URL}/admin/coupons`);
             const data = await response.json();
             setCoupons(data || []);
         } catch (error) {
@@ -346,9 +454,8 @@ const Admin = () => {
                 ? `${API_BASE_URL}/admin/coupons/${editingCoupon._id}`
                 : `${API_BASE_URL}/admin/coupons`;
 
-            const response = await fetch(url, {
+            const response = await authFetch(url, {
                 method: editingCoupon ? 'PUT' : 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(couponData)
             });
 
@@ -371,7 +478,7 @@ const Admin = () => {
 
     const handleDeleteCoupon = async (couponId) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/coupons/${couponId}`, {
+            const response = await authFetch(`${API_BASE_URL}/admin/coupons/${couponId}`, {
                 method: 'DELETE'
             });
 
@@ -391,7 +498,7 @@ const Admin = () => {
 
     const toggleCouponActive = async (couponId) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/coupons/${couponId}/toggle`, {
+            const response = await authFetch(`${API_BASE_URL}/admin/coupons/${couponId}/toggle`, {
                 method: 'PUT'
             });
 
@@ -413,7 +520,7 @@ const Admin = () => {
     const fetchPromotions = async () => {
         setPromotionLoading(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/promotions`);
+            const response = await authFetch(`${API_BASE_URL}/admin/promotions`);
             const data = await response.json();
             setPromotions(data || []);
         } catch (error) {
@@ -484,9 +591,8 @@ const Admin = () => {
                 ? `${API_BASE_URL}/admin/promotions/${editingPromotion._id}`
                 : `${API_BASE_URL}/admin/promotions`;
 
-            const response = await fetch(url, {
+            const response = await authFetch(url, {
                 method: editingPromotion ? 'PUT' : 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(promotionData)
             });
 
@@ -507,7 +613,7 @@ const Admin = () => {
 
     const handlePromotionDelete = async (promoId) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/promotions/${promoId}`, {
+            const response = await authFetch(`${API_BASE_URL}/admin/promotions/${promoId}`, {
                 method: 'DELETE'
             });
 
@@ -527,7 +633,7 @@ const Admin = () => {
 
     const togglePromotionActive = async (promoId) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/promotions/${promoId}/toggle`, {
+            const response = await authFetch(`${API_BASE_URL}/admin/promotions/${promoId}/toggle`, {
                 method: 'PUT'
             });
 
@@ -565,9 +671,8 @@ const Admin = () => {
         if (selectedOrders.length === 0) return;
 
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/orders/bulk`, {
+            const response = await authFetch(`${API_BASE_URL}/admin/orders/bulk`, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ orderIds: selectedOrders })
             });
 
@@ -867,26 +972,72 @@ const Admin = () => {
                         <Lock size={48} />
                     </div>
                     <h1>Admin Panel</h1>
-                    <p>Enter password to access admin dashboard</p>
 
-                    <form onSubmit={handleLogin}>
-                        <input
-                            type="password"
-                            placeholder="Enter admin password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="admin-input"
-                            disabled={loginLoading}
-                        />
-                        {loginError && <p className="login-error">{loginError}</p>}
-                        <button
-                            type="submit"
-                            className="btn btn-primary admin-login-btn"
-                            disabled={loginLoading}
-                        >
-                            {loginLoading ? 'Logging in...' : 'Login'}
-                        </button>
-                    </form>
+                    {!requires2FA ? (
+                        <>
+                            <p>Enter password to access admin dashboard</p>
+                            <form onSubmit={handleLogin}>
+                                <input
+                                    type="password"
+                                    placeholder="Enter admin password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="admin-input"
+                                    disabled={loginLoading}
+                                />
+                                {loginError && <p className="login-error">{loginError}</p>}
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary admin-login-btn"
+                                    disabled={loginLoading}
+                                >
+                                    {loginLoading ? 'Verifying...' : 'Login'}
+                                </button>
+                            </form>
+                        </>
+                    ) : (
+                        <>
+                            <p>Enter verification code sent to {maskedEmail}</p>
+                            <form onSubmit={handleVerify2FA}>
+                                <input
+                                    type="text"
+                                    placeholder="Enter 6-digit OTP"
+                                    value={otpCode}
+                                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                    className="admin-input"
+                                    disabled={loginLoading}
+                                    maxLength={6}
+                                    style={{ letterSpacing: '8px', textAlign: 'center', fontSize: '1.5rem' }}
+                                />
+                                {loginError && <p className={loginError.includes('sent') ? 'login-success' : 'login-error'}>{loginError}</p>}
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary admin-login-btn"
+                                    disabled={loginLoading || otpCode.length !== 6}
+                                >
+                                    {loginLoading ? 'Verifying...' : 'Verify OTP'}
+                                </button>
+                                <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                                    <button
+                                        type="button"
+                                        onClick={handleResend2FA}
+                                        className="btn btn-outline"
+                                        style={{ fontSize: '0.85rem' }}
+                                    >
+                                        Resend Code
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setRequires2FA(false); setOtpCode(''); setLoginError(''); }}
+                                        className="btn btn-outline"
+                                        style={{ fontSize: '0.85rem' }}
+                                    >
+                                        ← Back
+                                    </button>
+                                </div>
+                            </form>
+                        </>
+                    )}
                 </div>
             </div>
         );

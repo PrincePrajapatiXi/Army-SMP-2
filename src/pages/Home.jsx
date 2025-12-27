@@ -18,17 +18,20 @@ const Home = () => {
         loading: true
     });
 
-    const ip = "army.hostzy.xyz";
-    const port = "25565";
+    const ip = "armysmp.fun";
+    const port = "25591";
     const fullAddress = `${ip}:${port}`;
     const fullText = "Army SMP";
 
     // Fetch live server status
     useEffect(() => {
+        const API_BASE_URL = window.location.hostname === 'localhost'
+            ? 'http://localhost:5000/api'
+            : 'https://army-smp-2.onrender.com/api';
+
         const fetchServerStatus = async () => {
             try {
-                // Use Render production URL
-                const response = await fetch('https://army-smp-2.onrender.com/api/server-status/quick');
+                const response = await fetch(`${API_BASE_URL}/server-status/quick`);
                 const data = await response.json();
                 setServerStatus({
                     online: data.online,

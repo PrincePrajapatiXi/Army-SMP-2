@@ -7,10 +7,11 @@ const Coupon = require('../models/Coupon');
 const Promotion = require('../models/Promotion');
 const User = require('../models/User');
 const OTP = require('../models/OTP');
+const { generateAdminToken, requireAdminAuth } = require('../middleware/authMiddleware');
 
-// Admin credentials from environment variable (secure)
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Prince_Uday';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'armysmp2@gmail.com';
+// Admin credentials from environment variable (REQUIRED - no default for security)
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 
 // Login attempt tracking (in-memory for simplicity)
 const loginAttempts = {
@@ -122,9 +123,12 @@ router.post('/verify-2fa', async (req, res) => {
         const result = await OTP.verifyOTP(ADMIN_EMAIL, otp, 'admin2FA');
 
         if (result.valid) {
+            // Generate admin JWT token
+            const token = generateAdminToken();
             return res.json({
                 success: true,
-                message: 'Login successful! Welcome Admin.'
+                message: 'Login successful! Welcome Admin.',
+                token: token
             });
         } else {
             return res.status(401).json({
@@ -162,7 +166,7 @@ router.post('/resend-2fa', async (req, res) => {
 });
 
 // DELETE /api/admin/orders/bulk - Bulk delete orders
-router.delete('/orders/bulk', async (req, res) => {
+router.delete('/orders/bulk', requireAdminAuth, async (req, res) => {
     try {
         const { orderIds } = req.body;
 
@@ -194,7 +198,7 @@ router.delete('/orders/bulk', async (req, res) => {
 });
 
 // GET /api/admin/orders - Get all orders (sorted by date, newest first)
-router.get('/orders', async (req, res) => {
+router.get('/orders', requireAdminAuth, async (req, res) => {
     try {
         const orders = await Order.find().sort({ createdAt: -1 });
         res.json(orders);
@@ -205,7 +209,7 @@ router.get('/orders', async (req, res) => {
 });
 
 // GET /api/admin/stats - Get sales analytics
-router.get('/stats', async (req, res) => {
+router.get('/stats', requireAdminAuth, async (req, res) => {
     try {
         const orders = await Order.find();
         const today = new Date().toDateString();
@@ -233,7 +237,7 @@ router.get('/stats', async (req, res) => {
 });
 
 // PUT /api/admin/orders/:id/status - Update order status
-router.put('/orders/:id/status', async (req, res) => {
+router.put('/orders/:id/status', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
@@ -275,7 +279,7 @@ router.put('/orders/:id/status', async (req, res) => {
 });
 
 // PUT /api/admin/orders/:id/payment - Update payment status
-router.put('/orders/:id/payment', async (req, res) => {
+router.put('/orders/:id/payment', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const { paymentStatus } = req.body;
@@ -345,7 +349,7 @@ router.put('/orders/:id/payment', async (req, res) => {
 });
 
 // DELETE /api/admin/orders/:id - Delete an order
-router.delete('/orders/:id', async (req, res) => {
+router.delete('/orders/:id', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const result = await Order.deleteOne({ $or: [{ id }, { orderNumber: id }] });
@@ -364,7 +368,7 @@ router.delete('/orders/:id', async (req, res) => {
 // ==================== PRODUCT MANAGEMENT ====================
 
 // GET /api/admin/products - Get all products
-router.get('/products', async (req, res) => {
+router.get('/products', requireAdminAuth, async (req, res) => {
     try {
         const products = await Product.find().sort({ id: 1 });
         res.json(products);
@@ -375,7 +379,7 @@ router.get('/products', async (req, res) => {
 });
 
 // POST /api/admin/products - Add new product
-router.post('/products', async (req, res) => {
+router.post('/products', requireAdminAuth, async (req, res) => {
     try {
         const { name, price, category, image, description, color, features } = req.body;
 
@@ -413,7 +417,7 @@ router.post('/products', async (req, res) => {
 });
 
 // PUT /api/admin/products/:id - Update product
-router.put('/products/:id', async (req, res) => {
+router.put('/products/:id', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const updates = req.body;
@@ -449,7 +453,7 @@ router.put('/products/:id', async (req, res) => {
 });
 
 // DELETE /api/admin/products/:id - Delete product
-router.delete('/products/:id', async (req, res) => {
+router.delete('/products/:id', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const result = await Product.deleteOne({ id: parseInt(id) });
@@ -471,7 +475,7 @@ router.delete('/products/:id', async (req, res) => {
 // ==================== COUPON MANAGEMENT ====================
 
 // GET /api/admin/coupons - Get all coupons
-router.get('/coupons', async (req, res) => {
+router.get('/coupons', requireAdminAuth, async (req, res) => {
     try {
         const coupons = await Coupon.find().sort({ createdAt: -1 });
         res.json(coupons);
@@ -482,7 +486,7 @@ router.get('/coupons', async (req, res) => {
 });
 
 // POST /api/admin/coupons - Create new coupon
-router.post('/coupons', async (req, res) => {
+router.post('/coupons', requireAdminAuth, async (req, res) => {
     try {
         const { code, discountType, discountValue, minOrderAmount, maxDiscount, usageLimit, expiresAt } = req.body;
 
@@ -521,7 +525,7 @@ router.post('/coupons', async (req, res) => {
 });
 
 // PUT /api/admin/coupons/:id - Update coupon
-router.put('/coupons/:id', async (req, res) => {
+router.put('/coupons/:id', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const updates = req.body;
@@ -556,7 +560,7 @@ router.put('/coupons/:id', async (req, res) => {
 });
 
 // DELETE /api/admin/coupons/:id - Delete coupon
-router.delete('/coupons/:id', async (req, res) => {
+router.delete('/coupons/:id', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const result = await Coupon.findByIdAndDelete(id);
@@ -576,7 +580,7 @@ router.delete('/coupons/:id', async (req, res) => {
 });
 
 // PUT /api/admin/coupons/:id/toggle - Toggle coupon active status
-router.put('/coupons/:id/toggle', async (req, res) => {
+router.put('/coupons/:id/toggle', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const coupon = await Coupon.findById(id);
@@ -602,7 +606,7 @@ router.put('/coupons/:id/toggle', async (req, res) => {
 // ==================== PROMOTIONS MANAGEMENT ====================
 
 // GET /api/admin/promotions - Get all promotions
-router.get('/promotions', async (req, res) => {
+router.get('/promotions', requireAdminAuth, async (req, res) => {
     try {
         const promotions = await Promotion.find().sort({ position: 1 });
         res.json(promotions);
@@ -613,7 +617,7 @@ router.get('/promotions', async (req, res) => {
 });
 
 // POST /api/admin/promotions - Create new promotion
-router.post('/promotions', async (req, res) => {
+router.post('/promotions', requireAdminAuth, async (req, res) => {
     try {
         const { name, logo, tagline, description, features, link, buttonText, gradient, position, isActive } = req.body;
 
@@ -650,7 +654,7 @@ router.post('/promotions', async (req, res) => {
 });
 
 // PUT /api/admin/promotions/:id - Update promotion
-router.put('/promotions/:id', async (req, res) => {
+router.put('/promotions/:id', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const { name, logo, tagline, description, features, link, buttonText, gradient, position, isActive } = req.body;
@@ -680,7 +684,7 @@ router.put('/promotions/:id', async (req, res) => {
 });
 
 // DELETE /api/admin/promotions/:id - Delete promotion
-router.delete('/promotions/:id', async (req, res) => {
+router.delete('/promotions/:id', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const promotion = await Promotion.findByIdAndDelete(id);
@@ -697,7 +701,7 @@ router.delete('/promotions/:id', async (req, res) => {
 });
 
 // PUT /api/admin/promotions/:id/toggle - Toggle promotion active status
-router.put('/promotions/:id/toggle', async (req, res) => {
+router.put('/promotions/:id/toggle', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const promotion = await Promotion.findById(id);
@@ -721,7 +725,7 @@ router.put('/promotions/:id/toggle', async (req, res) => {
 });
 
 // PUT /api/admin/promotions/reorder - Reorder promotions
-router.put('/promotions/reorder', async (req, res) => {
+router.put('/promotions/reorder', requireAdminAuth, async (req, res) => {
     try {
         const { promotions } = req.body; // Array of { id, position }
 
@@ -743,7 +747,7 @@ router.put('/promotions/reorder', async (req, res) => {
 // ==================== USER MANAGEMENT ====================
 
 // GET /api/admin/users - Get all users with order statistics
-router.get('/users', async (req, res) => {
+router.get('/users', requireAdminAuth, async (req, res) => {
     try {
         const users = await User.find().sort({ createdAt: -1 });
         const orders = await Order.find();
@@ -784,7 +788,7 @@ router.get('/users', async (req, res) => {
 });
 
 // PUT /api/admin/users/:id/block - Toggle block/unblock user
-router.put('/users/:id/block', async (req, res) => {
+router.put('/users/:id/block', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const user = await User.findById(id);
@@ -815,7 +819,7 @@ router.put('/users/:id/block', async (req, res) => {
 });
 
 // POST /api/admin/users/:id/reset-password - Send password reset email
-router.post('/users/:id/reset-password', async (req, res) => {
+router.post('/users/:id/reset-password', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const user = await User.findById(id);
