@@ -1,12 +1,14 @@
 import { X, ShoppingCart, Check } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useCart } from '../context/CartContext';
+import { useToast } from './Toast';
 import './ProductModal.css';
 
 const Modal = ({ isOpen, onClose, product }) => {
     const [quantity, setQuantity] = useState(1);
     const [addedToCart, setAddedToCart] = useState(false);
     const { addToCart } = useCart();
+    const toast = useToast();
 
     useEffect(() => {
         if (isOpen) {
@@ -30,6 +32,7 @@ const Modal = ({ isOpen, onClose, product }) => {
     const handleAddToCart = () => {
         addToCart(product, quantity);
         setAddedToCart(true);
+        toast.success(`${product.name} added to cart!`);
         setTimeout(() => {
             setAddedToCart(false);
             onClose();

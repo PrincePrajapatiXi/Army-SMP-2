@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import PageTransition from './components/PageTransition';
 import PageLoader from './components/PageLoader';
+import { ToastProvider } from './components/Toast';
 
 // Lazy load pages for code splitting
 // This reduces initial bundle size by loading pages only when needed
@@ -48,30 +49,32 @@ function Layout({ children }) {
 
 function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <Router>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/store" element={<Store />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/orders" element={<OrderHistory />} />
-              <Route path="/admin" element={<Admin />} />
+    <ToastProvider>
+      <AuthProvider>
+        <CartProvider>
+          <Router>
+            <Layout>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/store" element={<Store />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/orders" element={<OrderHistory />} />
+                <Route path="/admin" element={<Admin />} />
 
-              {/* Auth Routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/verify-email" element={<VerifyEmail />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/oauth-callback" element={<OAuthCallback />} />
-            </Routes>
-          </Layout>
-        </Router>
-      </CartProvider>
-    </AuthProvider>
+                {/* Auth Routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/verify-email" element={<VerifyEmail />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/oauth-callback" element={<OAuthCallback />} />
+              </Routes>
+            </Layout>
+          </Router>
+        </CartProvider>
+      </AuthProvider>
+    </ToastProvider>
   );
 }
 
