@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 const Modal = ({ isOpen, onClose, title, children }) => {
@@ -15,7 +16,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
 
     if (!isOpen) return null;
 
-    return (
+    const modalContent = (
         <div style={{
             position: 'fixed',
             top: 0,
@@ -26,7 +27,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 2000,
+            zIndex: 9999,
             backdropFilter: 'blur(5px)',
             animation: 'fadeIn 0.2s ease-out'
         }} onClick={onClose}>
@@ -49,8 +50,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
                     <h2 style={{ fontSize: '1.5rem', margin: 0 }}>{title}</h2>
                     <button onClick={onClose} style={{
                         color: 'white',
-                        backgroundColor: '#ff4444', // Red background for X as per image vibe (or just red icon?) Image looks like red button background or just red icon. Let's make it look premium.
-                        // Actually, looking at the image provided by user: It has a Red square button with a white X.
+                        backgroundColor: '#ff4444',
                         border: 'none',
                         borderRadius: '4px',
                         width: '32px',
@@ -75,6 +75,10 @@ const Modal = ({ isOpen, onClose, title, children }) => {
             </div>
         </div>
     );
+
+    // Use Portal to render modal directly in document.body
+    // This bypasses any parent transforms that break position: fixed
+    return createPortal(modalContent, document.body);
 };
 
 export default Modal;
