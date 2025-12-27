@@ -1,14 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const fs = require('fs');
-const path = require('path');
-
-// Load products for validation
-const getProducts = () => {
-    const filePath = path.join(__dirname, '../data/products.json');
-    const data = fs.readFileSync(filePath, 'utf8');
-    return JSON.parse(data);
-};
+const Product = require('../models/Product');
 
 // Initialize cart in session if not exists
 const initCart = (req) => {
@@ -32,44 +24,49 @@ router.get('/', (req, res) => {
 });
 
 // POST /api/cart/add - Add item to cart
-router.post('/add', (req, res) => {
+router.post('/add', async (req, res) => {
     const { productId, quantity = 1 } = req.body;
 
     if (!productId) {
         return res.status(400).json({ error: 'Product ID is required' });
     }
 
-    const products = getProducts();
-    const product = products.find(p => p.id === parseInt(productId));
+    try {
+        // Load product from MongoDB instead of JSON file
+        const product = await Product.findOne({ id: parseInt(productId) });
 
-    if (!product) {
-        return res.status(404).json({ error: 'Product not found' });
-    }
+        if (!product) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
 
-    const cart = initCart(req);
-    const existingItem = cart.find(item => item.id === product.id);
+        const cart = initCart(req);
+        const existingItem = cart.find(item => item.id === product.id);
 
-    if (existingItem) {
-        existingItem.quantity += quantity;
-    } else {
-        cart.push({
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            priceDisplay: product.priceDisplay,
-            image: product.image,
-            color: product.color,
-            quantity: quantity
+        if (existingItem) {
+            existingItem.quantity += quantity;
+        } else {
+            cart.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                priceDisplay: product.priceDisplay,
+                image: product.image,
+                color: product.color,
+                quantity: quantity
+            });
+        }
+
+        req.session.cart = cart;
+
+        res.json({
+            message: 'Item added to cart',
+            cart: cart,
+            itemCount: cart.reduce((count, item) => count + item.quantity, 0)
         });
+    } catch (error) {
+        console.error('Error adding to cart:', error);
+        res.status(500).json({ error: 'Failed to add item to cart' });
     }
-
-    req.session.cart = cart;
-
-    res.json({
-        message: 'Item added to cart',
-        cart: cart,
-        itemCount: cart.reduce((count, item) => count + item.quantity, 0)
-    });
 });
 
 // PUT /api/cart/update - Update item quantity
