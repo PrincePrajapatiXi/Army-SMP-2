@@ -3,6 +3,7 @@ import Features from '../components/Features';
 import FeaturedRanks from '../components/FeaturedRanks';
 import PromoSlider from '../components/PromoSlider';
 import Modal from '../components/Modal';
+import RippleButton from '../components/RippleButton';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
@@ -175,8 +176,8 @@ const Home = () => {
                         justifyContent: 'center',
                         flexWrap: 'wrap'
                     }}>
-                        <button
-                            className="btn btn-primary"
+                        <RippleButton
+                            variant="primary"
                             style={{
                                 padding: '16px 40px',
                                 fontSize: '1.2rem',
@@ -186,13 +187,18 @@ const Home = () => {
                             onClick={handleJoin}
                         >
                             🎮 Join Server
-                        </button>
-                        <Link to="/store" className="btn btn-outline" style={{
-                            padding: '16px 40px',
-                            fontSize: '1.2rem',
-                            minWidth: '180px'
-                        }}>
-                            🛒 Visit Store
+                        </RippleButton>
+                        <Link to="/store">
+                            <RippleButton
+                                variant="outline"
+                                style={{
+                                    padding: '16px 40px',
+                                    fontSize: '1.2rem',
+                                    minWidth: '180px'
+                                }}
+                            >
+                                🛒 Visit Store
+                            </RippleButton>
                         </Link>
                     </div>
 
