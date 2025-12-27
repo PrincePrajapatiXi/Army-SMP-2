@@ -3,7 +3,7 @@ const router = express.Router();
 
 // Server configuration - Update these with your Minecraft server details
 const SERVER_CONFIG = {
-    host: 'armysmp.fun',
+    host: 'army.hostzy.xyz',
     port: 25591
 };
 

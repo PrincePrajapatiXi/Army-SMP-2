@@ -18,7 +18,7 @@ const Home = () => {
         loading: true
     });
 
-    const ip = "armysmp.fun";
+    const ip = "army.hostzy.xyz";
     const port = "25591";
     const fullAddress = `${ip}:${port}`;
     const fullText = "Army SMP";
