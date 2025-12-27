@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Upload, X, Image, Loader, Check } from 'lucide-react';
 import './ImageUploader.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'https://army-smp-2.onrender.com';
 
 const ImageUploader = ({ value, onChange, placeholder = "Drag & drop image or click to upload" }) => {
     const [isDragging, setIsDragging] = useState(false);
