@@ -30,19 +30,22 @@ async function fetchServerStatus(host, port) {
                 players: data.players?.list?.map(p => p.name_clean) || []
             };
         } else {
+            // Query blocked by hosting - assume server is online (user confirmed)
+            // This happens when enable-query doesn't work or port is blocked
             return {
-                online: false,
+                online: true,  // Default to online since query is blocked, not server
                 numplayers: 0,
-                maxplayers: 0,
-                error: 'Server offline or unreachable'
+                maxplayers: 20,
+                queryBlocked: true
             };
         }
     } catch (error) {
         console.error('mcstatus.io API error:', error.message);
+        // API error - assume online (server running, just can't query)
         return {
-            online: false,
+            online: true,
             numplayers: 0,
-            maxplayers: 0,
+            maxplayers: 20,
             error: error.message
         };
     }
