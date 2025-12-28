@@ -4,7 +4,7 @@ const router = express.Router();
 // Server configuration - Update these with your Minecraft server details
 const SERVER_CONFIG = {
     host: 'army.hostzy.xyz',
-    port: 25591
+    port: 25571  // Query port (not the game port 25591) - this is where player count is available
 };
 
 // Cache to avoid spamming API
@@ -13,9 +13,31 @@ let lastFetch = 0;
 const CACHE_DURATION = 30000; // 30 seconds cache
 
 /**
- * Fetch server status using mcstatus.io API (works for all Minecraft servers)
+ * Fetch server status using multiple APIs with fallback
+ * Primary: mcsrvstat.us (better query support)
+ * Fallback: mcstatus.io
  */
 async function fetchServerStatus(host, port) {
+    // Try mcsrvstat.us API first (better for servers with query enabled)
+    try {
+        const response = await fetch(`https://api.mcsrvstat.us/3/${host}:${port}`);
+        const data = await response.json();
+
+        if (data.online) {
+            return {
+                online: true,
+                hostname: data.motd?.clean?.[0] || data.hostname || 'Minecraft Server',
+                version: data.version || 'Unknown',
+                numplayers: data.players?.online || 0,
+                maxplayers: data.players?.max || 20,
+                players: data.players?.list || []
+            };
+        }
+    } catch (error) {
+        console.error('mcsrvstat.us API error:', error.message);
+    }
+
+    // Fallback to mcstatus.io API
     try {
         const response = await fetch(`https://api.mcstatus.io/v2/status/java/${host}:${port}`);
         const data = await response.json();
@@ -29,26 +51,24 @@ async function fetchServerStatus(host, port) {
                 maxplayers: data.players?.max || 20,
                 players: data.players?.list?.map(p => p.name_clean) || []
             };
-        } else {
-            // Query blocked by hosting - assume server is online (user confirmed)
-            // This happens when enable-query doesn't work or port is blocked
-            return {
-                online: true,  // Default to online since query is blocked, not server
-                numplayers: 0,
-                maxplayers: 20,
-                queryBlocked: true
-            };
         }
     } catch (error) {
         console.error('mcstatus.io API error:', error.message);
-        // API error - assume online (server running, just can't query)
-        return {
-            online: true,
-            numplayers: 0,
-            maxplayers: 20,
-            error: error.message
-        };
     }
+
+    // Both APIs failed or server appears offline
+    // Check if server is pingable but query is blocked (common with hosting providers)
+    console.log(`⚠️ Server ${host}:${port} - Query blocked or server offline`);
+
+    // Default: assume online but can't get player count (better UX than showing offline)
+    return {
+        online: true,
+        hostname: 'Army SMP',
+        numplayers: 0,
+        maxplayers: 20,
+        queryBlocked: true,
+        message: 'Player count unavailable - query may be blocked by hosting'
+    };
 }
 
 /**
