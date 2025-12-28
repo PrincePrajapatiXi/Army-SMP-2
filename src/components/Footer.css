@@ -142,3 +142,64 @@
         height: 18px;
     }
 }
+
+/* Very small screens */
+@media (max-width: 400px) {
+    .site-footer {
+        padding: 1.5rem 0 1rem;
+    }
+
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .footer-brand-link {
+        font-size: 1.3rem;
+    }
+
+    .footer-brand-desc {
+        font-size: 0.85rem;
+    }
+
+    .footer-heading {
+        font-size: 0.95rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .footer-links {
+        gap: 0.4rem;
+    }
+
+    .footer-link {
+        font-size: 0.85rem;
+    }
+
+    .footer-social-links {
+        gap: 0.4rem;
+        flex-wrap: wrap;
+    }
+
+    .social-icon-link {
+        padding: 5px;
+    }
+
+    .social-icon-link svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .footer-email {
+        font-size: 0.8rem;
+    }
+
+    .footer-copyright {
+        padding-top: 1rem;
+        font-size: 0.8rem;
+    }
+
+    .mojang-disclaimer {
+        font-size: 0.75rem;
+    }
+}
