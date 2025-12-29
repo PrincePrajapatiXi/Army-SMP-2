@@ -15,7 +15,16 @@ Welcome to the official **Army SMP Store** – a modern, responsive, and high-pe
 - **Product Modal** – Fast and responsive product details view
 - **Shopping Cart** – Add/remove items with quantity controls
 - **Coupon System** – Apply discount codes at checkout
-- **Order History** – Track your previous orders
+
+### 📦 Advanced Order History *(NEW)*
+- **Statistics Dashboard** – Total orders, amount spent, top products with animated counters
+- **Order Timeline** – Visual progress tracker (Pending → Processing → Completed)
+- **Smart Filters** – Filter by status (All, Pending, Processing, Completed, Cancelled)
+- **Sorting & Search** – Sort by date, search by order number
+- **Expandable Details** – Click to view full order info with smooth animations
+- **PDF Invoice Download** – Generate professional invoices using jsPDF
+- **Re-order Functionality** – Quick re-order same items with one click
+- **Glassmorphism UI** – Modern frosted glass design with micro-animations
 
 ### 🔍 Search with Auto-suggestions
 - **Recent Searches** – Saved to localStorage
@@ -62,6 +71,7 @@ Welcome to the official **Army SMP Store** – a modern, responsive, and high-pe
 | Routing | React Router DOM |
 | Backend | Node.js + Express |
 | Database | MongoDB |
+| PDF Generation | jsPDF |
 | Hosting | Vercel (Frontend) + Render (Backend) |
 
 ---
@@ -88,7 +98,7 @@ src/
 │   ├── Home.jsx
 │   ├── Store.jsx
 │   ├── Checkout.jsx
-│   ├── OrderHistory.jsx
+│   ├── OrderHistory.jsx  # Advanced order tracking
 │   └── Admin/
 ├── services/         # API services
 ├── App.jsx           # Main app with code splitting
@@ -146,6 +156,16 @@ npm start
 | Products | `src/data/products.js` or Admin Panel |
 | Server IP | `src/pages/Home.jsx` |
 | Logo | `public/images/logo.png` |
+
+---
+
+## 📸 Screenshots
+
+### Order History Dashboard
+| Statistics | Timeline | Filters |
+|------------|----------|---------|
+| Animated counters | Step progress | Status tabs |
+| Total orders/spent | Current step pulse | Sort & search |
 
 ---
 
