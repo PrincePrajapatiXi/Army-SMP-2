@@ -4,8 +4,9 @@ import {
     ShoppingCart, CheckCircle, XCircle, AlertCircle,
     Calendar, Filter, RefreshCw, Trash2, BarChart3, X,
     Box, Edit, Plus, Image, Search, Ticket, ToggleLeft, ToggleRight,
-    Megaphone, GripVertical
+    Megaphone, GripVertical, Shield
 } from 'lucide-react';
+import SecurityTab from './Admin/components/SecurityTab';
 import './Admin.css';
 
 const API_BASE_URL = window.location.hostname === 'localhost'
@@ -1080,7 +1081,13 @@ const Admin = () => {
                     onClick={() => setActiveTab('promotions')}
                 >
                     <Megaphone size={20} />
-                    <span>Promos</span>
+                </button>
+                <button
+                    className={`mobile-nav-item ${activeTab === 'security' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('security')}
+                >
+                    <Shield size={20} />
+                    <span>Security</span>
                 </button>
                 <button className="mobile-nav-item logout" onClick={handleLogout}>
                     <LogOut size={20} />
@@ -1129,6 +1136,13 @@ const Admin = () => {
                         <Megaphone size={20} />
                         <span>Promotions</span>
                     </button>
+                    <button
+                        className={`sidebar-item ${activeTab === 'security' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('security')}
+                    >
+                        <Shield size={20} />
+                        <span>Security</span>
+                    </button>
                 </nav>
                 <button className="logout-btn" onClick={handleLogout}>
                     <LogOut size={20} />
@@ -1146,6 +1160,7 @@ const Admin = () => {
                         {activeTab === 'products' && '🛍️ Product Management'}
                         {activeTab === 'coupons' && '🎟️ Coupon Management'}
                         {activeTab === 'promotions' && '📣 Promotion Banners'}
+                        {activeTab === 'security' && '🛡️ Security Center'}
                     </h1>
                     <button
                         className="refresh-btn"
@@ -2162,6 +2177,11 @@ const Admin = () => {
                             </div>
                         </div>
                     </div>
+                )}
+
+                {/* ==================== SECURITY TAB ==================== */}
+                {activeTab === 'security' && (
+                    <SecurityTab authFetch={authFetch} />
                 )}
             </main>
         </div>

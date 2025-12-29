@@ -1,0 +1,334 @@
+/* Recommended Products Section */
+
+.recommended-products {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Header */
+.recommended-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.recommended-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.recommended-title svg {
+    color: var(--primary, #4f46e5);
+}
+
+.recommended-title h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+}
+
+.recommended-title .badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.recommended-title .badge.hot {
+    background: linear-gradient(135deg, #ff6b35, #ff4757);
+    color: #fff;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Scroll Controls */
+.scroll-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.scroll-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.scroll-btn:hover:not(:disabled) {
+    background: var(--primary, #4f46e5);
+    border-color: var(--primary, #4f46e5);
+}
+
+.scroll-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Products Container */
+.recommended-container {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding-bottom: 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.recommended-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.recommended-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.recommended-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+/* Product Card */
+.recommended-card {
+    flex: 0 0 200px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+    animation: fadeInUp 0.4s ease var(--card-delay, 0s) backwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.recommended-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(79, 70, 229, 0.5);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Trending Badge */
+.trending-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 0.25rem 0.5rem;
+    background: rgba(46, 213, 115, 0.9);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 600;
+    border-radius: 4px;
+    z-index: 2;
+}
+
+/* Card Image */
+.card-image {
+    width: 100%;
+    height: 120px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.card-image img {
+    max-width: 80%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.recommended-card:hover .card-image img {
+    transform: scale(1.1);
+}
+
+/* Card Content */
+.card-content {
+    padding: 1rem;
+}
+
+.card-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 0.5rem 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-price {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary, #4f46e5);
+    margin-bottom: 0.75rem;
+}
+
+/* Add to Cart Button */
+.add-to-cart-btn {
+    width: 100%;
+    padding: 0.6rem;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--primary, #4f46e5), #6366f1);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.add-to-cart-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+}
+
+.add-to-cart-btn:active {
+    transform: translateY(0);
+}
+
+/* Skeleton Loading */
+.recommended-card.skeleton {
+    pointer-events: none;
+}
+
+.skeleton-image {
+    width: 100%;
+    height: 120px;
+    background: linear-gradient(90deg,
+            rgba(255, 255, 255, 0.05) 25%,
+            rgba(255, 255, 255, 0.1) 50%,
+            rgba(255, 255, 255, 0.05) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+.skeleton-text {
+    margin: 1rem;
+    height: 20px;
+    border-radius: 4px;
+    background: linear-gradient(90deg,
+            rgba(255, 255, 255, 0.05) 25%,
+            rgba(255, 255, 255, 0.1) 50%,
+            rgba(255, 255, 255, 0.05) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+.skeleton-price {
+    margin: 0 1rem 1rem;
+    height: 24px;
+    width: 60px;
+    border-radius: 4px;
+    background: linear-gradient(90deg,
+            rgba(255, 255, 255, 0.05) 25%,
+            rgba(255, 255, 255, 0.1) 50%,
+            rgba(255, 255, 255, 0.05) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .recommended-products {
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+
+    .recommended-header {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
+
+    .recommended-title h3 {
+        font-size: 1.1rem;
+    }
+
+    .recommended-card {
+        flex: 0 0 160px;
+    }
+
+    .card-image {
+        height: 100px;
+    }
+
+    .card-content {
+        padding: 0.75rem;
+    }
+
+    .card-name {
+        font-size: 0.8rem;
+    }
+
+    .card-price {
+        font-size: 0.95rem;
+    }
+
+    .add-to-cart-btn {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .recommended-card {
+        flex: 0 0 140px;
+    }
+
+    .card-image {
+        height: 80px;
+    }
+
+    .scroll-controls {
+        display: none;
+    }
+}

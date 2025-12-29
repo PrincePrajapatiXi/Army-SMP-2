@@ -1,0 +1,92 @@
+.pull-to-refresh-container {
+    position: relative;
+    width: 100%;
+    min-height: 100%;
+}
+
+.pull-indicator {
+    position: fixed;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px) scale(0.5);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-full);
+    box-shadow: var(--shadow-lg);
+    z-index: var(--z-sticky);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.pull-indicator.pulling,
+.pull-indicator.refreshing {
+    pointer-events: auto;
+}
+
+.pull-icon {
+    color: var(--primary);
+    transition: transform 0.1s linear;
+}
+
+.pull-indicator.refreshing .pull-icon {
+    animation: spin 1s linear infinite;
+}
+
+.pull-indicator.ready {
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(255, 193, 7, 0.1));
+    border-color: var(--primary);
+}
+
+.pull-indicator.ready .pull-icon {
+    color: var(--primary);
+}
+
+.pull-text {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.pull-indicator.ready .pull-text {
+    color: var(--primary);
+}
+
+.pull-content {
+    will-change: transform;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Only show on touch devices */
+@media (hover: hover) {
+    .pull-indicator {
+        display: none;
+    }
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .pull-indicator {
+        top: 60px;
+        padding: 10px 16px;
+    }
+
+    .pull-text {
+        font-size: 0.8rem;
+    }
+}

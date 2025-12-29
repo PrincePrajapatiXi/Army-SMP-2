@@ -65,6 +65,42 @@ const userSchema = new mongoose.Schema({
     blockedAt: {
         type: Date,
         default: null
+    },
+    // Fraud Detection Fields
+    riskScore: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100
+    },
+    totalOrders: {
+        type: Number,
+        default: 0
+    },
+    totalSpent: {
+        type: Number,
+        default: 0
+    },
+    lastOrderAt: {
+        type: Date,
+        default: null
+    },
+    avgOrderValue: {
+        type: Number,
+        default: 0
+    },
+    loginHistory: [{
+        ip: String,
+        userAgent: String,
+        timestamp: { type: Date, default: Date.now },
+        success: { type: Boolean, default: true }
+    }],
+    ipAddresses: [{
+        type: String
+    }],
+    flagCount: {
+        type: Number,
+        default: 0
     }
 }, {
     timestamps: true

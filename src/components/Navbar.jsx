@@ -4,6 +4,7 @@ import { ShoppingCart, Menu, X, User, LogIn, LogOut, Settings, ChevronDown } fro
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import CartDrawer from './CartDrawer';
+import ThemeToggle from './ThemeToggle';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -147,6 +148,9 @@ const Navbar = () => {
                                 <span>Login</span>
                             </Link>
                         )}
+
+                        {/* Theme Toggle */}
+                        <ThemeToggle />
 
                         <button
                             className="cart-btn"
