@@ -51,6 +51,39 @@ Welcome to the official **Army SMP Store** – a modern, responsive, and high-pe
 - Mobile-first responsive design
 - Promo slider with smooth animations
 
+### 🌗 Dark/Light Mode *(NEW)*
+- **Theme Toggle** – Switch between dark and light themes
+- **Smooth Transitions** – All colors animate smoothly
+- **Persistence** – Theme saved to localStorage
+- **System Preference** – Respects OS color scheme
+
+### 🔧 Error Handling *(NEW)*
+- **Global Error Boundary** – Catches all React errors with friendly UI
+- **Network Status Detection** – Offline/Online toast notifications
+- **Graceful Fallbacks** – API failures handled elegantly
+
+### 🖼️ Image Optimization *(NEW)*
+- **Lazy Loading** – Images load only when visible
+- **Shimmer Placeholders** – Premium loading effect
+- **Error Fallbacks** – Broken images show placeholder
+
+### 🔍 SEO Improvements *(NEW)*
+- **Dynamic Meta Tags** – Per-page title, description, OG tags
+- **Structured Data** – JSON-LD schemas for Google Rich Results
+- **Sitemap & robots.txt** – Search engine optimization
+
+### ⚡ Performance Optimized *(ENHANCED)*
+- **Code Splitting** – React.lazy for all pages
+- **Custom Hooks** – useDebounce, useIntersectionObserver, usePrefetch
+- **Skeleton Loaders** – Premium loading states
+- **Route Prefetching** – Faster navigation
+
+### 📱 Mobile UX *(NEW)*
+- **Bottom Navigation Bar** – Easy thumb-friendly navigation
+- **Pull to Refresh** – Touch gesture support
+- **Safe Area Insets** – iOS notch support
+- **Touch-optimized** – Better touch targets
+
 ### 🔐 Admin Panel
 - Secure password-protected access
 - Sales analytics dashboard
@@ -85,12 +118,26 @@ src/
 │   ├── Footer.jsx
 │   ├── ProductCard.jsx
 │   ├── CartDrawer.jsx
-│   ├── Confetti.jsx      # Order success celebration
-│   ├── PageTransition.jsx # Route animations
-│   ├── PageLoader.jsx     # Lazy loading fallback
-│   └── SkeletonCard.jsx   # Loading skeletons
+│   ├── Confetti.jsx        # Order success celebration
+│   ├── PageTransition.jsx  # Route animations
+│   ├── PageLoader.jsx      # Lazy loading fallback
+│   ├── SkeletonCard.jsx    # Loading skeletons
+│   ├── ThemeToggle.jsx     # Dark/Light mode toggle *(NEW)*
+│   ├── BackToTop.jsx       # Floating scroll button *(NEW)*
+│   ├── ErrorBoundary.jsx   # Global error handler *(NEW)*
+│   ├── NetworkStatus.jsx   # Offline detection *(NEW)*
+│   ├── OptimizedImage.jsx  # Lazy loading images *(NEW)*
+│   ├── SEO.jsx             # Dynamic meta tags *(NEW)*
+│   ├── StructuredData.jsx  # JSON-LD schemas *(NEW)*
+│   ├── MobileNav.jsx       # Bottom navigation *(NEW)*
+│   └── PullToRefresh.jsx   # Touch gesture *(NEW)*
+├── hooks/            # Custom React hooks *(NEW)*
+│   ├── useDebounce.js
+│   ├── useIntersectionObserver.js
+│   └── usePrefetch.js
 ├── context/          # React Context
-│   └── CartContext.jsx
+│   ├── CartContext.jsx
+│   └── AuthContext.jsx
 ├── data/             # Static data
 │   ├── products.js
 │   └── coupons.js
@@ -99,11 +146,16 @@ src/
 │   ├── Store.jsx
 │   ├── Checkout.jsx
 │   ├── OrderHistory.jsx  # Advanced order tracking
+│   ├── NotFound.jsx      # 404 page *(NEW)*
 │   └── Admin/
 ├── services/         # API services
 ├── App.jsx           # Main app with code splitting
-├── index.css         # Global styles
+├── index.css         # Global styles + theme variables
 └── main.jsx          # Entry point
+
+public/
+├── robots.txt        # SEO crawling rules *(NEW)*
+└── sitemap.xml       # SEO sitemap *(NEW)*
 
 server/
 ├── models/           # MongoDB schemas

@@ -4,6 +4,8 @@ const { v4: uuidv4 } = require('uuid');
 const { sendOrderNotification } = require('../services/email');
 const Order = require('../models/Order');
 const Coupon = require('../models/Coupon');
+const User = require('../models/User');
+const { analyzeOrder, createFraudAlert, updateUserFraudStats } = require('../services/fraudDetection');
 
 // XSS Sanitization helper - remove HTML tags and scripts
 const sanitizeInput = (str) => {
@@ -96,9 +98,53 @@ router.post('/create', async (req, res) => {
             updatedAt: new Date()
         };
 
+        // Get IP and User Agent for fraud detection
+        const clientIP = req.headers['x-forwarded-for']?.split(',')[0] || req.ip || 'unknown';
+        const userAgent = req.headers['user-agent'] || 'unknown';
+
+        // Get user if exists (by email)
+        let user = null;
+        if (email) {
+            user = await User.findOne({ email: email.toLowerCase() });
+        }
+
+        // Perform fraud analysis
+        const fraudAnalysis = await analyzeOrder(orderData, user, clientIP, userAgent);
+
+        // Add fraud fields to order
+        orderData.ipAddress = clientIP;
+        orderData.userAgent = userAgent;
+        orderData.riskScore = fraudAnalysis.riskScore;
+        orderData.isFlagged = fraudAnalysis.shouldFlag;
+        orderData.flagReason = fraudAnalysis.flags.length > 0
+            ? fraudAnalysis.flags.map(f => f.description).join('; ')
+            : null;
+
         // Save order to MongoDB
         const order = new Order(orderData);
         await order.save();
+
+        // Create fraud alert if flagged
+        if (fraudAnalysis.shouldFlag) {
+            const alert = await createFraudAlert(
+                fraudAnalysis,
+                orderData.id,
+                orderData.orderNumber,
+                sanitizedUsername
+            );
+            if (alert) {
+                order.fraudAlertId = alert._id;
+                await order.save();
+            }
+            console.log(`🚨 Order ${orderData.orderNumber} flagged - Risk: ${fraudAnalysis.riskLevel} (${fraudAnalysis.riskScore})`);
+        }
+
+        // Update user fraud stats (async, don't block)
+        if (user) {
+            updateUserFraudStats(user._id, finalTotal, clientIP).catch(err =>
+                console.error('Failed to update user fraud stats:', err)
+            );
+        }
 
         // Increment coupon usage count if coupon was used
         if (couponInfo && couponInfo.couponCode) {

@@ -41,6 +41,13 @@ const orderSchema = new mongoose.Schema({
     paymentMethod: { type: String, default: 'UPI' },
     paymentScreenshot: { type: String }, // Base64 or URL of payment proof
     paymentVerifiedAt: { type: Date },
+    // Fraud Detection Fields
+    isFlagged: { type: Boolean, default: false },
+    flagReason: { type: String, default: null },
+    riskScore: { type: Number, default: 0 },
+    ipAddress: { type: String, default: 'unknown' },
+    userAgent: { type: String, default: 'unknown' },
+    fraudAlertId: { type: mongoose.Schema.Types.ObjectId, ref: 'FraudAlert', default: null },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });

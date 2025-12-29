@@ -18,6 +18,8 @@ const promotionsRouter = require('./routes/promotions');
 const authRouter = require('./routes/auth');
 const userRouter = require('./routes/user');
 const uploadRouter = require('./routes/upload');
+const fraudRouter = require('./routes/fraud');
+const predictionsRouter = require('./routes/predictions');
 
 
 // Import email service
@@ -74,6 +76,8 @@ app.use('/api/promotions', promotionsRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/user', userRouter);
 app.use('/api/upload', uploadRouter);
+app.use('/api/fraud', fraudRouter);
+app.use('/api/predictions', predictionsRouter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
