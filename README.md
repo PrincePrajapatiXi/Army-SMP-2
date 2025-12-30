@@ -84,6 +84,18 @@ Welcome to the official **Army SMP Store** – a modern, responsive, and high-pe
 - **Safe Area Insets** – iOS notch support
 - **Touch-optimized** – Better touch targets
 
+### ✨ 2025 Modern Design *(NEW)*
+- **Fluid Typography** – Responsive text using `clamp()` for perfect scaling
+- **Scroll Animations** – Intersection Observer-based reveal effects
+- **Micro-Interactions** – 10+ new animation keyframes (scaleIn, bounceIn, blurIn, etc.)
+- **3D Card Effects** – Product cards with perspective tilt on hover
+- **Glassmorphism 2.0** – Enhanced blur effects with animated gradient borders
+- **Staggered Animations** – Sequential reveal for product grids
+- **Modern Hover States** – Glow effects, transforms, and smooth transitions
+- **Animated Borders** – Shimmer and gradient border effects
+- **Smooth Scroll** – Native smooth scrolling behavior
+- **Focus States** – Accessible focus-visible indicators
+
 ### 🔐 Admin Panel
 - Secure password-protected access
 - Sales analytics dashboard
@@ -122,18 +134,20 @@ src/
 │   ├── PageTransition.jsx  # Route animations
 │   ├── PageLoader.jsx      # Lazy loading fallback
 │   ├── SkeletonCard.jsx    # Loading skeletons
-│   ├── ThemeToggle.jsx     # Dark/Light mode toggle *(NEW)*
-│   ├── BackToTop.jsx       # Floating scroll button *(NEW)*
-│   ├── ErrorBoundary.jsx   # Global error handler *(NEW)*
-│   ├── NetworkStatus.jsx   # Offline detection *(NEW)*
-│   ├── OptimizedImage.jsx  # Lazy loading images *(NEW)*
-│   ├── SEO.jsx             # Dynamic meta tags *(NEW)*
-│   ├── StructuredData.jsx  # JSON-LD schemas *(NEW)*
-│   ├── MobileNav.jsx       # Bottom navigation *(NEW)*
-│   └── PullToRefresh.jsx   # Touch gesture *(NEW)*
-├── hooks/            # Custom React hooks *(NEW)*
+│   ├── ThemeToggle.jsx     # Dark/Light mode toggle
+│   ├── BackToTop.jsx       # Floating scroll button
+│   ├── ErrorBoundary.jsx   # Global error handler
+│   ├── NetworkStatus.jsx   # Offline detection
+│   ├── OptimizedImage.jsx  # Lazy loading images
+│   ├── SEO.jsx             # Dynamic meta tags
+│   ├── StructuredData.jsx  # JSON-LD schemas
+│   ├── MobileNav.jsx       # Bottom navigation
+│   ├── AnimatedSection.jsx # Scroll reveal wrapper *(2025)*
+│   └── PullToRefresh.jsx   # Touch gesture
+├── hooks/            # Custom React hooks
 │   ├── useDebounce.js
 │   ├── useIntersectionObserver.js
+│   ├── useScrollReveal.js  # Scroll animations *(2025)*
 │   └── usePrefetch.js
 ├── context/          # React Context
 │   ├── CartContext.jsx

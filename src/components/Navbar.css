@@ -1,7 +1,7 @@
 .navbar {
-    background: rgba(10, 10, 15, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(10, 10, 15, 0.75);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
     position: fixed;
     top: 0;
     left: 0;
@@ -9,11 +9,39 @@
     z-index: var(--z-navbar);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     padding: var(--space-4) 0;
-    transition: var(--transition-normal);
+    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Animated gradient border on bottom */
+.navbar::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 107, 53, 0.3),
+            rgba(255, 193, 7, 0.3),
+            rgba(255, 107, 53, 0.3),
+            transparent);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.navbar:hover::after,
+.navbar.scrolled::after {
+    opacity: 1;
+}
+
+.navbar.scrolled {
+    background: rgba(10, 10, 15, 0.95);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
 }
 
 .navbar:hover {
-    background: rgba(10, 10, 15, 0.95);
+    background: rgba(10, 10, 15, 0.9);
     border-bottom-color: rgba(255, 107, 53, 0.1);
 }
 
@@ -32,13 +60,13 @@
     height: 60px;
     width: auto;
     object-fit: contain;
-    transition: var(--transition-normal);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     filter: drop-shadow(0 0 10px rgba(255, 107, 53, 0.3));
 }
 
 .nav-logo-img:hover {
-    transform: scale(1.05);
-    filter: drop-shadow(0 0 20px rgba(255, 107, 53, 0.5));
+    transform: scale(1.08) rotate(-2deg);
+    filter: drop-shadow(0 0 25px rgba(255, 107, 53, 0.6));
 }
 
 .text-accent {
@@ -53,7 +81,7 @@
 .nav-item {
     color: var(--text-secondary);
     font-weight: 500;
-    transition: var(--transition-normal);
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
     position: relative;
     padding: var(--space-2) 0;
 }
@@ -66,9 +94,10 @@
     width: 0;
     height: 2px;
     background: linear-gradient(90deg, var(--primary), var(--accent));
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     transform: translateX(-50%);
     border-radius: 2px;
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
 }
 
 .nav-item:hover::before,
@@ -79,7 +108,8 @@
 .nav-item:hover,
 .nav-item.active {
     color: white;
-    text-shadow: 0 0 15px rgba(255, 107, 53, 0.5);
+    text-shadow: 0 0 20px rgba(255, 107, 53, 0.6);
+    transform: translateY(-1px);
 }
 
 .nav-item.active::after {
@@ -90,8 +120,9 @@
     width: 100%;
     height: 2px;
     background: linear-gradient(90deg, var(--primary), var(--accent));
-    box-shadow: 0 0 15px var(--primary);
+    box-shadow: 0 0 20px var(--primary);
     border-radius: 2px;
+    animation: glowPulse 2s ease-in-out infinite;
 }
 
 .nav-actions {
@@ -103,15 +134,21 @@
 .cart-btn {
     color: white;
     position: relative;
+    transition: all 0.3s ease;
+}
+
+.cart-btn:hover {
+    transform: scale(1.1);
+    color: var(--primary);
 }
 
 .cart-count {
     position: absolute;
     top: -8px;
     right: -8px;
-    background-color: var(--primary);
+    background: linear-gradient(135deg, var(--primary), var(--accent));
     color: white;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     width: 18px;
     height: 18px;
     border-radius: 50%;
@@ -119,11 +156,18 @@
     align-items: center;
     justify-content: center;
     font-weight: bold;
+    animation: bounceIn 0.3s ease;
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.4);
 }
 
 .mobile-toggle {
     display: none;
     cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.mobile-toggle:hover {
+    transform: scale(1.1);
 }
 
 /* Mobile Responsive */

@@ -1,4 +1,4 @@
-/* Auth Pages Shared Styles */
+/* Auth Pages Shared Styles - 2025 Modern */
 .auth-page {
     min-height: 100vh;
     display: flex;
@@ -10,6 +10,7 @@
     overflow: hidden;
 }
 
+/* Animated mesh background */
 .auth-page::before {
     content: '';
     position: absolute;
@@ -17,9 +18,29 @@
     left: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle at 30% 70%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 70% 30%, rgba(234, 88, 12, 0.08) 0%, transparent 50%);
+    background: radial-gradient(circle at 30% 70%, rgba(249, 115, 22, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 70% 30%, rgba(234, 88, 12, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(255, 193, 7, 0.05) 0%, transparent 60%);
     animation: authBgPulse 15s ease-in-out infinite;
+}
+
+/* Floating particles effect */
+.auth-page::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        radial-gradient(2px 2px at 20px 30px, rgba(255, 107, 53, 0.3), transparent),
+        radial-gradient(2px 2px at 40px 70px, rgba(255, 193, 7, 0.2), transparent),
+        radial-gradient(2px 2px at 50px 160px, rgba(255, 107, 53, 0.2), transparent),
+        radial-gradient(2px 2px at 90px 40px, rgba(255, 193, 7, 0.3), transparent),
+        radial-gradient(2px 2px at 130px 80px, rgba(255, 107, 53, 0.2), transparent);
+    background-size: 200px 200px;
+    animation: float 6s ease-in-out infinite;
+    pointer-events: none;
 }
 
 @keyframes authBgPulse {
@@ -42,26 +63,49 @@
 }
 
 .auth-card {
-    background: rgba(26, 26, 46, 0.95);
-    border: 1px solid rgba(249, 115, 22, 0.2);
-    border-radius: 20px;
+    background: rgba(26, 26, 46, 0.9);
+    border: 1px solid rgba(249, 115, 22, 0.15);
+    border-radius: 24px;
     padding: 2.5rem;
-    backdrop-filter: blur(20px);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.5),
         0 0 0 1px rgba(255, 255, 255, 0.05),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    animation: cardSlideUp 0.5s ease-out;
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 100px rgba(255, 107, 53, 0.05);
+    animation: cardSlideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Animated gradient border */
+.auth-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg,
+            rgba(255, 107, 53, 0.3),
+            transparent 50%,
+            rgba(255, 193, 7, 0.2));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
 }
 
 @keyframes cardSlideUp {
     from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(40px) scale(0.98);
     }
 
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
     }
 }
 

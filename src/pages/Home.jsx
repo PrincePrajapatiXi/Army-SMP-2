@@ -5,6 +5,7 @@ import PromoSlider from '../components/PromoSlider';
 import Modal from '../components/Modal';
 import RippleButton from '../components/RippleButton';
 import RecommendedProducts from '../components/RecommendedProducts';
+import AnimatedSection from '../components/AnimatedSection';
 import SEO from '../components/SEO';
 import { Link } from 'react-router-dom';
 
@@ -252,19 +253,28 @@ const Home = () => {
                     </div>
                 </section>
 
-                <FeaturedRanks />
+                <AnimatedSection animation="fadeUp">
+                    <FeaturedRanks />
+                </AnimatedSection>
 
                 {/* Trending Products Section */}
-                <section className="container" style={{ padding: '2rem 1rem' }}>
-                    <RecommendedProducts
-                        type="trending"
-                        title="🔥 Trending Products"
-                        limit={6}
-                    />
-                </section>
+                <AnimatedSection animation="fadeUp" delay={0.1}>
+                    <section className="container" style={{ padding: '2rem 1rem' }}>
+                        <RecommendedProducts
+                            type="trending"
+                            title="🔥 Trending Products"
+                            limit={6}
+                        />
+                    </section>
+                </AnimatedSection>
 
-                <PromoSlider />
-                <Features />
+                <AnimatedSection animation="fadeUp" delay={0.15}>
+                    <PromoSlider />
+                </AnimatedSection>
+
+                <AnimatedSection animation="fadeUp" delay={0.2}>
+                    <Features />
+                </AnimatedSection>
 
                 <Modal
                     isOpen={isModalOpen}
