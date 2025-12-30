@@ -1,0 +1,62 @@
+/* AnimatedSection.css - Scroll Animation Styles */
+
+.animated-section {
+    opacity: 0;
+    transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+        filter 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+}
+
+.animated-section.fade-up {
+    transform: translateY(40px);
+}
+
+.animated-section.fade-down {
+    transform: translateY(-40px);
+}
+
+.animated-section.fade-left {
+    transform: translateX(-40px);
+}
+
+.animated-section.fade-right {
+    transform: translateX(40px);
+}
+
+.animated-section.scale-in {
+    transform: scale(0.9);
+}
+
+.animated-section.blur-in {
+    filter: blur(10px);
+    transform: translateY(20px);
+}
+
+/* Visible state */
+.animated-section.visible {
+    opacity: 1;
+    transform: translateY(0) translateX(0) scale(1);
+    filter: blur(0);
+}
+
+/* Animated Grid */
+.animated-grid {
+    display: contents;
+}
+
+.animated-grid>* {
+    will-change: opacity, transform;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+
+    .animated-section,
+    .scroll-reveal {
+        opacity: 1 !important;
+        transform: none !important;
+        filter: none !important;
+        transition: none !important;
+    }
+}
