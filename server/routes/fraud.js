@@ -3,7 +3,7 @@ const router = express.Router();
 const FraudAlert = require('../models/FraudAlert');
 const User = require('../models/User');
 const Order = require('../models/Order');
-const { requireAdminAuth } = require('../middleware/auth');
+const { requireAdminAuth } = require('../middleware/authMiddleware');
 const { getFraudStats, getUserRiskProfile, blockUser } = require('../services/fraudDetection');
 
 // GET /api/fraud/alerts - Get all fraud alerts with filters
