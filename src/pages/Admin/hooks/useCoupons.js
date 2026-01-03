@@ -4,6 +4,15 @@ const API_BASE_URL = window.location.hostname === 'localhost'
     ? 'http://localhost:5000/api'
     : 'https://army-smp-2.onrender.com/api';
 
+// Helper to get auth headers
+const getAuthHeaders = () => {
+    const token = sessionStorage.getItem('adminToken');
+    return {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+};
+
 const useCoupons = () => {
     const [coupons, setCoupons] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -23,11 +32,15 @@ const useCoupons = () => {
     const fetchCoupons = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/coupons`);
+            const response = await fetch(`${API_BASE_URL}/admin/coupons`, {
+                headers: getAuthHeaders()
+            });
+            if (!response.ok) throw new Error('Unauthorized');
             const data = await response.json();
             setCoupons(data || []);
         } catch (error) {
             console.error('Error fetching coupons:', error);
+            setCoupons([]);
         } finally {
             setLoading(false);
         }
@@ -86,7 +99,7 @@ const useCoupons = () => {
 
             const response = await fetch(url, {
                 method: editingCoupon ? 'PUT' : 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAuthHeaders(),
                 body: JSON.stringify(couponData)
             });
 
@@ -112,7 +125,8 @@ const useCoupons = () => {
     const handleDelete = async (couponId) => {
         try {
             const response = await fetch(`${API_BASE_URL}/admin/coupons/${couponId}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: getAuthHeaders()
             });
 
             const data = await response.json();
@@ -134,7 +148,8 @@ const useCoupons = () => {
     const toggleActive = async (couponId) => {
         try {
             const response = await fetch(`${API_BASE_URL}/admin/coupons/${couponId}/toggle`, {
-                method: 'PUT'
+                method: 'PUT',
+                headers: getAuthHeaders()
             });
 
             const data = await response.json();

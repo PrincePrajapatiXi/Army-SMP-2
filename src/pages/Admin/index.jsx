@@ -35,8 +35,14 @@ const Admin = () => {
     // Check if already logged in
     useEffect(() => {
         const adminAuth = sessionStorage.getItem('adminAuth_v2');
-        if (adminAuth === 'true') {
+        const adminToken = sessionStorage.getItem('adminToken');
+        // Need both the auth flag AND the token for valid authentication
+        if (adminAuth === 'true' && adminToken) {
             setIsAuthenticated(true);
+        } else {
+            // Clear partial auth state
+            sessionStorage.removeItem('adminAuth_v2');
+            sessionStorage.removeItem('adminToken');
         }
     }, []);
 
@@ -54,6 +60,7 @@ const Admin = () => {
     const handleLogout = () => {
         setIsAuthenticated(false);
         sessionStorage.removeItem('adminAuth_v2');
+        sessionStorage.removeItem('adminToken');
         ordersHook.setSelectedOrders([]);
     };
 
