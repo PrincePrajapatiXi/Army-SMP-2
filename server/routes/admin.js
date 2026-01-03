@@ -51,6 +51,15 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ success: false, error: 'Password required' });
         }
 
+        // Check if admin credentials are configured
+        if (!ADMIN_PASSWORD || !ADMIN_EMAIL) {
+            console.error('ADMIN_PASSWORD or ADMIN_EMAIL not configured in environment variables');
+            return res.status(500).json({
+                success: false,
+                error: 'Admin login not configured. Please set ADMIN_PASSWORD and ADMIN_EMAIL environment variables.'
+            });
+        }
+
         if (password === ADMIN_PASSWORD) {
             // Password correct - Generate and send OTP for 2FA
             loginAttempts.failedAttempts = 0;
