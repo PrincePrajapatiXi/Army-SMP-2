@@ -4,6 +4,15 @@ const API_BASE_URL = window.location.hostname === 'localhost'
     ? 'http://localhost:5000/api'
     : 'https://army-smp-2.onrender.com/api';
 
+// Helper to get auth headers
+const getAuthHeaders = () => {
+    const token = sessionStorage.getItem('adminToken');
+    return {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+};
+
 const useProducts = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -23,11 +32,15 @@ const useProducts = () => {
     const fetchProducts = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/products`);
+            const response = await fetch(`${API_BASE_URL}/admin/products`, {
+                headers: getAuthHeaders()
+            });
+            if (!response.ok) throw new Error('Unauthorized');
             const data = await response.json();
             setProducts(data || []);
         } catch (error) {
             console.error('Error fetching products:', error);
+            setProducts([]);
         } finally {
             setLoading(false);
         }
@@ -86,7 +99,7 @@ const useProducts = () => {
 
             const response = await fetch(url, {
                 method: editingProduct ? 'PUT' : 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAuthHeaders(),
                 body: JSON.stringify(productData)
             });
 
@@ -112,7 +125,8 @@ const useProducts = () => {
     const handleDelete = async (productId) => {
         try {
             const response = await fetch(`${API_BASE_URL}/admin/products/${productId}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: getAuthHeaders()
             });
 
             const data = await response.json();

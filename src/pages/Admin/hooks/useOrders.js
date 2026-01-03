@@ -4,6 +4,15 @@ const API_BASE_URL = window.location.hostname === 'localhost'
     ? 'http://localhost:5000/api'
     : 'https://army-smp-2.onrender.com/api';
 
+// Helper to get auth headers
+const getAuthHeaders = () => {
+    const token = sessionStorage.getItem('adminToken');
+    return {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+};
+
 const useOrders = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -17,12 +26,16 @@ const useOrders = () => {
         setLoading(true);
         try {
             const response = await fetch(`${API_BASE_URL}/admin/orders`, {
-                credentials: 'include'
+                headers: getAuthHeaders()
             });
+            if (!response.ok) {
+                throw new Error('Unauthorized');
+            }
             const data = await response.json();
             setOrders(data || []);
         } catch (error) {
             console.error('Error fetching orders:', error);
+            setOrders([]);
         } finally {
             setLoading(false);
         }
@@ -32,7 +45,7 @@ const useOrders = () => {
         try {
             await fetch(`${API_BASE_URL}/admin/orders/${orderId}/status`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAuthHeaders(),
                 body: JSON.stringify({ status: newStatus })
             });
             fetchOrders();
@@ -47,7 +60,7 @@ const useOrders = () => {
         try {
             const response = await fetch(`${API_BASE_URL}/admin/orders/bulk`, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAuthHeaders(),
                 body: JSON.stringify({ orderIds: selectedOrders })
             });
 

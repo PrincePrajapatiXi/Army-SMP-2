@@ -4,6 +4,15 @@ const API_BASE_URL = window.location.hostname === 'localhost'
     ? 'http://localhost:5000/api'
     : 'https://army-smp-2.onrender.com/api';
 
+// Helper to get auth headers
+const getAuthHeaders = () => {
+    const token = sessionStorage.getItem('adminToken');
+    return {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+};
+
 const useUsers = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -13,12 +22,14 @@ const useUsers = () => {
         setLoading(true);
         try {
             const response = await fetch(`${API_BASE_URL}/admin/users`, {
-                credentials: 'include'
+                headers: getAuthHeaders()
             });
+            if (!response.ok) throw new Error('Unauthorized');
             const data = await response.json();
             setUsers(data || []);
         } catch (error) {
             console.error('Error fetching users:', error);
+            setUsers([]);
         } finally {
             setLoading(false);
         }
@@ -28,8 +39,7 @@ const useUsers = () => {
         try {
             const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/block`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include'
+                headers: getAuthHeaders()
             });
             const data = await response.json();
             if (data.success) {
@@ -47,8 +57,7 @@ const useUsers = () => {
         try {
             const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/reset-password`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include'
+                headers: getAuthHeaders()
             });
             const data = await response.json();
             if (data.success) {

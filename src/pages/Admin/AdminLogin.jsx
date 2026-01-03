@@ -110,6 +110,10 @@ const AdminLogin = ({ onLoginSuccess }) => {
 
             if (data.success) {
                 sessionStorage.setItem('adminAuth_v2', 'true');
+                // Save the JWT token for API calls
+                if (data.token) {
+                    sessionStorage.setItem('adminToken', data.token);
+                }
                 onLoginSuccess();
             } else {
                 setLoginError(data.error || 'Invalid verification code');

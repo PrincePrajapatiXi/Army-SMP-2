@@ -4,6 +4,15 @@ const API_BASE_URL = window.location.hostname === 'localhost'
     ? 'http://localhost:5000/api'
     : 'https://army-smp-2.onrender.com/api';
 
+// Helper to get auth headers
+const getAuthHeaders = () => {
+    const token = sessionStorage.getItem('adminToken');
+    return {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+};
+
 const usePromotions = () => {
     const [promotions, setPromotions] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -25,11 +34,15 @@ const usePromotions = () => {
     const fetchPromotions = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/promotions`);
+            const response = await fetch(`${API_BASE_URL}/admin/promotions`, {
+                headers: getAuthHeaders()
+            });
+            if (!response.ok) throw new Error('Unauthorized');
             const data = await response.json();
             setPromotions(data || []);
         } catch (error) {
             console.error('Error fetching promotions:', error);
+            setPromotions([]);
         } finally {
             setLoading(false);
         }
@@ -98,7 +111,7 @@ const usePromotions = () => {
 
             const response = await fetch(url, {
                 method: editingPromotion ? 'PUT' : 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAuthHeaders(),
                 body: JSON.stringify(promotionData)
             });
 
@@ -122,7 +135,8 @@ const usePromotions = () => {
     const handleDelete = async (promoId) => {
         try {
             const response = await fetch(`${API_BASE_URL}/admin/promotions/${promoId}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: getAuthHeaders()
             });
 
             const data = await response.json();
@@ -144,7 +158,8 @@ const usePromotions = () => {
     const toggleActive = async (promoId) => {
         try {
             const response = await fetch(`${API_BASE_URL}/admin/promotions/${promoId}/toggle`, {
-                method: 'PUT'
+                method: 'PUT',
+                headers: getAuthHeaders()
             });
 
             const data = await response.json();
