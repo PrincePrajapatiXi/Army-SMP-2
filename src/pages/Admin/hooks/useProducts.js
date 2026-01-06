@@ -26,7 +26,8 @@ const useProducts = () => {
         image: '/images/stone.png',
         description: '',
         color: '#ffffff',
-        features: ''
+        features: '',
+        isFeatured: false
     });
 
     const fetchProducts = useCallback(async () => {
@@ -54,7 +55,8 @@ const useProducts = () => {
             image: '/images/stone.png',
             description: '',
             color: '#ffffff',
-            features: ''
+            features: '',
+            isFeatured: false
         });
         setEditingProduct(null);
     };
@@ -73,7 +75,8 @@ const useProducts = () => {
             image: product.image,
             description: product.description || '',
             color: product.color || '#ffffff',
-            features: (product.features || []).join(', ')
+            features: (product.features || []).join(', '),
+            isFeatured: product.isFeatured || false
         });
         setShowModal(true);
     };
@@ -89,7 +92,8 @@ const useProducts = () => {
             image: form.image,
             description: form.description,
             color: form.color,
-            features: form.features.split(',').map(f => f.trim()).filter(f => f)
+            features: form.features.split(',').map(f => f.trim()).filter(f => f),
+            isFeatured: form.isFeatured || false
         };
 
         try {

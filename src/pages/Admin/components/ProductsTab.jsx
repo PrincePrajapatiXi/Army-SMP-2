@@ -1,6 +1,16 @@
-import React from 'react';
-import { Box, Plus, Edit, Trash2, X } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Box, Plus, Edit, Trash2, X, Star, Filter } from 'lucide-react';
 import ImageUploader from '../../../components/ImageUploader';
+
+const categories = [
+    { id: 'all', label: 'All Products' },
+    { id: 'ranks', label: 'Ranks' },
+    { id: 'keys', label: 'Keys' },
+    { id: 'crates', label: 'Crates' },
+    { id: 'kits', label: 'Kits' },
+    { id: 'coins', label: 'Coins' },
+    { id: 'items', label: 'Items' }
+];
 
 const ProductsTab = ({
     products,
@@ -17,13 +27,56 @@ const ProductsTab = ({
     handleDelete,
     closeModal
 }) => {
+    const [activeCategory, setActiveCategory] = useState('all');
+
+    // Filter products by category
+    const filteredProducts = useMemo(() => {
+        if (activeCategory === 'all') return products;
+        return products.filter(p => p.category === activeCategory);
+    }, [products, activeCategory]);
+
+    // Group products by category for display
+    const groupedProducts = useMemo(() => {
+        const groups = {};
+        filteredProducts.forEach(product => {
+            const cat = product.category || 'items';
+            if (!groups[cat]) groups[cat] = [];
+            groups[cat].push(product);
+        });
+        return groups;
+    }, [filteredProducts]);
+
     return (
         <div className="products-content">
+            {/* Category Filter Tabs */}
+            <div className="category-filter-tabs">
+                {categories.map(cat => (
+                    <button
+                        key={cat.id}
+                        className={`category-tab ${activeCategory === cat.id ? 'active' : ''}`}
+                        onClick={() => setActiveCategory(cat.id)}
+                    >
+                        {cat.label}
+                        {cat.id !== 'all' && (
+                            <span className="category-count">
+                                {products.filter(p => p.category === cat.id).length}
+                            </span>
+                        )}
+                    </button>
+                ))}
+            </div>
+
             {/* Products Toolbar */}
             <div className="products-toolbar">
                 <div className="products-info">
                     <Box size={18} />
-                    <span>{products.length} products</span>
+                    <span>{filteredProducts.length} products</span>
+                    {activeCategory !== 'all' && (
+                        <span className="filter-badge">
+                            <Filter size={14} />
+                            {categories.find(c => c.id === activeCategory)?.label}
+                        </span>
+                    )}
                 </div>
                 <button className="add-product-btn" onClick={openAddModal}>
                     <Plus size={18} />
@@ -31,50 +84,93 @@ const ProductsTab = ({
                 </button>
             </div>
 
-            {/* Products Grid */}
-            <div className="products-grid">
-                {products.map(product => (
-                    <div
-                        key={product.id}
-                        className="admin-product-card"
-                        style={{ borderColor: product.color || 'var(--card-border)' }}
-                    >
-                        <div className="product-card-image">
-                            <img
-                                src={product.image}
-                                alt={product.name}
-                                onError={(e) => { e.target.src = '/images/stone.png'; }}
-                            />
-                        </div>
-                        <div className="product-card-info">
-                            <h4>{product.name}</h4>
-                            <span className="product-category">{product.category}</span>
-                            <span className="product-price">{product.priceDisplay}</span>
-                        </div>
-                        <div className="product-card-actions">
-                            <button
-                                className="edit-btn"
-                                onClick={() => openEditModal(product)}
-                            >
-                                <Edit size={16} />
-                                Edit
-                            </button>
-                            <button
-                                className="delete-btn"
-                                onClick={() => setShowDeleteConfirm(product.id)}
-                            >
-                                <Trash2 size={16} />
-                                Delete
-                            </button>
+            {/* Products Grid - Grouped by Category */}
+            {activeCategory === 'all' ? (
+                Object.entries(groupedProducts).map(([category, categoryProducts]) => (
+                    <div key={category} className="category-section">
+                        <h3 className="category-section-title">
+                            {categories.find(c => c.id === category)?.label || category}
+                            <span className="category-section-count">{categoryProducts.length}</span>
+                        </h3>
+                        <div className="products-grid">
+                            {categoryProducts.map(product => (
+                                <div
+                                    key={product.id}
+                                    className={`admin-product-card ${product.isFeatured ? 'featured' : ''}`}
+                                    style={{ borderColor: product.color || 'var(--card-border)' }}
+                                >
+                                    {product.isFeatured && (
+                                        <span className="featured-badge">
+                                            <Star size={12} /> Featured
+                                        </span>
+                                    )}
+                                    <div className="product-card-image">
+                                        <img
+                                            src={product.image}
+                                            alt={product.name}
+                                            onError={(e) => { e.target.src = '/images/stone.png'; }}
+                                        />
+                                    </div>
+                                    <div className="product-card-info">
+                                        <h4>{product.name}</h4>
+                                        <span className="product-category">{product.category}</span>
+                                        <span className="product-price">{product.priceDisplay}</span>
+                                    </div>
+                                    <div className="product-card-actions">
+                                        <button className="edit-btn" onClick={() => openEditModal(product)}>
+                                            <Edit size={16} /> Edit
+                                        </button>
+                                        <button className="delete-btn" onClick={() => setShowDeleteConfirm(product.id)}>
+                                            <Trash2 size={16} /> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
-                ))}
-            </div>
+                ))
+            ) : (
+                <div className="products-grid">
+                    {filteredProducts.map(product => (
+                        <div
+                            key={product.id}
+                            className={`admin-product-card ${product.isFeatured ? 'featured' : ''}`}
+                            style={{ borderColor: product.color || 'var(--card-border)' }}
+                        >
+                            {product.isFeatured && (
+                                <span className="featured-badge">
+                                    <Star size={12} /> Featured
+                                </span>
+                            )}
+                            <div className="product-card-image">
+                                <img
+                                    src={product.image}
+                                    alt={product.name}
+                                    onError={(e) => { e.target.src = '/images/stone.png'; }}
+                                />
+                            </div>
+                            <div className="product-card-info">
+                                <h4>{product.name}</h4>
+                                <span className="product-category">{product.category}</span>
+                                <span className="product-price">{product.priceDisplay}</span>
+                            </div>
+                            <div className="product-card-actions">
+                                <button className="edit-btn" onClick={() => openEditModal(product)}>
+                                    <Edit size={16} /> Edit
+                                </button>
+                                <button className="delete-btn" onClick={() => setShowDeleteConfirm(product.id)}>
+                                    <Trash2 size={16} /> Delete
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
 
-            {products.length === 0 && (
+            {filteredProducts.length === 0 && (
                 <div className="no-products-admin">
                     <Box size={48} />
-                    <p>No products found</p>
+                    <p>No products found {activeCategory !== 'all' ? `in ${categories.find(c => c.id === activeCategory)?.label}` : ''}</p>
                     <button className="add-product-btn" onClick={openAddModal}>
                         <Plus size={18} />
                         <span>Add First Product</span>
@@ -128,6 +224,8 @@ const ProductsTab = ({
                                     >
                                         <option value="ranks">Ranks</option>
                                         <option value="keys">Keys</option>
+                                        <option value="crates">Crates</option>
+                                        <option value="kits">Kits</option>
                                         <option value="coins">Coins</option>
                                         <option value="items">Items</option>
                                     </select>
@@ -152,6 +250,19 @@ const ProductsTab = ({
                                 </div>
                             </div>
 
+                            {/* Featured Checkbox */}
+                            <div className="form-group featured-toggle">
+                                <label className="checkbox-label">
+                                    <input
+                                        type="checkbox"
+                                        checked={form.isFeatured || false}
+                                        onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })}
+                                    />
+                                    <Star size={16} />
+                                    <span>Featured Rank (Show on Homepage)</span>
+                                </label>
+                            </div>
+
                             <div className="form-group">
                                 <label>Product Image</label>
                                 <ImageUploader
@@ -172,11 +283,11 @@ const ProductsTab = ({
                             </div>
 
                             <div className="form-group">
-                                <label>Features (comma separated)</label>
+                                <label>Features (comma separated) {form.isFeatured && <span className="required-hint">- Required for Featured</span>}</label>
                                 <textarea
                                     value={form.features}
                                     onChange={(e) => setForm({ ...form, features: e.target.value })}
-                                    placeholder="Feature 1, Feature 2, Feature 3..."
+                                    placeholder="Priority Queue, Green Name Color, 1x Kit Key..."
                                     rows={2}
                                 />
                             </div>
@@ -217,3 +328,4 @@ const ProductsTab = ({
 };
 
 export default ProductsTab;
+

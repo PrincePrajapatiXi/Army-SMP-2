@@ -3147,3 +3147,182 @@
         left: 15px;
     }
 }
+
+/* ===== CATEGORY FILTER TABS ===== */
+.category-filter-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    padding: 4px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+}
+
+.category-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.category-tab:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.category-tab.active {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+}
+
+.category-count {
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.category-tab.active .category-count {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Filter Badge */
+.filter-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: rgba(255, 107, 53, 0.15);
+    border-radius: 20px;
+    color: var(--primary);
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-left: 8px;
+}
+
+/* ===== CATEGORY SECTIONS ===== */
+.category-section {
+    margin-bottom: 30px;
+}
+
+.category-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-primary);
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.category-section-count {
+    padding: 4px 10px;
+    background: rgba(255, 107, 53, 0.15);
+    border-radius: 15px;
+    color: var(--primary);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* ===== FEATURED BADGE ON PRODUCT CARD ===== */
+.admin-product-card.featured {
+    border: 2px solid rgba(255, 193, 7, 0.5) !important;
+    background: linear-gradient(145deg, rgba(255, 193, 7, 0.08), var(--bg-surface));
+}
+
+.featured-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: linear-gradient(135deg, #ffc107, #ffb300);
+    border-radius: 15px;
+    color: #1a1a2e;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    z-index: 5;
+}
+
+/* ===== FEATURED TOGGLE IN FORM ===== */
+.featured-toggle {
+    background: rgba(255, 193, 7, 0.08);
+    border: 1px solid rgba(255, 193, 7, 0.2);
+    border-radius: 10px;
+    padding: 14px;
+}
+
+.featured-toggle .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.featured-toggle .checkbox-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #ffc107;
+    cursor: pointer;
+}
+
+.featured-toggle .checkbox-label svg {
+    color: #ffc107;
+}
+
+.required-hint {
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+/* Products Grid */
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+/* Admin Product Card positioning for featured badge */
+.admin-product-card {
+    position: relative;
+}
+
+/* Mobile Responsive for Category Tabs */
+@media (max-width: 768px) {
+    .category-filter-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 10px;
+        scrollbar-width: none;
+    }
+
+    .category-filter-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .category-tab {
+        white-space: nowrap;
+        flex-shrink: 0;
+        padding: 8px 14px;
+        font-size: 0.85rem;
+    }
+}
