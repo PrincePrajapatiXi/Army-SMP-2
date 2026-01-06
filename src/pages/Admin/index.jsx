@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     LogOut, Package, TrendingUp, Box, Ticket, Megaphone,
-    RefreshCw, BarChart3, Users
+    RefreshCw, BarChart3, Users, Star
 } from 'lucide-react';
 import './Admin.css';
 
@@ -20,6 +20,7 @@ import ProductsTab from './components/ProductsTab';
 import CouponsTab from './components/CouponsTab';
 import PromotionsTab from './components/PromotionsTab';
 import UsersTab from './components/UsersTab';
+import FeaturedRanksTab from './components/FeaturedRanksTab';
 
 const Admin = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -159,6 +160,13 @@ const Admin = () => {
                         <span>Products</span>
                     </button>
                     <button
+                        className={`sidebar-item ${activeTab === 'featured' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('featured')}
+                    >
+                        <Star size={20} />
+                        <span>Featured Ranks</span>
+                    </button>
+                    <button
                         className={`sidebar-item ${activeTab === 'coupons' ? 'active' : ''}`}
                         onClick={() => setActiveTab('coupons')}
                     >
@@ -194,6 +202,7 @@ const Admin = () => {
                         {activeTab === 'dashboard' && '📊 Sales Analytics'}
                         {activeTab === 'orders' && '📦 Order Management'}
                         {activeTab === 'products' && '🛍️ Product Management'}
+                        {activeTab === 'featured' && '⭐ Featured Ranks'}
                         {activeTab === 'coupons' && '🎟️ Coupon Management'}
                         {activeTab === 'promotions' && '📣 Promotion Banners'}
                         {activeTab === 'users' && '👥 User Management'}
@@ -254,6 +263,17 @@ const Admin = () => {
                         handleSubmit={productsHook.handleSubmit}
                         handleDelete={productsHook.handleDelete}
                         closeModal={productsHook.closeModal}
+                    />
+                )}
+
+                {/* Featured Ranks Tab */}
+                {activeTab === 'featured' && (
+                    <FeaturedRanksTab
+                        products={productsHook.products}
+                        loading={productsHook.loading}
+                        openEditModal={productsHook.openEditModal}
+                        updateFeaturedStatus={productsHook.updateFeaturedStatus}
+                        updateDisplayOrder={productsHook.updateDisplayOrder}
                     />
                 )}
 
