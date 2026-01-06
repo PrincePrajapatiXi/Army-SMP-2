@@ -154,6 +154,46 @@ const useProducts = () => {
         resetForm();
     };
 
+    // Update featured status
+    const updateFeaturedStatus = async (productId, isFeatured) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/products/${productId}`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ isFeatured })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                fetchProducts();
+                return true;
+            }
+        } catch (error) {
+            console.error('Error updating featured status:', error);
+        }
+        return false;
+    };
+
+    // Update display order
+    const updateDisplayOrder = async (productId, displayOrder) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/products/${productId}`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ displayOrder })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                fetchProducts();
+                return true;
+            }
+        } catch (error) {
+            console.error('Error updating display order:', error);
+        }
+        return false;
+    };
+
     return {
         products,
         loading,
@@ -170,8 +210,11 @@ const useProducts = () => {
         handleSubmit,
         handleDelete,
         closeModal,
-        resetForm
+        resetForm,
+        updateFeaturedStatus,
+        updateDisplayOrder
     };
 };
 
 export default useProducts;
+
