@@ -447,6 +447,8 @@ router.put('/products/:id', requireAdminAuth, async (req, res) => {
         if (updates.description !== undefined) product.description = updates.description;
         if (updates.color) product.color = updates.color;
         if (updates.features) product.features = updates.features;
+        if (updates.isFeatured !== undefined) product.isFeatured = updates.isFeatured;
+        if (updates.displayOrder !== undefined) product.displayOrder = updates.displayOrder;
 
         await product.save();
 
