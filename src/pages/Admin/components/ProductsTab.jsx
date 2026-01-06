@@ -129,14 +129,9 @@ const ProductsTab = ({
                     {filteredProducts.map(product => (
                         <div
                             key={product.id}
-                            className={`admin-product-card ${product.isFeatured ? 'featured' : ''}`}
+                            className="admin-product-card"
                             style={{ borderColor: product.color || 'var(--card-border)' }}
                         >
-                            {product.isFeatured && (
-                                <span className="featured-badge">
-                                    <Star size={12} /> Featured
-                                </span>
-                            )}
                             <div className="product-card-image">
                                 <img
                                     src={product.image}
