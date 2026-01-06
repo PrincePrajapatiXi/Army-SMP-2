@@ -12,26 +12,20 @@
     transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Animated gradient border on bottom */
+/* Animated gradient border on bottom - always visible */
 .navbar::after {
     content: '';
     position: absolute;
     bottom: -1px;
     left: 0;
     width: 100%;
-    height: 1px;
+    height: 2px;
     background: linear-gradient(90deg,
             transparent,
-            rgba(255, 107, 53, 0.3),
-            rgba(255, 193, 7, 0.3),
-            rgba(255, 107, 53, 0.3),
+            rgba(255, 107, 53, 0.6),
+            rgba(255, 193, 7, 0.6),
+            rgba(255, 107, 53, 0.6),
             transparent);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-}
-
-.navbar:hover::after,
-.navbar.scrolled::after {
     opacity: 1;
 }
 

@@ -10,6 +10,8 @@ const productSchema = new mongoose.Schema({
     image: { type: String, default: '/images/stone.png' },
     description: { type: String },
     features: { type: [String], default: [] },
+    isFeatured: { type: Boolean, default: false },
+    displayOrder: { type: Number, default: 0 },
     createdAt: { type: Date, default: Date.now }
 });
 

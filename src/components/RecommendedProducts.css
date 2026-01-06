@@ -332,3 +332,66 @@
         display: none;
     }
 }
+
+/* ===== LIGHT THEME OVERRIDES ===== */
+[data-theme="light"] .recommended-products {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .recommended-title h3 {
+    color: #1a1a2e;
+}
+
+[data-theme="light"] .scroll-btn {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #1a1a2e;
+}
+
+[data-theme="light"] .scroll-btn:hover:not(:disabled) {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+}
+
+[data-theme="light"] .recommended-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .recommended-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .recommended-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .recommended-card:hover {
+    border-color: rgba(232, 93, 37, 0.3);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .card-image {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.01));
+}
+
+[data-theme="light"] .card-name {
+    color: #1a1a2e;
+}
+
+[data-theme="light"] .card-price {
+    color: var(--primary);
+}
+
+[data-theme="light"] .skeleton-image,
+[data-theme="light"] .skeleton-text,
+[data-theme="light"] .skeleton-price {
+    background: linear-gradient(90deg,
+            rgba(0, 0, 0, 0.04) 25%,
+            rgba(0, 0, 0, 0.08) 50%,
+            rgba(0, 0, 0, 0.04) 75%);
+    background-size: 200% 100%;
+}

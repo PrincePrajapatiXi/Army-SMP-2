@@ -3,7 +3,6 @@ import { Search, SlidersHorizontal, TrendingUp, Clock, Tag } from 'lucide-react'
 import { products as staticProducts } from '../data/products';
 import ProductCard from '../components/ProductCard';
 import ProductModal from '../components/ProductModal';
-import RecommendedProducts from '../components/RecommendedProducts';
 import { SkeletonGrid } from '../components/SkeletonCard';
 import { AuthContext } from '../context/AuthContext';
 import SEO from '../components/SEO';
@@ -489,24 +488,6 @@ const Store = () => {
 
                 </div>
 
-                {/* Recommendations Section */}
-                {!searchQuery && (
-                    <>
-                        {user?.email && (
-                            <RecommendedProducts
-                                type="personalized"
-                                title="✨ Recommended For You"
-                                userEmail={user.email}
-                                limit={6}
-                            />
-                        )}
-                        <RecommendedProducts
-                            type="trending"
-                            title="🔥 Trending Now"
-                            limit={6}
-                        />
-                    </>
-                )}
 
                 <ProductModal
                     isOpen={!!selectedProduct}
