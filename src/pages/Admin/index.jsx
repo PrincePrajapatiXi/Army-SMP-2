@@ -271,7 +271,10 @@ const Admin = () => {
                     <FeaturedRanksTab
                         products={productsHook.products}
                         loading={productsHook.loading}
-                        openEditModal={productsHook.openEditModal}
+                        openEditModal={(product) => {
+                            productsHook.openEditModal(product);
+                            setActiveTab('products');
+                        }}
                         updateFeaturedStatus={productsHook.updateFeaturedStatus}
                         updateDisplayOrder={productsHook.updateDisplayOrder}
                     />

@@ -4,7 +4,7 @@ import ImageUploader from '../../../components/ImageUploader';
 
 const categories = [
     { id: 'all', label: 'All Products' },
-    { id: 'ranks', label: 'Ranks' },
+    { id: 'ranks', label: 'Featured Ranks' },
     { id: 'keys', label: 'Keys' },
     { id: 'crates', label: 'Crates' },
     { id: 'kits', label: 'Kits' },
