@@ -4,7 +4,6 @@ import FeaturedRanks from '../components/FeaturedRanks';
 import PromoSlider from '../components/PromoSlider';
 import Modal from '../components/Modal';
 import RippleButton from '../components/RippleButton';
-import RecommendedProducts from '../components/RecommendedProducts';
 import AnimatedSection from '../components/AnimatedSection';
 import SEO from '../components/SEO';
 import { Link } from 'react-router-dom';
@@ -255,17 +254,6 @@ const Home = () => {
 
                 <AnimatedSection animation="fadeUp">
                     <FeaturedRanks />
-                </AnimatedSection>
-
-                {/* Trending Products Section */}
-                <AnimatedSection animation="fadeUp" delay={0.1}>
-                    <section className="container" style={{ padding: '2rem 1rem' }}>
-                        <RecommendedProducts
-                            type="trending"
-                            title="🔥 Trending Products"
-                            limit={6}
-                        />
-                    </section>
                 </AnimatedSection>
 
                 <AnimatedSection animation="fadeUp" delay={0.15}>
