@@ -8,8 +8,7 @@ const categories = [
     { id: 'keys', label: 'Keys' },
     { id: 'crates', label: 'Crates' },
     { id: 'kits', label: 'Kits' },
-    { id: 'coins', label: 'Coins' },
-    { id: 'items', label: 'Items' }
+    { id: 'coins', label: 'Coins' }
 ];
 
 const ProductsTab = ({
