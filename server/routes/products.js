@@ -29,6 +29,19 @@ router.get('/categories', async (req, res) => {
     }
 });
 
+// GET /api/products/featured - Get featured products for Homepage
+router.get('/featured', async (req, res) => {
+    try {
+        const featuredProducts = await Product.find({ isFeatured: true })
+            .sort({ displayOrder: 1 })
+            .limit(6);
+        res.json(featuredProducts);
+    } catch (error) {
+        console.error('Error fetching featured products:', error);
+        res.status(500).json({ error: 'Failed to fetch featured products' });
+    }
+});
+
 // GET /api/products/:id - Get single product
 router.get('/:id', async (req, res) => {
     try {
