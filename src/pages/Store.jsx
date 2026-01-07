@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback, useContext } from 'react';
-import { Search, SlidersHorizontal, TrendingUp, Clock, Tag } from 'lucide-react';
+import { Search, TrendingUp, Clock, Tag, Menu, X } from 'lucide-react';
 import { products as staticProducts } from '../data/products';
 import ProductCard from '../components/ProductCard';
 import ProductModal from '../components/ProductModal';
@@ -20,14 +20,6 @@ const categories = [
     { id: 'coins', label: 'Coins' }
 ];
 
-const sortOptions = [
-    { id: 'default', label: 'Default' },
-    { id: 'price-low', label: 'Price: Low to High' },
-    { id: 'price-high', label: 'Price: High to Low' },
-    { id: 'name-az', label: 'Name: A to Z' },
-    { id: 'name-za', label: 'Name: Z to A' }
-];
-
 // Popular search suggestions
 const popularSearches = ['Beacon', 'Bedrock', 'Keys', 'Coins', 'Stone'];
 
@@ -37,7 +29,7 @@ const Store = () => {
     const [activeCategory, setActiveCategory] = useState('all');
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const [sortBy, setSortBy] = useState('default');
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     // Auto-suggestions state
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -206,7 +198,7 @@ const Store = () => {
         fetchProducts();
     }, []);
 
-    // Filter and sort products
+    // Filter products
     const filteredProducts = useMemo(() => {
         let filtered = products;
 
@@ -225,27 +217,8 @@ const Store = () => {
             );
         }
 
-        // Sorting
-        const sorted = [...filtered];
-        switch (sortBy) {
-            case 'price-low':
-                sorted.sort((a, b) => a.price - b.price);
-                break;
-            case 'price-high':
-                sorted.sort((a, b) => b.price - a.price);
-                break;
-            case 'name-az':
-                sorted.sort((a, b) => a.name.localeCompare(b.name));
-                break;
-            case 'name-za':
-                sorted.sort((a, b) => b.name.localeCompare(a.name));
-                break;
-            default:
-                break;
-        }
-
-        return sorted;
-    }, [products, activeCategory, searchQuery, sortBy]);
+        return filtered;
+    }, [products, activeCategory, searchQuery]);
 
     // Highlight matching text
     const highlightMatch = (text, query) => {
@@ -415,24 +388,39 @@ const Store = () => {
                                 </div>
                             )}
                         </div>
-                        <div className="sort-box">
-                            <SlidersHorizontal size={18} className="sort-icon" />
-                            <select
-                                value={sortBy}
-                                onChange={(e) => setSortBy(e.target.value)}
-                                className="sort-select"
-                            >
-                                {sortOptions.map(opt => (
-                                    <option key={opt.id} value={opt.id}>
-                                        {opt.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
                     </div>
 
-                    {/* Categories */}
-                    <div className="category-tabs">
+                    {/* Mobile Hamburger Menu Button */}
+                    <div className="mobile-category-menu">
+                        <button
+                            className="hamburger-btn"
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        >
+                            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                            <span>Categories</span>
+                        </button>
+
+                        {/* Mobile Dropdown */}
+                        {mobileMenuOpen && (
+                            <div className="mobile-category-dropdown">
+                                {categories.map(cat => (
+                                    <button
+                                        key={cat.id}
+                                        onClick={() => {
+                                            setActiveCategory(cat.id);
+                                            setMobileMenuOpen(false);
+                                        }}
+                                        className={`mobile-category-item ${activeCategory === cat.id ? 'active' : ''}`}
+                                    >
+                                        {cat.label}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Desktop Categories */}
+                    <div className="category-tabs desktop-only">
                         {categories.map(cat => (
                             <button
                                 key={cat.id}
