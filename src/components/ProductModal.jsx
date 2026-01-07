@@ -15,6 +15,8 @@ const Modal = ({ isOpen, onClose, product }) => {
             document.body.classList.add('modal-open');
             setQuantity(1);
             setAddedToCart(false);
+            // Scroll to top when modal opens so user can see the full modal
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
             document.body.classList.remove('modal-open');
         }
