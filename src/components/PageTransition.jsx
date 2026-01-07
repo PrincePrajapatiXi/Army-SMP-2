@@ -11,6 +11,9 @@ const PageTransition = ({ children }) => {
         // Start exit animation
         setTransitionState('exit');
 
+        // Scroll to top on route change
+        window.scrollTo({ top: 0, behavior: 'instant' });
+
         // After exit animation, update children and start enter animation
         const exitTimer = setTimeout(() => {
             setDisplayChildren(children);
