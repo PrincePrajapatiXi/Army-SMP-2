@@ -184,6 +184,7 @@ body {
   background-color: var(--bg-dark);
   color: var(--text-primary);
   font-family: var(--font-main);
+  font-size: var(--font-fluid-base);
   min-height: 100vh;
   line-height: 1.6;
   overflow-x: hidden;
@@ -233,11 +234,11 @@ button {
 .btn {
   display: inline-flex;
   align-items: center;
-  padding: 12px 28px;
+  padding: clamp(10px, 1.5vw, 14px) clamp(20px, 3vw, 32px);
   border-radius: var(--border-radius);
   font-weight: 600;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 1rem;
+  font-size: var(--font-fluid-sm);
   position: relative;
   overflow: hidden;
 }
