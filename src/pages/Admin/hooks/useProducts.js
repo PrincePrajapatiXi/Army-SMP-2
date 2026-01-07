@@ -64,6 +64,8 @@ const useProducts = () => {
     const openAddModal = () => {
         resetForm();
         setShowModal(true);
+        // Prevent body scroll when modal is open
+        document.body.style.overflow = 'hidden';
     };
 
     const openEditModal = (product) => {
@@ -79,6 +81,8 @@ const useProducts = () => {
             isFeatured: product.isFeatured || false
         });
         setShowModal(true);
+        // Prevent body scroll when modal is open
+        document.body.style.overflow = 'hidden';
     };
 
     const handleSubmit = async (e) => {
@@ -152,6 +156,8 @@ const useProducts = () => {
     const closeModal = () => {
         setShowModal(false);
         resetForm();
+        // Restore body scroll
+        document.body.style.overflow = '';
     };
 
     // Update featured status
