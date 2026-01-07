@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Box, Plus, Edit, Trash2, X, Star, Filter } from 'lucide-react';
 import ImageUploader from '../../../components/ImageUploader';
 
@@ -27,6 +27,16 @@ const ProductsTab = ({
     closeModal
 }) => {
     const [activeCategory, setActiveCategory] = useState('all');
+    const modalRef = useRef(null);
+
+    // Scroll modal into center of viewport when it opens
+    useEffect(() => {
+        if (showModal && modalRef.current) {
+            setTimeout(() => {
+                modalRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 50);
+        }
+    }, [showModal]);
 
     // Filter products by category
     const filteredProducts = useMemo(() => {
@@ -170,7 +180,7 @@ const ProductsTab = ({
             {/* Product Add/Edit Modal */}
             {showModal && (
                 <div className="modal-overlay" onClick={closeModal}>
-                    <div className="product-modal-content" onClick={e => e.stopPropagation()}>
+                    <div ref={modalRef} className="product-modal-content" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
                             <h3>{editingProduct ? '✏️ Edit Product' : '➕ Add New Product'}</h3>
                             <button className="modal-close-btn" onClick={closeModal}>
