@@ -11,8 +11,6 @@ import { Link } from 'react-router-dom';
 const Home = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [copyStatus, setCopyStatus] = useState('Copy IP');
-    const [displayText, setDisplayText] = useState('');
-    const [showCursor, setShowCursor] = useState(true);
     const [serverStatus, setServerStatus] = useState({
         online: true,
         players: 0,
@@ -23,7 +21,6 @@ const Home = () => {
     const ip = "army.hostzy.xyz";
     const port = "25591";
     const fullAddress = `${ip}:${port}`;
-    const fullText = "Army SMP";
 
     // Fetch live server status
     useEffect(() => {
@@ -56,29 +53,6 @@ const Home = () => {
         // Refresh every 60 seconds
         const interval = setInterval(fetchServerStatus, 60000);
         return () => clearInterval(interval);
-    }, []);
-
-    // Typing animation effect
-    useEffect(() => {
-        let index = 0;
-        const typingInterval = setInterval(() => {
-            if (index <= fullText.length) {
-                setDisplayText(fullText.slice(0, index));
-                index++;
-            } else {
-                clearInterval(typingInterval);
-            }
-        }, 53);
-
-        // Cursor blink
-        const cursorInterval = setInterval(() => {
-            setShowCursor(prev => !prev);
-        }, 500);
-
-        return () => {
-            clearInterval(typingInterval);
-            clearInterval(cursorInterval);
-        };
     }, []);
 
     const handleJoin = () => {
@@ -162,12 +136,7 @@ const Home = () => {
                                 filter: 'drop-shadow(0 0 30px rgba(255, 107, 53, 0.5))',
                                 display: 'inline-block'
                             }}>
-                                {displayText}
-                                <span style={{
-                                    borderRight: showCursor ? '3px solid #ff6b35' : '3px solid transparent',
-                                    marginLeft: '2px',
-                                    animation: 'none'
-                                }}></span>
+                                Army SMP
                             </span>
                         </h1>
 
