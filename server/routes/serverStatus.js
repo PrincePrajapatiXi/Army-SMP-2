@@ -3,8 +3,8 @@ const router = express.Router();
 
 // Server configuration - Update these with your Minecraft server details
 const SERVER_CONFIG = {
-    host: 'army.hostzy.xyz',
-    port: 25571  // Query port (not the game port 25591) - this is where player count is available
+    host: 'IP-premium.dragohost.cloud',
+    port: 19216  // Server port
 };
 
 // Cache to avoid spamming API
