@@ -18,8 +18,8 @@ const Home = () => {
         loading: true
     });
 
-    const ip = "army.hostzy.xyz";
-    const port = "25591";
+    const ip = "IP-premium.dragohost.cloud";
+    const port = "19216";
     const fullAddress = `${ip}:${port}`;
 
     // Fetch live server status
