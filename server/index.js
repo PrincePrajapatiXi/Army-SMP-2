@@ -20,6 +20,7 @@ const userRouter = require('./routes/user');
 const uploadRouter = require('./routes/upload');
 const fraudRouter = require('./routes/fraud');
 const predictionsRouter = require('./routes/predictions');
+const leaderboardRouter = require('./routes/leaderboard');
 
 
 // Import email service
@@ -78,6 +79,7 @@ app.use('/api/user', userRouter);
 app.use('/api/upload', uploadRouter);
 app.use('/api/fraud', fraudRouter);
 app.use('/api/predictions', predictionsRouter);
+app.use('/api/leaderboard', leaderboardRouter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

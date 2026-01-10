@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Features from '../components/Features';
 import FeaturedRanks from '../components/FeaturedRanks';
+import Leaderboard from '../components/Leaderboard';
 import PromoSlider from '../components/PromoSlider';
 import Modal from '../components/Modal';
 import RippleButton from '../components/RippleButton';
@@ -223,6 +224,10 @@ const Home = () => {
 
                 <AnimatedSection animation="fadeUp">
                     <FeaturedRanks />
+                </AnimatedSection>
+
+                <AnimatedSection animation="fadeUp" delay={0.1}>
+                    <Leaderboard />
                 </AnimatedSection>
 
                 <AnimatedSection animation="fadeUp" delay={0.15}>
