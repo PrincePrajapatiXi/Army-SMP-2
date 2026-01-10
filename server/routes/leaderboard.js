@@ -19,11 +19,11 @@ router.get('/top-buyers', async (req, res) => {
             dateFilter = { createdAt: { $gte: monthAgo } };
         }
 
-        // Aggregate orders by minecraftUsername for completed orders only
+        // Aggregate orders by minecraftUsername (exclude only cancelled orders)
         const topBuyers = await Order.aggregate([
             {
                 $match: {
-                    status: 'completed',
+                    status: { $ne: 'cancelled' },
                     ...dateFilter
                 }
             },
@@ -77,7 +77,7 @@ router.get('/stats', async (req, res) => {
     try {
         const stats = await Order.aggregate([
             {
-                $match: { status: 'completed' }
+                $match: { status: { $ne: 'cancelled' } }
             },
             {
                 $group: {
