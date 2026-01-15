@@ -13,6 +13,7 @@ import NetworkStatus from './components/NetworkStatus';
 import BackToTop from './components/BackToTop';
 import MobileNav from './components/MobileNav';
 import StructuredData from './components/StructuredData';
+import CookieConsent from './components/CookieConsent';
 
 // Lazy load pages for code splitting
 // This reduces initial bundle size by loading pages only when needed
@@ -64,6 +65,9 @@ function Layout({ children }) {
 
       {/* Mobile Navigation */}
       {!isAdminPage && !isAuthPage && !is404Page && <MobileNav />}
+
+      {/* Cookie Consent Banner */}
+      <CookieConsent />
     </div>
   );
 }
