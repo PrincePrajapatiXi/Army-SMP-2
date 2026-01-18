@@ -66,7 +66,7 @@ const Login = () => {
                 <div className="auth-card">
                     <div className="auth-header">
                         <div className="auth-logo">
-                            <img src="/images/Army logo.jpg" alt="Army SMP 2" />
+                            <img src="/images/Army logo.png" alt="Army SMP 2" />
                         </div>
                         <h1>Welcome Back!</h1>
                         <p>Login to your Army SMP 2 account</p>
