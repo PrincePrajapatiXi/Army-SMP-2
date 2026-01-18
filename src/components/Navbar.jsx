@@ -46,7 +46,7 @@ const Navbar = () => {
             <nav className="navbar">
                 <div className="container nav-container">
                     <Link to="/" className="nav-logo">
-                        <img src="/images/Army logo.jpg" alt="Army SMP 2" className="nav-logo-img" />
+                        <img src="/images/Army logo.png" alt="Army SMP 2" className="nav-logo-img" />
                     </Link>
 
                     {/* Desktop Menu */}
