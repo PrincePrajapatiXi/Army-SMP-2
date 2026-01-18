@@ -11,7 +11,7 @@ const organizationSchema = {
     "@type": "Organization",
     "name": "Army SMP 2",
     "url": "https://armysmp2.vercel.app",
-    "logo": "https://armysmp2.vercel.app/images/logo.png",
+    "logo": "https://armysmp2.vercel.app/images/Army%20logo.jpg",
     "description": "Premium Minecraft server store offering ranks, kits, and accessories",
     "contactPoint": {
         "@type": "ContactPoint",
@@ -42,7 +42,7 @@ const createProductSchema = (product) => ({
     "@type": "Product",
     "name": product.name,
     "description": product.description || `${product.name} for Army SMP 2 Minecraft server`,
-    "image": product.image || "https://armysmp2.vercel.app/images/logo.png",
+    "image": product.image || "https://armysmp2.vercel.app/images/Army%20logo.jpg",
     "brand": {
         "@type": "Brand",
         "name": "Army SMP 2"

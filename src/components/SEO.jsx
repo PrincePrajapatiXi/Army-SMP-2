@@ -16,7 +16,7 @@ const SEO = ({
 }) => {
     const siteTitle = 'Army SMP 2';
     const defaultDescription = 'Shop premium Minecraft ranks, kits, and accessories at Army SMP 2. Secure UPI payments, instant delivery, and exclusive deals.';
-    const defaultImage = 'https://armysmp2.vercel.app/images/logo.png';
+    const defaultImage = 'https://armysmp2.vercel.app/images/Army%20logo.jpg';
     const siteUrl = 'https://armysmp2.vercel.app';
 
     const fullTitle = title ? `${title} | ${siteTitle}` : siteTitle;
