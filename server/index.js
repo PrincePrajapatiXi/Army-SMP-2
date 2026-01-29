@@ -6,6 +6,7 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 // path imported above
 const mongoose = require('mongoose');
+const rateLimit = require('express-rate-limit');
 
 // Import routes
 const productsRouter = require('./routes/products');
@@ -32,6 +33,18 @@ const passport = require('./services/passport');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Rate Limiting - Protect against DDoS attacks
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // 100 requests per window per IP
+    message: { error: 'Too many requests, please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+// Apply rate limiting to all API routes
+app.use('/api/', limiter);
+
 // Middleware
 app.use(cors({
     origin: [
@@ -56,11 +69,11 @@ app.use(passport.initialize());
 
 // Session configuration for cart persistence
 app.use(session({
-    secret: 'army-smp-secret-key-2024',
+    secret: process.env.SESSION_SECRET || 'army-smp-fallback-secret',
     resave: false,
     saveUninitialized: true,
     cookie: {
-        secure: false, // Set to true in production with HTTPS
+        secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
