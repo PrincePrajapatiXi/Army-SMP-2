@@ -27,6 +27,21 @@
             rgba(255, 107, 53, 0.6),
             transparent);
     opacity: 1;
+    background-size: 200% 100%;
+    animation: navBorderFlow 3s ease-in-out infinite;
+}
+
+/* Animated moving light effect */
+@keyframes navBorderFlow {
+
+    0%,
+    100% {
+        background-position: -100% 0;
+    }
+
+    50% {
+        background-position: 100% 0;
+    }
 }
 
 .navbar.scrolled {
