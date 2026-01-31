@@ -124,7 +124,22 @@ const userSchema = new mongoose.Schema({
     referralBalance: {
         type: Number,
         default: 0 // Available balance to use as discount
-    }
+    },
+    // Badges
+    badges: [{
+        badge: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Badge'
+        },
+        assignedAt: {
+            type: Date,
+            default: Date.now
+        },
+        assignedBy: {
+            type: String,
+            default: 'system'
+        }
+    }]
 }, {
     timestamps: true
 });
@@ -160,6 +175,7 @@ userSchema.methods.toPublicJSON = function () {
         phone: this.phone,
         isBlocked: this.isBlocked,
         blockedAt: this.blockedAt,
+        badges: this.badges || [],
         createdAt: this.createdAt
     };
 };

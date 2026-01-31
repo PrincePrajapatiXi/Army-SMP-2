@@ -233,5 +233,89 @@ export const userApi = {
             },
             body: JSON.stringify({ newPassword, confirmPassword }),
         });
+    },
+
+    updateAvatar: async (file) => {
+        const token = localStorage.getItem('authToken');
+        const formData = new FormData();
+        formData.append('avatar', file);
+
+        const response = await fetch(`${API_BASE_URL}/user/avatar`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            credentials: 'include',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: 'Upload failed' }));
+            throw new Error(errorData.message || 'Upload failed');
+        }
+
+        return response.json();
     }
+};
+
+// Admin API (for badge management and admin functions)
+export const adminApi = {
+    // Badge CRUD
+    getBadges: async () => {
+        const token = localStorage.getItem('adminToken');
+        return fetchWithCredentials(`${API_BASE_URL}/admin/badges`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+    },
+
+    createBadge: async (badgeData) => {
+        const token = localStorage.getItem('adminToken');
+        return fetchWithCredentials(`${API_BASE_URL}/admin/badges`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(badgeData),
+        });
+    },
+
+    updateBadge: async (id, badgeData) => {
+        const token = localStorage.getItem('adminToken');
+        return fetchWithCredentials(`${API_BASE_URL}/admin/badges/${id}`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(badgeData),
+        });
+    },
+
+    deleteBadge: async (id) => {
+        const token = localStorage.getItem('adminToken');
+        return fetchWithCredentials(`${API_BASE_URL}/admin/badges/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+    },
+
+    // User badge management
+    getUserBadges: async (userId) => {
+        const token = localStorage.getItem('adminToken');
+        return fetchWithCredentials(`${API_BASE_URL}/admin/users/${userId}/badges`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+    },
+
+    assignBadge: async (userId, badgeId) => {
+        const token = localStorage.getItem('adminToken');
+        return fetchWithCredentials(`${API_BASE_URL}/admin/users/${userId}/badges`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ badgeId }),
+        });
+    },
+
+    removeBadge: async (userId, badgeId) => {
+        const token = localStorage.getItem('adminToken');
+        return fetchWithCredentials(`${API_BASE_URL}/admin/users/${userId}/badges/${badgeId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+    },
 };

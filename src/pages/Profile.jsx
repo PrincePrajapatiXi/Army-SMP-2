@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     User, Mail, AtSign, Lock, Save, X, Edit2, LogOut,
-    AlertCircle, CheckCircle, Eye, EyeOff, Shield, Calendar, Gamepad2, KeyRound
+    AlertCircle, CheckCircle, Eye, EyeOff, Shield, Calendar, Gamepad2, KeyRound, Camera, Loader
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { userApi } from '../services/api';
@@ -32,6 +32,8 @@ const Profile = () => {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [isSettingPassword, setIsSettingPassword] = useState(false);
+    const [avatarUploading, setAvatarUploading] = useState(false);
+    const avatarInputRef = React.useRef(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -65,6 +67,38 @@ const Profile = () => {
         const { name, value } = e.target;
         setPasswordData(prev => ({ ...prev, [name]: value }));
         setError('');
+    };
+
+    const handleAvatarUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            setError('Please select an image file');
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            setError('Image must be less than 5MB');
+            return;
+        }
+
+        setAvatarUploading(true);
+        setError('');
+
+        try {
+            const result = await userApi.updateAvatar(file);
+            if (result.success) {
+                setSuccess('Avatar updated successfully!');
+                window.location.reload();
+            } else {
+                setError(result.message || 'Failed to upload avatar');
+            }
+        } catch (err) {
+            setError(err.message || 'Failed to upload avatar');
+        } finally {
+            setAvatarUploading(false);
+        }
     };
 
     const handleSaveProfile = async () => {
@@ -226,14 +260,26 @@ const Profile = () => {
         <div className="profile-page">
             <div className="profile-container">
                 <div className="profile-header">
-                    <div className="profile-avatar">
-                        {user.avatar ? (
+                    <div
+                        className="profile-avatar"
+                        onClick={() => avatarInputRef.current?.click()}
+                        style={{ cursor: 'pointer', position: 'relative' }}
+                        title="Click to change avatar"
+                    >
+                        {avatarUploading ? (
+                            <div className="avatar-loading">
+                                <Loader className="spinner" size={32} />
+                            </div>
+                        ) : user.avatar ? (
                             <img src={user.avatar} alt={user.name} />
                         ) : (
                             <div className="avatar-placeholder">
                                 {user.name?.charAt(0).toUpperCase() || 'U'}
                             </div>
                         )}
+                        <div className="avatar-overlay">
+                            <Camera size={24} />
+                        </div>
                         <div className="avatar-status">
                             {user.isEmailVerified ? (
                                 <CheckCircle size={16} color="#22c55e" />
@@ -241,6 +287,13 @@ const Profile = () => {
                                 <AlertCircle size={16} color="#f59e0b" />
                             )}
                         </div>
+                        <input
+                            ref={avatarInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleAvatarUpload}
+                            hidden
+                        />
                     </div>
                     <div className="profile-info">
                         <h1>{user.name}</h1>

@@ -7,6 +7,7 @@ const Coupon = require('../models/Coupon');
 const Promotion = require('../models/Promotion');
 const User = require('../models/User');
 const OTP = require('../models/OTP');
+const Badge = require('../models/Badge');
 const { generateAdminToken, requireAdminAuth } = require('../middleware/authMiddleware');
 
 // Admin credentials from environment variable (REQUIRED - no default for security)
@@ -859,6 +860,202 @@ router.post('/users/:id/reset-password', requireAdminAuth, async (req, res) => {
     } catch (error) {
         console.error('Error sending password reset:', error);
         res.status(500).json({ error: 'Failed to send password reset email' });
+    }
+});
+
+// ==================== BADGE MANAGEMENT ====================
+
+// GET /api/admin/badges - Get all badges
+router.get('/badges', requireAdminAuth, async (req, res) => {
+    try {
+        const badges = await Badge.find().sort({ createdAt: -1 });
+        res.json(badges);
+    } catch (error) {
+        console.error('Error fetching badges:', error);
+        res.status(500).json({ error: 'Failed to fetch badges' });
+    }
+});
+
+// POST /api/admin/badges - Create new badge
+router.post('/badges', requireAdminAuth, async (req, res) => {
+    try {
+        const { name, description, image, color, rarity } = req.body;
+
+        if (!name || !image) {
+            return res.status(400).json({ error: 'Badge name and image are required' });
+        }
+
+        const badge = new Badge({
+            name: name.trim(),
+            description: description || '',
+            image,
+            color: color || '#f97316',
+            rarity: rarity || 'common',
+            isActive: true
+        });
+
+        await badge.save();
+
+        res.status(201).json({
+            success: true,
+            message: 'Badge created successfully',
+            badge
+        });
+    } catch (error) {
+        console.error('Error creating badge:', error);
+        res.status(500).json({ error: 'Failed to create badge' });
+    }
+});
+
+// PUT /api/admin/badges/:id - Update badge
+router.put('/badges/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, description, image, color, rarity, isActive } = req.body;
+
+        const badge = await Badge.findById(id);
+        if (!badge) {
+            return res.status(404).json({ error: 'Badge not found' });
+        }
+
+        if (name) badge.name = name.trim();
+        if (description !== undefined) badge.description = description;
+        if (image) badge.image = image;
+        if (color) badge.color = color;
+        if (rarity) badge.rarity = rarity;
+        if (isActive !== undefined) badge.isActive = isActive;
+
+        await badge.save();
+
+        res.json({
+            success: true,
+            message: 'Badge updated successfully',
+            badge
+        });
+    } catch (error) {
+        console.error('Error updating badge:', error);
+        res.status(500).json({ error: 'Failed to update badge' });
+    }
+});
+
+// DELETE /api/admin/badges/:id - Delete badge
+router.delete('/badges/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Remove badge from all users who have it
+        await User.updateMany(
+            { 'badges.badge': id },
+            { $pull: { badges: { badge: id } } }
+        );
+
+        // Delete the badge
+        const result = await Badge.findByIdAndDelete(id);
+        if (!result) {
+            return res.status(404).json({ error: 'Badge not found' });
+        }
+
+        res.json({
+            success: true,
+            message: 'Badge deleted successfully'
+        });
+    } catch (error) {
+        console.error('Error deleting badge:', error);
+        res.status(500).json({ error: 'Failed to delete badge' });
+    }
+});
+
+// POST /api/admin/users/:userId/badges - Assign badge to user
+router.post('/users/:userId/badges', requireAdminAuth, async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { badgeId } = req.body;
+
+        if (!badgeId) {
+            return res.status(400).json({ error: 'Badge ID is required' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const badge = await Badge.findById(badgeId);
+        if (!badge) {
+            return res.status(404).json({ error: 'Badge not found' });
+        }
+
+        // Check if user already has this badge
+        const hasBadge = user.badges.some(b => b.badge.toString() === badgeId);
+        if (hasBadge) {
+            return res.status(400).json({ error: 'User already has this badge' });
+        }
+
+        // Add badge to user
+        user.badges.push({
+            badge: badgeId,
+            assignedAt: new Date(),
+            assignedBy: 'admin'
+        });
+
+        await user.save();
+
+        // Populate badges for response
+        await user.populate('badges.badge');
+
+        res.json({
+            success: true,
+            message: `Badge "${badge.name}" assigned to ${user.name}`,
+            badges: user.badges
+        });
+    } catch (error) {
+        console.error('Error assigning badge:', error);
+        res.status(500).json({ error: 'Failed to assign badge' });
+    }
+});
+
+// DELETE /api/admin/users/:userId/badges/:badgeId - Remove badge from user
+router.delete('/users/:userId/badges/:badgeId', requireAdminAuth, async (req, res) => {
+    try {
+        const { userId, badgeId } = req.params;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Remove badge from user
+        user.badges = user.badges.filter(b => b.badge.toString() !== badgeId);
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'Badge removed successfully',
+            badges: user.badges
+        });
+    } catch (error) {
+        console.error('Error removing badge:', error);
+        res.status(500).json({ error: 'Failed to remove badge' });
+    }
+});
+
+// GET /api/admin/users/:userId/badges - Get user's badges
+router.get('/users/:userId/badges', requireAdminAuth, async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const user = await User.findById(userId).populate('badges.badge');
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json({
+            success: true,
+            badges: user.badges
+        });
+    } catch (error) {
+        console.error('Error fetching user badges:', error);
+        res.status(500).json({ error: 'Failed to fetch user badges' });
     }
 });
 
