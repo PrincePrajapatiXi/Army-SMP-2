@@ -5,6 +5,13 @@ const { requireAuth } = require('../middleware/authMiddleware');
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 
+// Configure Cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
 // Configure multer for avatar upload
 const storage = multer.memoryStorage();
 const avatarUpload = multer({
@@ -331,9 +338,19 @@ router.put('/avatar', requireAuth, avatarUpload.single('avatar'), async (req, re
 
     } catch (error) {
         console.error('Avatar upload error:', error);
+
+        // Better error message for debugging
+        let errorMessage = 'An error occurred while uploading avatar';
+        if (error.message) {
+            errorMessage = error.message;
+        }
+        if (error.http_code === 401 || error.message?.includes('credentials')) {
+            errorMessage = 'Cloudinary configuration error. Please check API keys.';
+        }
+
         res.status(500).json({
             success: false,
-            message: 'An error occurred while uploading avatar'
+            message: errorMessage
         });
     }
 });
