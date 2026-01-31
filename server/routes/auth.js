@@ -309,8 +309,13 @@ router.post('/forgot-password', async (req, res) => {
         // Generate OTP
         const otp = await OTP.createOTP(email, 'passwordReset');
 
-        // Send OTP email
-        await sendOTPEmail(email, otp, 'passwordReset', user.name);
+        // Send OTP email (non-blocking - don't fail if email service is down)
+        try {
+            await sendOTPEmail(email, otp, 'passwordReset', user.name);
+        } catch (emailError) {
+            console.error('OTP email failed:', emailError.message);
+            // Continue anyway - OTP is logged to console for development
+        }
 
         res.json({
             success: true,
