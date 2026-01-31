@@ -15,7 +15,7 @@ const Home = () => {
     const [serverStatus, setServerStatus] = useState({
         online: true,
         players: 0,
-        max: 20,
+        max: 0,
         loading: true
     });
 
@@ -36,7 +36,7 @@ const Home = () => {
                 setServerStatus({
                     online: data.online,
                     players: data.players || 0,
-                    max: data.max || 20,
+                    max: data.max || 0,
                     loading: false
                 });
             } catch (error) {
@@ -44,7 +44,7 @@ const Home = () => {
                 setServerStatus({
                     online: true,
                     players: 0,
-                    max: 20,
+                    max: 0,
                     loading: false
                 });
             }
@@ -184,7 +184,6 @@ const Home = () => {
                             </Link>
                         </div>
 
-                        {/* Online players indicator */}
                         <div style={{
                             marginTop: '3rem',
                             display: 'inline-flex',
@@ -208,12 +207,16 @@ const Home = () => {
                                 {serverStatus.loading ? (
                                     'Checking server...'
                                 ) : serverStatus.online ? (
-                                    <>
-                                        <span style={{ color: '#4ade80', fontWeight: '600' }}>
-                                            {serverStatus.players}
-                                        </span>
-                                        /{serverStatus.max} Players • Java & Bedrock
-                                    </>
+                                    serverStatus.max > 0 ? (
+                                        <>
+                                            <span style={{ color: '#4ade80', fontWeight: '600' }}>
+                                                {serverStatus.players}
+                                            </span>
+                                            /{serverStatus.max} Players • Java & Bedrock
+                                        </>
+                                    ) : (
+                                        'Online • Java & Bedrock'
+                                    )
                                 ) : (
                                     'Server Offline'
                                 )}

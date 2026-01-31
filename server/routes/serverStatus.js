@@ -29,7 +29,7 @@ async function fetchServerStatus(host, port) {
                 hostname: data.motd?.clean?.[0] || data.hostname || 'Minecraft Server',
                 version: data.version || 'Unknown',
                 numplayers: data.players?.online || 0,
-                maxplayers: data.players?.max || 20,
+                maxplayers: data.players?.max || 0,
                 players: data.players?.list || []
             };
         }
@@ -48,7 +48,7 @@ async function fetchServerStatus(host, port) {
                 hostname: data.motd?.clean || 'Minecraft Server',
                 version: data.version?.name_clean || 'Unknown',
                 numplayers: data.players?.online || 0,
-                maxplayers: data.players?.max || 20,
+                maxplayers: data.players?.max || 0,
                 players: data.players?.list?.map(p => p.name_clean) || []
             };
         }
@@ -65,7 +65,7 @@ async function fetchServerStatus(host, port) {
         online: true,
         hostname: 'Army SMP',
         numplayers: 0,
-        maxplayers: 20,
+        maxplayers: 0,
         queryBlocked: true,
         message: 'Player count unavailable - query may be blocked by hosting'
     };
