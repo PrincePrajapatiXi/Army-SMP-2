@@ -489,7 +489,7 @@ router.get('/google/callback',
 
             // Redirect to frontend with token
             const frontendURL = process.env.NODE_ENV === 'production'
-                ? 'https://armysmp2.vercel.app'
+                ? 'https://store.armysmp.fun'
                 : 'http://localhost:5173';
 
             res.redirect(`${frontendURL}/oauth-callback?token=${token}`);

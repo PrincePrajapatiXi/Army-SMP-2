@@ -1,5 +1,5 @@
 # Robots.txt for Army SMP 2
-# https://armysmp2.vercel.app
+# https://store.armysmp.fun
 
 User-agent: *
 Allow: /
@@ -17,7 +17,7 @@ Disallow: /reset-password
 Disallow: /oauth-callback
 
 # Sitemap location
-Sitemap: https://armysmp2.vercel.app/sitemap.xml
+Sitemap: https://store.armysmp.fun/sitemap.xml
 
 # Crawl delay (optional - be nice to servers)
 Crawl-delay: 1

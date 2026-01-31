@@ -63,7 +63,8 @@ app.use(cors({
         'https://army-smp-2.onrender.com',
         'https://armysmp.onrender.com',
         'https://army-smp-2.vercel.app',
-        'https://armysmp2.vercel.app'
+        'https://armysmp2.vercel.app',
+        'https://store.armysmp.fun'
     ],
     credentials: true
 }));
