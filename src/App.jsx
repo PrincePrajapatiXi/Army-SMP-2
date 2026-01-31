@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
+import { WishlistProvider } from './context/WishlistContext';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './components/ThemeToggle';
 import Navbar from './components/Navbar';
@@ -23,6 +24,7 @@ const Checkout = lazy(() => import('./pages/Checkout'));
 const OrderHistory = lazy(() => import('./pages/OrderHistory'));
 const Admin = lazy(() => import('./pages/Admin/index'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const Wishlist = lazy(() => import('./pages/Wishlist'));
 
 // Auth pages
 const Login = lazy(() => import('./pages/Login'));
@@ -38,7 +40,7 @@ function Layout({ children }) {
   const location = useLocation();
   const isAdminPage = location.pathname === '/admin';
   const isAuthPage = ['/login', '/signup', '/verify-email', '/forgot-password', '/reset-password', '/oauth-callback'].includes(location.pathname);
-  const is404Page = !['/', '/store', '/checkout', '/orders', '/admin', '/login', '/signup', '/verify-email', '/forgot-password', '/reset-password', '/profile', '/oauth-callback'].includes(location.pathname);
+  const is404Page = !['/', '/store', '/checkout', '/orders', '/admin', '/login', '/signup', '/verify-email', '/forgot-password', '/reset-password', '/profile', '/oauth-callback', '/wishlist'].includes(location.pathname);
 
   return (
     <div className="app-container">
@@ -79,29 +81,32 @@ function App() {
         <ToastProvider>
           <AuthProvider>
             <CartProvider>
-              <Router>
-                <Layout>
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/store" element={<Store />} />
-                    <Route path="/checkout" element={<Checkout />} />
-                    <Route path="/orders" element={<OrderHistory />} />
-                    <Route path="/admin" element={<Admin />} />
+              <WishlistProvider>
+                <Router>
+                  <Layout>
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/store" element={<Store />} />
+                      <Route path="/checkout" element={<Checkout />} />
+                      <Route path="/orders" element={<OrderHistory />} />
+                      <Route path="/wishlist" element={<Wishlist />} />
+                      <Route path="/admin" element={<Admin />} />
 
-                    {/* Auth Routes */}
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/signup" element={<Signup />} />
-                    <Route path="/verify-email" element={<VerifyEmail />} />
-                    <Route path="/forgot-password" element={<ForgotPassword />} />
-                    <Route path="/reset-password" element={<ResetPassword />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/oauth-callback" element={<OAuthCallback />} />
+                      {/* Auth Routes */}
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/signup" element={<Signup />} />
+                      <Route path="/verify-email" element={<VerifyEmail />} />
+                      <Route path="/forgot-password" element={<ForgotPassword />} />
+                      <Route path="/reset-password" element={<ResetPassword />} />
+                      <Route path="/profile" element={<Profile />} />
+                      <Route path="/oauth-callback" element={<OAuthCallback />} />
 
-                    {/* 404 Not Found - Catch all route */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Layout>
-              </Router>
+                      {/* 404 Not Found - Catch all route */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Layout>
+                </Router>
+              </WishlistProvider>
             </CartProvider>
           </AuthProvider>
         </ToastProvider>

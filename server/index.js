@@ -7,6 +7,10 @@ const cookieParser = require('cookie-parser');
 // path imported above
 const mongoose = require('mongoose');
 const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+
+// Import security middleware
+const { sanitizeInputs } = require('./middleware/sanitize');
 
 // Import routes
 const productsRouter = require('./routes/products');
@@ -22,6 +26,9 @@ const uploadRouter = require('./routes/upload');
 const fraudRouter = require('./routes/fraud');
 const predictionsRouter = require('./routes/predictions');
 const leaderboardRouter = require('./routes/leaderboard');
+const referralsRouter = require('./routes/referrals');
+const analyticsRouter = require('./routes/analytics');
+const notificationsRouter = require('./routes/notifications');
 
 
 // Import email service
@@ -64,6 +71,40 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// Security Headers with Helmet.js
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            imgSrc: ["'self'", "data:", "https:", "blob:"],
+            connectSrc: ["'self'", "https://api.cloudinary.com", "https://res.cloudinary.com"],
+            frameSrc: ["'none'"],
+            objectSrc: ["'none'"],
+            upgradeInsecureRequests: []
+        }
+    },
+    crossOriginEmbedderPolicy: false, // Required for loading external images
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    hsts: {
+        maxAge: 31536000, // 1 year
+        includeSubDomains: true,
+        preload: true
+    },
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+    xssFilter: true,
+    noSniff: true,
+    ieNoOpen: true,
+    dnsPrefetchControl: { allow: false },
+    frameguard: { action: 'deny' },
+    permittedCrossDomainPolicies: { permittedPolicies: 'none' }
+}));
+
+// Input Sanitization - Prevent XSS attacks
+app.use(sanitizeInputs);
+
 // Initialize Passport for OAuth
 app.use(passport.initialize());
 
@@ -93,6 +134,9 @@ app.use('/api/upload', uploadRouter);
 app.use('/api/fraud', fraudRouter);
 app.use('/api/predictions', predictionsRouter);
 app.use('/api/leaderboard', leaderboardRouter);
+app.use('/api/referrals', referralsRouter);
+app.use('/api/analytics', analyticsRouter);
+app.use('/api/notifications', notificationsRouter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
