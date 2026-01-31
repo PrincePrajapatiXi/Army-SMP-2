@@ -39,7 +39,7 @@ router.get('/my-code', requireAuth, async (req, res) => {
         res.json({
             success: true,
             referralCode: user.referralCode,
-            referralLink: `${process.env.FRONTEND_URL || 'https://armysmp2.vercel.app'}/signup?ref=${user.referralCode}`
+            referralLink: `${process.env.FRONTEND_URL || 'https://store.armysmp.fun'}/signup?ref=${user.referralCode}`
         });
     } catch (error) {
         console.error('Error getting referral code:', error);

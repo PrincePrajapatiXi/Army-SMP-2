@@ -10,8 +10,8 @@ const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "Army SMP 2",
-    "url": "https://armysmp2.vercel.app",
-    "logo": "https://armysmp2.vercel.app/images/Army%20logo.png",
+    "url": "https://store.armysmp.fun",
+    "logo": "https://store.armysmp.fun/images/Army%20logo.png",
     "description": "Premium Minecraft server store offering ranks, kits, and accessories",
     "contactPoint": {
         "@type": "ContactPoint",
@@ -28,10 +28,10 @@ const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "Army SMP 2",
-    "url": "https://armysmp2.vercel.app",
+    "url": "https://store.armysmp.fun",
     "potentialAction": {
         "@type": "SearchAction",
-        "target": "https://armysmp2.vercel.app/store?search={search_term_string}",
+        "target": "https://store.armysmp.fun/store?search={search_term_string}",
         "query-input": "required name=search_term_string"
     }
 };
@@ -42,7 +42,7 @@ const createProductSchema = (product) => ({
     "@type": "Product",
     "name": product.name,
     "description": product.description || `${product.name} for Army SMP 2 Minecraft server`,
-    "image": product.image || "https://armysmp2.vercel.app/images/Army%20logo.png",
+    "image": product.image || "https://store.armysmp.fun/images/Army%20logo.png",
     "brand": {
         "@type": "Brand",
         "name": "Army SMP 2"
@@ -67,7 +67,7 @@ const createBreadcrumbSchema = (items) => ({
         "@type": "ListItem",
         "position": index + 1,
         "name": item.name,
-        "item": `https://armysmp2.vercel.app${item.path}`
+        "item": `https://store.armysmp.fun${item.path}`
     }))
 });
 

@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Sitemap location
-Sitemap: https://armysmp2.vercel.app/sitemap.xml
+Sitemap: https://store.armysmp.fun/sitemap.xml
 
 # Disallow admin pages from indexing
 Disallow: /admin
