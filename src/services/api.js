@@ -19,8 +19,8 @@ const fetchWithCredentials = async (url, options = {}) => {
     });
 
     if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: 'Request failed' }));
-        throw new Error(error.error || 'Request failed');
+        const errorData = await response.json().catch(() => ({ message: 'Request failed' }));
+        throw new Error(errorData.message || errorData.error || 'Request failed');
     }
 
     return response.json();
