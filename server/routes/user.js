@@ -312,6 +312,24 @@ router.put('/avatar', requireAuth, avatarUpload.single('avatar'), async (req, re
             });
         }
 
+        // Verify Cloudinary config at runtime
+        const cloudConfig = cloudinary.config();
+        console.log('Cloudinary config check:', {
+            cloud_name: cloudConfig.cloud_name ? 'SET' : 'NOT SET',
+            api_key: cloudConfig.api_key ? 'SET' : 'NOT SET',
+            api_secret: cloudConfig.api_secret ? 'SET' : 'NOT SET'
+        });
+
+        // Re-configure if not set (env vars might load after module import)
+        if (!cloudConfig.cloud_name || !cloudConfig.api_key || !cloudConfig.api_secret) {
+            cloudinary.config({
+                cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+                api_key: process.env.CLOUDINARY_API_KEY,
+                api_secret: process.env.CLOUDINARY_API_SECRET
+            });
+            console.log('Cloudinary reconfigured with env vars');
+        }
+
         // Convert buffer to base64
         const b64 = Buffer.from(req.file.buffer).toString('base64');
         const dataURI = `data:${req.file.mimetype};base64,${b64}`;
@@ -344,7 +362,7 @@ router.put('/avatar', requireAuth, avatarUpload.single('avatar'), async (req, re
         if (error.message) {
             errorMessage = error.message;
         }
-        if (error.http_code === 401 || error.message?.includes('credentials')) {
+        if (error.http_code === 401 || error.message?.includes('credentials') || error.message?.includes('Must supply')) {
             errorMessage = 'Cloudinary configuration error. Please check API keys.';
         }
 
