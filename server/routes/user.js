@@ -177,6 +177,63 @@ router.put('/change-password', requireAuth, async (req, res) => {
     }
 });
 
+// ==================== SET PASSWORD (for OAuth users) ====================
+router.put('/set-password', requireAuth, async (req, res) => {
+    try {
+        const { newPassword, confirmPassword } = req.body;
+
+        // Validate passwords
+        if (!newPassword || !confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'New password and confirm password are required'
+            });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'Passwords do not match'
+            });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must be at least 6 characters'
+            });
+        }
+
+        // Get user with password field
+        const user = await User.findById(req.user._id).select('+password');
+
+        // Check if user already has a password
+        if (user.password) {
+            return res.status(400).json({
+                success: false,
+                message: 'You already have a password set. Use change password instead.'
+            });
+        }
+
+        // Set password and update auth provider to allow both methods
+        user.password = newPassword;
+        user.authProvider = 'local'; // Now they can use both Google and password
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'Password set successfully! You can now login with email/password or Google.'
+        });
+
+    } catch (error) {
+        console.error('Set password error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'An error occurred while setting password'
+        });
+    }
+});
+
 // ==================== DELETE ACCOUNT ====================
 router.delete('/account', requireAuth, async (req, res) => {
     try {

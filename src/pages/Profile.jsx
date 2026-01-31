@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     User, Mail, AtSign, Lock, Save, X, Edit2, LogOut,
-    AlertCircle, CheckCircle, Eye, EyeOff, Shield, Calendar, Gamepad2
+    AlertCircle, CheckCircle, Eye, EyeOff, Shield, Calendar, Gamepad2, KeyRound
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { userApi } from '../services/api';
 import './Profile.css';
 
 const Profile = () => {
@@ -24,8 +25,13 @@ const Profile = () => {
         newPassword: '',
         confirmPassword: ''
     });
+    const [setPasswordFormData, setSetPasswordFormData] = useState({
+        newPassword: '',
+        confirmPassword: ''
+    });
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
+    const [isSettingPassword, setIsSettingPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -152,6 +158,56 @@ const Profile = () => {
     const cancelPasswordChange = () => {
         setIsChangingPassword(false);
         setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        setError('');
+    };
+
+    const handleSetPasswordChange = (e) => {
+        const { name, value } = e.target;
+        setSetPasswordFormData(prev => ({ ...prev, [name]: value }));
+        setError('');
+    };
+
+    const handleSetPassword = async () => {
+        setError('');
+        setSuccess('');
+
+        if (setPasswordFormData.newPassword.length < 6) {
+            setError('Password must be at least 6 characters');
+            return;
+        }
+
+        if (setPasswordFormData.newPassword !== setPasswordFormData.confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            const result = await userApi.setPassword(
+                setPasswordFormData.newPassword,
+                setPasswordFormData.confirmPassword
+            );
+
+            if (result.success) {
+                setSuccess('Password set successfully! You can now login with email/password or Google.');
+                setIsSettingPassword(false);
+                setSetPasswordFormData({ newPassword: '', confirmPassword: '' });
+                // Refresh user data
+                window.location.reload();
+            } else {
+                setError(result.message || 'Failed to set password');
+            }
+        } catch (err) {
+            setError(err.message || 'An error occurred');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const cancelSetPassword = () => {
+        setIsSettingPassword(false);
+        setSetPasswordFormData({ newPassword: '', confirmPassword: '' });
         setError('');
     };
 
@@ -333,86 +389,151 @@ const Profile = () => {
                     </div>
                 </div>
 
-                {user.authProvider === 'local' && (
-                    <div className="profile-section">
-                        <div className="section-header">
-                            <h2>
-                                <Lock size={20} />
-                                Security
-                            </h2>
-                        </div>
-
-                        {!isChangingPassword ? (
-                            <button className="change-password-btn" onClick={() => setIsChangingPassword(true)}>
-                                <Lock size={16} />
-                                Change Password
-                            </button>
-                        ) : (
-                            <div className="password-form">
-                                <div className="field">
-                                    <label>Current Password</label>
-                                    <div className="password-input">
-                                        <input
-                                            type={showCurrentPassword ? 'text' : 'password'}
-                                            name="currentPassword"
-                                            value={passwordData.currentPassword}
-                                            onChange={handlePasswordChange}
-                                            disabled={isLoading}
-                                        />
-                                        <button
-                                            type="button"
-                                            className="toggle-password"
-                                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                        >
-                                            {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="field">
-                                    <label>New Password</label>
-                                    <div className="password-input">
-                                        <input
-                                            type={showNewPassword ? 'text' : 'password'}
-                                            name="newPassword"
-                                            value={passwordData.newPassword}
-                                            onChange={handlePasswordChange}
-                                            disabled={isLoading}
-                                        />
-                                        <button
-                                            type="button"
-                                            className="toggle-password"
-                                            onClick={() => setShowNewPassword(!showNewPassword)}
-                                        >
-                                            {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="field">
-                                    <label>Confirm New Password</label>
-                                    <input
-                                        type="password"
-                                        name="confirmPassword"
-                                        value={passwordData.confirmPassword}
-                                        onChange={handlePasswordChange}
-                                        disabled={isLoading}
-                                    />
-                                </div>
-
-                                <div className="password-actions">
-                                    <button className="cancel-btn" onClick={cancelPasswordChange} disabled={isLoading}>
-                                        Cancel
-                                    </button>
-                                    <button className="save-btn" onClick={handleChangePassword} disabled={isLoading}>
-                                        {isLoading ? <span className="spinner"></span> : <Save size={16} />}
-                                        Update Password
-                                    </button>
-                                </div>
-                            </div>
-                        )}
+                {/* Security Section - Show for all users */}
+                <div className="profile-section">
+                    <div className="section-header">
+                        <h2>
+                            <Lock size={20} />
+                            Security
+                        </h2>
                     </div>
-                )}
+
+                    {/* For OAuth users without password - show Set Password */}
+                    {user.authProvider !== 'local' && (
+                        <>
+                            <p className="oauth-info" style={{ color: '#9ca3af', marginBottom: '1rem', fontSize: '0.9rem' }}>
+                                You're signed in with {user.authProvider === 'google' ? 'Google' : user.authProvider}.
+                                Set a password to also enable email/password login.
+                            </p>
+                            {!isSettingPassword ? (
+                                <button className="change-password-btn" onClick={() => setIsSettingPassword(true)}>
+                                    <KeyRound size={16} />
+                                    Set Password
+                                </button>
+                            ) : (
+                                <div className="password-form">
+                                    <div className="field">
+                                        <label>New Password</label>
+                                        <div className="password-input">
+                                            <input
+                                                type={showNewPassword ? 'text' : 'password'}
+                                                name="newPassword"
+                                                value={setPasswordFormData.newPassword}
+                                                onChange={handleSetPasswordChange}
+                                                placeholder="Enter at least 6 characters"
+                                                disabled={isLoading}
+                                            />
+                                            <button
+                                                type="button"
+                                                className="toggle-password"
+                                                onClick={() => setShowNewPassword(!showNewPassword)}
+                                            >
+                                                {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="field">
+                                        <label>Confirm Password</label>
+                                        <input
+                                            type="password"
+                                            name="confirmPassword"
+                                            value={setPasswordFormData.confirmPassword}
+                                            onChange={handleSetPasswordChange}
+                                            placeholder="Confirm your password"
+                                            disabled={isLoading}
+                                        />
+                                    </div>
+
+                                    <div className="password-actions">
+                                        <button className="cancel-btn" onClick={cancelSetPassword} disabled={isLoading}>
+                                            Cancel
+                                        </button>
+                                        <button className="save-btn" onClick={handleSetPassword} disabled={isLoading}>
+                                            {isLoading ? <span className="spinner"></span> : <Save size={16} />}
+                                            Set Password
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {/* For local users - show Change Password */}
+                    {user.authProvider === 'local' && (
+                        <>
+                            {!isChangingPassword ? (
+                                <button className="change-password-btn" onClick={() => setIsChangingPassword(true)}>
+                                    <Lock size={16} />
+                                    Change Password
+                                </button>
+                            ) : (
+                                <div className="password-form">
+                                    <div className="field">
+                                        <label>Current Password</label>
+                                        <div className="password-input">
+                                            <input
+                                                type={showCurrentPassword ? 'text' : 'password'}
+                                                name="currentPassword"
+                                                value={passwordData.currentPassword}
+                                                onChange={handlePasswordChange}
+                                                disabled={isLoading}
+                                            />
+                                            <button
+                                                type="button"
+                                                className="toggle-password"
+                                                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                            >
+                                                {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="field">
+                                        <label>New Password</label>
+                                        <div className="password-input">
+                                            <input
+                                                type={showNewPassword ? 'text' : 'password'}
+                                                name="newPassword"
+                                                value={passwordData.newPassword}
+                                                onChange={handlePasswordChange}
+                                                disabled={isLoading}
+                                            />
+                                            <button
+                                                type="button"
+                                                className="toggle-password"
+                                                onClick={() => setShowNewPassword(!showNewPassword)}
+                                            >
+                                                {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="field">
+                                        <label>Confirm New Password</label>
+                                        <input
+                                            type="password"
+                                            name="confirmPassword"
+                                            value={passwordData.confirmPassword}
+                                            onChange={handlePasswordChange}
+                                            disabled={isLoading}
+                                        />
+                                    </div>
+
+                                    <div className="password-actions">
+                                        <button className="cancel-btn" onClick={cancelPasswordChange} disabled={isLoading}>
+                                            Cancel
+                                        </button>
+                                        <button className="save-btn" onClick={handleChangePassword} disabled={isLoading}>
+                                            {isLoading ? <span className="spinner"></span> : <Save size={16} />}
+                                            Update Password
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
 
                 <div className="profile-section danger-zone">
                     <button className="logout-btn" onClick={handleLogout}>
