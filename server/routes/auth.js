@@ -298,11 +298,12 @@ router.post('/forgot-password', async (req, res) => {
             });
         }
 
-        // Check if user uses OAuth
-        if (user.authProvider !== 'local') {
+        // Check if user uses OAuth and has no password
+        // Allow reset if user has set a password (even for OAuth accounts)
+        if (user.authProvider !== 'local' && !user.password) {
             return res.status(400).json({
                 success: false,
-                message: `This account uses ${user.authProvider} login. Password cannot be reset.`
+                message: `This account uses ${user.authProvider} login and has no password set. Please use "Set Password" option in your profile first.`
             });
         }
 
