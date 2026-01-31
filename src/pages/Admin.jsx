@@ -4,9 +4,10 @@ import {
     ShoppingCart, CheckCircle, XCircle, AlertCircle,
     Calendar, Filter, RefreshCw, Trash2, BarChart3, X,
     Box, Edit, Plus, Image, Search, Ticket, ToggleLeft, ToggleRight,
-    Megaphone, GripVertical, Shield
+    Megaphone, GripVertical, Shield, Award
 } from 'lucide-react';
 import SecurityTab from './Admin/components/SecurityTab';
+import BadgesTab from './Admin/components/BadgesTab';
 import './Admin.css';
 
 const API_BASE_URL = window.location.hostname === 'localhost'
@@ -1083,6 +1084,13 @@ const Admin = () => {
                     <Megaphone size={20} />
                 </button>
                 <button
+                    className={`mobile-nav-item ${activeTab === 'badges' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('badges')}
+                >
+                    <Award size={20} />
+                    <span>Badges</span>
+                </button>
+                <button
                     className={`mobile-nav-item ${activeTab === 'security' ? 'active' : ''}`}
                     onClick={() => setActiveTab('security')}
                 >
@@ -1137,6 +1145,13 @@ const Admin = () => {
                         <span>Promotions</span>
                     </button>
                     <button
+                        className={`sidebar-item ${activeTab === 'badges' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('badges')}
+                    >
+                        <Award size={20} />
+                        <span>Badges</span>
+                    </button>
+                    <button
                         className={`sidebar-item ${activeTab === 'security' ? 'active' : ''}`}
                         onClick={() => setActiveTab('security')}
                     >
@@ -1160,6 +1175,7 @@ const Admin = () => {
                         {activeTab === 'products' && '🛍️ Product Management'}
                         {activeTab === 'coupons' && '🎟️ Coupon Management'}
                         {activeTab === 'promotions' && '📣 Promotion Banners'}
+                        {activeTab === 'badges' && '🏆 Badge Management'}
                         {activeTab === 'security' && '🛡️ Security Center'}
                     </h1>
                     <button
@@ -2177,6 +2193,11 @@ const Admin = () => {
                             </div>
                         </div>
                     </div>
+                )}
+
+                {/* ==================== BADGES TAB ==================== */}
+                {activeTab === 'badges' && (
+                    <BadgesTab />
                 )}
 
                 {/* ==================== SECURITY TAB ==================== */}

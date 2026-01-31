@@ -76,6 +76,42 @@
     align-items: center;
     justify-content: center;
     border: 2px solid rgba(255, 255, 255, 0.1);
+    z-index: 2;
+}
+
+.avatar-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    color: white;
+}
+
+.profile-avatar:hover .avatar-overlay {
+    opacity: 1;
+}
+
+.avatar-loading {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(249, 115, 22, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #f97316;
+}
+
+.avatar-loading .spinner {
+    animation: spin 1s linear infinite;
 }
 
 .profile-info h1 {

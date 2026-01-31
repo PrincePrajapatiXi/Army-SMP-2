@@ -2,6 +2,22 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const { requireAuth } = require('../middleware/authMiddleware');
+const cloudinary = require('cloudinary').v2;
+const multer = require('multer');
+
+// Configure multer for avatar upload
+const storage = multer.memoryStorage();
+const avatarUpload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed!'), false);
+        }
+    }
+});
 
 // ==================== GET PROFILE ====================
 router.get('/profile', requireAuth, async (req, res) => {
@@ -275,6 +291,49 @@ router.delete('/account', requireAuth, async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'An error occurred while deleting account'
+        });
+    }
+});
+
+// ==================== UPLOAD AVATAR ====================
+router.put('/avatar', requireAuth, avatarUpload.single('avatar'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'No image file provided'
+            });
+        }
+
+        // Convert buffer to base64
+        const b64 = Buffer.from(req.file.buffer).toString('base64');
+        const dataURI = `data:${req.file.mimetype};base64,${b64}`;
+
+        // Upload to Cloudinary
+        const result = await cloudinary.uploader.upload(dataURI, {
+            folder: 'army-smp/avatars',
+            resource_type: 'image',
+            transformation: [
+                { width: 200, height: 200, crop: 'fill', gravity: 'face' }
+            ]
+        });
+
+        // Update user avatar
+        req.user.avatar = result.secure_url;
+        await req.user.save();
+
+        res.json({
+            success: true,
+            message: 'Avatar updated successfully',
+            avatar: result.secure_url,
+            user: req.user.toPublicJSON()
+        });
+
+    } catch (error) {
+        console.error('Avatar upload error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'An error occurred while uploading avatar'
         });
     }
 });
