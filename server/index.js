@@ -40,6 +40,10 @@ const passport = require('./services/passport');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust proxy - Required for Render and other reverse proxies
+// This fixes "ERR_ERL_UNEXPECTED_X_FORWARDED_FOR" error with express-rate-limit
+app.set('trust proxy', 1);
+
 // Rate Limiting - Protect against DDoS attacks
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
