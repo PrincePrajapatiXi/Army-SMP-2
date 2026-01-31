@@ -1,4 +1,5 @@
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Heart } from 'lucide-react';
+import { useWishlist } from '../context/WishlistContext';
 import './ProductCard.css';
 
 const getCategoryColor = (category, explicitColor) => {
@@ -45,14 +46,34 @@ const getCategoryColor = (category, explicitColor) => {
 };
 
 const ProductCard = ({ product, onBuy }) => {
+    const { isInWishlist, toggleWishlist } = useWishlist();
     const cardColor = getCategoryColor(product.category, product.color);
     const hasColor = cardColor !== 'rgba(255, 255, 255, 0.1)';
+    const wishlisted = isInWishlist(product.id);
+
+    const handleWishlistClick = (e) => {
+        e.stopPropagation();
+        toggleWishlist(product);
+    };
 
     return (
         <div className="product-card" onClick={() => onBuy(product)} style={{
             border: hasColor ? `1px solid ${cardColor}` : '1px solid rgba(255, 255, 255, 0.1)',
             boxShadow: hasColor ? `0 0 15px ${cardColor}40` : 'none'
         }}>
+            {/* Wishlist Heart Button */}
+            <button
+                className={`wishlist-btn ${wishlisted ? 'active' : ''}`}
+                onClick={handleWishlistClick}
+                aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+            >
+                <Heart
+                    size={20}
+                    fill={wishlisted ? '#ff4757' : 'none'}
+                    stroke={wishlisted ? '#ff4757' : 'currentColor'}
+                />
+            </button>
+
             <div className="card-image-container" style={{
                 background: hasColor ? `radial-gradient(circle at center, ${cardColor}20 0%, transparent 70%)` : 'none'
             }}>

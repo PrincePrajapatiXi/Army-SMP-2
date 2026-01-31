@@ -101,6 +101,29 @@ const userSchema = new mongoose.Schema({
     flagCount: {
         type: Number,
         default: 0
+    },
+    // Referral System Fields
+    referralCode: {
+        type: String,
+        unique: true,
+        sparse: true // Allows null but ensures uniqueness when set
+    },
+    referredBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    },
+    referralCount: {
+        type: Number,
+        default: 0
+    },
+    referralEarnings: {
+        type: Number,
+        default: 0
+    },
+    referralBalance: {
+        type: Number,
+        default: 0 // Available balance to use as discount
     }
 }, {
     timestamps: true
