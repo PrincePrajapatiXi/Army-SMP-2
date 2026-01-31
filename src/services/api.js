@@ -222,5 +222,16 @@ export const userApi = {
             },
             body: JSON.stringify({ password }),
         });
+    },
+
+    setPassword: async (newPassword, confirmPassword) => {
+        const token = localStorage.getItem('authToken');
+        return fetchWithCredentials(`${API_BASE_URL}/user/set-password`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ newPassword, confirmPassword }),
+        });
     }
 };
