@@ -506,5 +506,43 @@ router.get('/google/callback',
     }
 );
 
+// ==================== DISCORD OAUTH ====================
+// Initiate Discord OAuth
+router.get('/discord', passport.authenticate('discord', {
+    scope: ['identify', 'email']
+}));
+
+// Discord OAuth callback
+router.get('/discord/callback',
+    passport.authenticate('discord', {
+        session: false,
+        failureRedirect: '/login?error=oauth_failed'
+    }),
+    async (req, res) => {
+        try {
+            // Generate JWT token
+            const token = generateToken(req.user._id);
+
+            // Set cookie
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            });
+
+            // Redirect to frontend with token
+            const frontendURL = process.env.NODE_ENV === 'production'
+                ? 'https://store.armysmp.fun'
+                : 'http://localhost:5173';
+
+            res.redirect(`${frontendURL}/oauth-callback?token=${token}`);
+        } catch (error) {
+            console.error('Discord OAuth callback error:', error);
+            res.redirect('/login?error=oauth_failed');
+        }
+    }
+);
+
 module.exports = router;
 
