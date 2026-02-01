@@ -80,6 +80,86 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     console.log('⚠️ Google OAuth not configured (missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET)');
 }
 
+// Discord OAuth Strategy
+if (process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET) {
+    const DiscordStrategy = require('passport-discord').Strategy;
+
+    passport.use(new DiscordStrategy({
+        clientID: process.env.DISCORD_CLIENT_ID,
+        clientSecret: process.env.DISCORD_CLIENT_SECRET,
+        callbackURL: process.env.NODE_ENV === 'production'
+            ? 'https://army-smp-2.onrender.com/api/auth/discord/callback'
+            : 'http://localhost:5000/api/auth/discord/callback',
+        scope: ['identify', 'email']
+    }, async (accessToken, refreshToken, profile, done) => {
+        try {
+            // Check if user already exists with this Discord ID
+            let user = await User.findOne({
+                authProvider: 'discord',
+                providerId: profile.id
+            });
+
+            if (user) {
+                return done(null, user);
+            }
+
+            // Check if user exists with same email
+            const email = profile.email;
+            if (email) {
+                const existingEmailUser = await User.findOne({ email: email.toLowerCase() });
+
+                if (existingEmailUser) {
+                    // Link Discord account to existing user
+                    existingEmailUser.authProvider = 'discord';
+                    existingEmailUser.providerId = profile.id;
+                    existingEmailUser.isEmailVerified = true;
+                    if (!existingEmailUser.avatar && profile.avatar) {
+                        existingEmailUser.avatar = `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png`;
+                    }
+                    await existingEmailUser.save();
+                    return done(null, existingEmailUser);
+                }
+            }
+
+            // Create new user with Discord account
+            const baseUsername = profile.username
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, '_')
+                .substring(0, 15);
+
+            let username = baseUsername;
+            let counter = 1;
+
+            while (await User.findOne({ username })) {
+                username = `${baseUsername}${counter}`;
+                counter++;
+            }
+
+            user = new User({
+                email: email || `${profile.id}@discord.user`,
+                username: username,
+                name: profile.global_name || profile.username,
+                avatar: profile.avatar
+                    ? `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png`
+                    : null,
+                authProvider: 'discord',
+                providerId: profile.id,
+                isEmailVerified: !!email
+            });
+
+            await user.save();
+            return done(null, user);
+        } catch (error) {
+            console.error('Discord OAuth Error:', error);
+            return done(error, null);
+        }
+    }));
+
+    console.log('✅ Discord OAuth configured');
+} else {
+    console.log('⚠️ Discord OAuth not configured (missing DISCORD_CLIENT_ID or DISCORD_CLIENT_SECRET)');
+}
+
 // Serialize user for session
 passport.serializeUser((user, done) => {
     done(null, user._id);
