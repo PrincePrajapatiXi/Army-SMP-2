@@ -150,8 +150,12 @@ app.get('/api/health', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error('Error:', err.message);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error:', err);
+    res.status(500).json({
+        error: 'Internal server error',
+        message: err.message,
+        details: err.errors // For Mongoose validation errors
+    });
 });
 
 // Connect to MongoDB
