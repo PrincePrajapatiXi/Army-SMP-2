@@ -348,7 +348,7 @@ const OrderHistory = () => {
         const footerY = doc.internal.pageSize.getHeight() - 20;
         doc.setFontSize(8);
         doc.setTextColor(...grayColor);
-        doc.text('Thank you for your purchase! Join us at play.armysmp.in', pageWidth / 2, footerY, { align: 'center' });
+        doc.text('Thank you for your purchase! Join us at store.armysmp.fun', pageWidth / 2, footerY, { align: 'center' });
         doc.text('For support, contact us on Discord', pageWidth / 2, footerY + 5, { align: 'center' });
 
         // Save

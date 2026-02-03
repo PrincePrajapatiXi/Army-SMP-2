@@ -128,6 +128,12 @@ if (process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET) {
                 .substring(0, 15);
 
             let username = baseUsername;
+
+            // Ensure username is at least 3 characters
+            if (username.length < 3) {
+                username = `user_${username}`;
+            }
+
             let counter = 1;
 
             while (await User.findOne({ username })) {
@@ -151,6 +157,8 @@ if (process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET) {
             return done(null, user);
         } catch (error) {
             console.error('Discord OAuth Error:', error);
+            // Log full error details for debugging
+            if (error.errors) console.error('Validation Errors:', error.errors);
             return done(error, null);
         }
     }));
