@@ -3,8 +3,8 @@ const router = express.Router();
 
 // Server configuration - Update these with your Minecraft server details
 const SERVER_CONFIG = {
-    host: 'IP-premium.dragohost.cloud',
-    port: 19216  // Server port
+    host: 'play.armysmp.fun',
+    port: 19216  // Correct query port
 };
 
 // Cache to avoid spamming API
