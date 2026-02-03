@@ -117,7 +117,7 @@ app.use(passport.initialize());
 app.use(session({
     secret: process.env.SESSION_SECRET || 'army-smp-fallback-secret',
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
