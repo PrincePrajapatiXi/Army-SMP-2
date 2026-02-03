@@ -129,9 +129,10 @@
   --primary-glow: rgba(232, 93, 37, 0.3);
 
   /* Premium borders with subtle warmth */
-  --card-border: 1px solid rgba(0, 0, 0, 0.06);
-  --glass-border: 1px solid rgba(0, 0, 0, 0.08);
-  --glass-bg: rgba(255, 255, 255, 0.9);
+  /* Premium borders - Darker for better visibility */
+  --card-border: 1px solid rgba(0, 0, 0, 0.15);
+  --glass-border: 1px solid rgba(0, 0, 0, 0.2);
+  --glass-bg: rgba(255, 255, 255, 0.95);
   --glass-bg-strong: rgba(255, 255, 255, 0.95);
 
   /* Refined gradients */
