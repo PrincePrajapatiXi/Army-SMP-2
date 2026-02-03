@@ -84,6 +84,12 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 if (process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET) {
     const DiscordStrategy = require('passport-discord').Strategy;
 
+    const discordClientId = process.env.DISCORD_CLIENT_ID;
+    console.log('Initializing Discord Strategy with ID:', discordClientId ? discordClientId.substring(0, 5) + '...' : 'undefined');
+    console.log('Callback URL used:', process.env.NODE_ENV === 'production'
+        ? 'https://army-smp-2.onrender.com/api/auth/discord/callback'
+        : 'http://localhost:5000/api/auth/discord/callback');
+
     passport.use(new DiscordStrategy({
         clientID: process.env.DISCORD_CLIENT_ID,
         clientSecret: process.env.DISCORD_CLIENT_SECRET,
@@ -92,6 +98,7 @@ if (process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET) {
             : 'http://localhost:5000/api/auth/discord/callback',
         scope: ['identify', 'email']
     }, async (accessToken, refreshToken, profile, done) => {
+        console.log('Discord Strategy Callback execution...');
         try {
             // Check if user already exists with this Discord ID
             let user = await User.findOne({

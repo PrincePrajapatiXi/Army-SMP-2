@@ -508,7 +508,7 @@ router.get('/google/callback',
 
 // ==================== DISCORD OAUTH ====================
 // Initiate Discord OAuth
-router.get('/discord', passport.authenticate('discord', {
+router.get('/discord', passport.authenticate    ('discord', {
     scope: ['identify', 'email']
 }));
 
