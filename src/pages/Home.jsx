@@ -19,9 +19,9 @@ const Home = () => {
         loading: true
     });
 
-    const ip = "IP-premium.dragohost.cloud";
-    const port = "19216";
-    const fullAddress = `${ip}:${port}`;
+    const ip = "store.armysmp.fun";
+    const port = ""; // Default port
+    const fullAddress = ip;
 
     // Fetch live server status
     useEffect(() => {
@@ -262,7 +262,7 @@ const Home = () => {
                             <div style={{ fontSize: '1.5rem', fontFamily: 'monospace', color: 'var(--primary)', fontWeight: 'bold', letterSpacing: '1px' }}>
                                 {ip}
                             </div>
-                            <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Port: {port}</div>
+                            {port && <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Port: {port}</div>}
                         </div>
 
                         <button
