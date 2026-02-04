@@ -200,8 +200,34 @@
 
 @media (max-width: 480px) {
     .user-info-grid {
-        grid-template-columns: 1fr;
-        /* Stack info on small screens */
+        grid-template-columns: 1fr 1fr;
+        /* Keep 2 columns to save vertical space */
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .user-card-header,
+    .user-card-body,
+    .user-card-actions {
+        padding: 12px;
+        /* Reduce padding on mobile */
+    }
+
+    .user-name {
+        font-size: 1rem;
+    }
+
+    .info-label {
+        font-size: 0.7rem;
+    }
+
+    .info-value {
+        font-size: 0.85rem;
+    }
+
+    .action-btn {
+        padding: 8px;
+        font-size: 0.8rem;
     }
 }
 
