@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
+const { requireAdminAuth } = require('../middleware/authMiddleware');
 
 // Configure Cloudinary
 cloudinary.config({
@@ -28,7 +29,7 @@ const upload = multer({
 });
 
 // Upload image endpoint
-router.post('/', upload.single('image'), async (req, res) => {
+router.post('/', requireAdminAuth, upload.single('image'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No image file provided' });
@@ -38,8 +39,8 @@ router.post('/', upload.single('image'), async (req, res) => {
         const b64 = Buffer.from(req.file.buffer).toString('base64');
         const dataURI = `data:${req.file.mimetype};base64,${b64}`;
 
-        // Upload to Cloudinary using unsigned upload preset
-        const result = await cloudinary.uploader.unsigned_upload(dataURI, 'spkhgrzx', {
+        // Upload to Cloudinary using secure signed upload
+        const result = await cloudinary.uploader.upload(dataURI, {
             folder: 'army-smp',
             resource_type: 'image'
         });
