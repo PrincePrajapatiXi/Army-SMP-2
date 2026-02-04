@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
     Users, Search, X, ShieldOff, Shield, Mail, KeyRound,
-    Calendar, ShoppingBag, IndianRupee, AlertCircle, CheckCircle
+    Calendar, ShoppingBag, IndianRupee, AlertCircle, CheckCircle, Award
 } from 'lucide-react';
 
 import { adminApi } from '../../../services/api';
