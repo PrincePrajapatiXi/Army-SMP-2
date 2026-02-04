@@ -86,7 +86,7 @@
 /* Mobile Overrides - Compact layout */
 @media (max-width: 768px) {
     .features-section {
-        padding: 2rem 0;
+        padding: 1.5rem 0;
     }
 
     .features-title {
