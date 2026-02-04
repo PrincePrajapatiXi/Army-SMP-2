@@ -799,6 +799,52 @@ router.get('/users', requireAdminAuth, async (req, res) => {
     }
 });
 
+// PUT /api/admin/users/:id/badges - Update user's badges
+router.put('/users/:id/badges', requireAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { badgeIds } = req.body; // Array of badge IDs
+
+        if (!Array.isArray(badgeIds)) {
+            return res.status(400).json({ error: 'Badge IDs must be an array' });
+        }
+
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Convert simple ID array to object structure required by User model
+        // We preserve existing 'assignedAt' and 'assignedBy' if the badge was already there, 
+        // essentially only adding new ones or removing missing ones.
+
+        // This logic replaces the entire list with the new selection
+        const newBadgesList = badgeIds.map(badgeId => {
+            // Check if user already had this badge to preserve metadata if we wanted (optional, keeping it simple for now)
+            return {
+                badge: badgeId,
+                assignedAt: new Date(),
+                assignedBy: 'admin'
+            };
+        });
+
+        user.badges = newBadgesList;
+        await user.save();
+
+        // Return updated user with populated badges to show immediate effect
+        const updatedUser = await User.findById(id).populate('badges.badge');
+
+        res.json({
+            success: true,
+            message: 'User badges updated successfully',
+            badges: updatedUser.badges
+        });
+    } catch (error) {
+        console.error('Error updating user badges:', error);
+        res.status(500).json({ error: 'Failed to update user badges' });
+    }
+});
+
 // PUT /api/admin/users/:id/block - Toggle block/unblock user
 router.put('/users/:id/block', requireAdminAuth, async (req, res) => {
     try {

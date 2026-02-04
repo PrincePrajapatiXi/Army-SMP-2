@@ -440,8 +440,8 @@
 /* Very small screens */
 @media (max-width: 400px) {
     .store-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
     }
 
     .store-header {

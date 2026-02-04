@@ -105,7 +105,7 @@ const requireAuth = async (req, res, next) => {
         }
 
         // Find user
-        const user = await User.findById(decoded.userId);
+        const user = await User.findById(decoded.userId).populate('badges.badge');
         if (!user) {
             return res.status(401).json({
                 success: false,
@@ -151,7 +151,7 @@ const optionalAuth = async (req, res, next) => {
         if (token) {
             const decoded = verifyToken(token);
             if (decoded) {
-                const user = await User.findById(decoded.userId);
+                const user = await User.findById(decoded.userId).populate('badges.badge');
                 if (user) {
                     req.user = user;
                     req.userId = user._id;

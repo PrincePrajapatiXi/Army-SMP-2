@@ -4,6 +4,9 @@ import {
     Calendar, ShoppingBag, IndianRupee, AlertCircle, CheckCircle
 } from 'lucide-react';
 
+import { adminApi } from '../../../services/api';
+import './UsersTab.css'; // Assuming you might want to create this, or keep inline styles
+
 const UsersTab = ({
     users,
     filteredUsers,
@@ -11,10 +14,18 @@ const UsersTab = ({
     userSearch,
     setUserSearch,
     toggleBlockUser,
-    sendPasswordReset
+    sendPasswordReset,
+    refreshUsers
 }) => {
     const [actionLoading, setActionLoading] = useState(null);
     const [toast, setToast] = useState(null);
+
+    // Badge Management State
+    const [showBadgeModal, setShowBadgeModal] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [allBadges, setAllBadges] = useState([]);
+    const [selectedBadgeIds, setSelectedBadgeIds] = useState([]);
+    const [badgesLoading, setBadgesLoading] = useState(false);
 
     const showToast = (message, type = 'success') => {
         setToast({ message, type });
@@ -33,6 +44,52 @@ const UsersTab = ({
         const result = await sendPasswordReset(userId);
         setActionLoading(null);
         showToast(result.message, result.success ? 'success' : 'error');
+    };
+
+    const handleManageBadges = async (user) => {
+        setSelectedUser(user);
+        setShowBadgeModal(true);
+        setBadgesLoading(true);
+
+        // Pre-select user's current badges
+        // User.badges is array of objects { badge: { _id, name... }, ... }
+        const currentIds = user.badges?.map(b => b.badge._id || b.badge) || [];
+        setSelectedBadgeIds(currentIds);
+
+        try {
+            const badges = await adminApi.getBadges();
+            setAllBadges(badges);
+        } catch (error) {
+            showToast('Failed to fetch badges', 'error');
+        } finally {
+            setBadgesLoading(false);
+        }
+    };
+
+    const toggleBadge = (badgeId) => {
+        setSelectedBadgeIds(prev => {
+            if (prev.includes(badgeId)) {
+                return prev.filter(id => id !== badgeId);
+            } else {
+                return [...prev, badgeId];
+            }
+        });
+    };
+
+    const saveBadges = async () => {
+        if (!selectedUser) return;
+
+        setBadgesLoading(true); // Reuse loading state for saving
+        try {
+            await adminApi.updateUserBadges(selectedUser.id, selectedBadgeIds);
+            showToast('Badges updated successfully!', 'success');
+            setShowBadgeModal(false);
+            if (refreshUsers) refreshUsers();
+        } catch (error) {
+            showToast('Failed to update badges', 'error');
+        } finally {
+            setBadgesLoading(false);
+        }
     };
 
     const formatDate = (dateString) => {
@@ -115,13 +172,15 @@ const UsersTab = ({
                                         <span className="user-email">{user.email}</span>
                                     </div>
                                 </div>
-                                <span className={`user-status-badge ${user.isBlocked ? 'blocked' : 'active'}`}>
-                                    {user.isBlocked ? (
-                                        <><ShieldOff size={12} /> Blocked</>
-                                    ) : (
-                                        <><Shield size={12} /> Active</>
-                                    )}
-                                </span>
+                                <div className="header-actions">
+                                    <span className={`user-status-badge ${user.isBlocked ? 'blocked' : 'active'}`}>
+                                        {user.isBlocked ? (
+                                            <><ShieldOff size={12} /> Blocked</>
+                                        ) : (
+                                            <><Shield size={12} /> Active</>
+                                        )}
+                                    </span>
+                                </div>
                             </div>
 
                             <div className="user-card-body">
@@ -151,10 +210,22 @@ const UsersTab = ({
                                     {user.isEmailVerified && (
                                         <span className="verified-badge">✓ Verified</span>
                                     )}
+                                    {user.badges && user.badges.length > 0 && (
+                                        <span className="badges-count-badge">
+                                            <Award size={12} /> {user.badges.length} Badges
+                                        </span>
+                                    )}
                                 </div>
                             </div>
 
                             <div className="user-card-actions">
+                                <button
+                                    className="action-btn badge-btn"
+                                    onClick={() => handleManageBadges(user)}
+                                >
+                                    <Award size={16} /> Badges
+                                </button>
+
                                 <button
                                     className={`action-btn ${user.isBlocked ? 'unblock' : 'block'}`}
                                     onClick={() => handleBlock(user.id, user.isBlocked)}
@@ -178,7 +249,7 @@ const UsersTab = ({
                                         {actionLoading === user.id + '-reset' ? (
                                             <span className="btn-spinner"></span>
                                         ) : (
-                                            <><KeyRound size={16} /> Reset Password</>
+                                            <><KeyRound size={16} /> Reset</>
                                         )}
                                     </button>
                                 )}
@@ -187,6 +258,55 @@ const UsersTab = ({
                     ))
                 )}
             </div>
+
+            {/* Badge Management Modal */}
+            {showBadgeModal && (
+                <div className="modal-overlay" onClick={() => setShowBadgeModal(false)}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+                        <div className="modal-header">
+                            <h3>Manage Badges for {selectedUser?.name || selectedUser?.username}</h3>
+                            <button className="close-btn" onClick={() => setShowBadgeModal(false)}>
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            {badgesLoading && allBadges.length === 0 ? (
+                                <div className="loader-container"><div className="spinner"></div></div>
+                            ) : allBadges.length === 0 ? (
+                                <p>No badges available to assign.</p>
+                            ) : (
+                                <div className="badge-selection-grid">
+                                    {allBadges.map(badge => (
+                                        <div
+                                            key={badge._id}
+                                            className={`badge-select-item ${selectedBadgeIds.includes(badge._id) ? 'selected' : ''}`}
+                                            onClick={() => toggleBadge(badge._id)}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedBadgeIds.includes(badge._id)}
+                                                onChange={() => { }} // Handled by div click
+                                                readOnly
+                                            />
+                                            <img src={badge.image} alt={badge.name} className="badge-mini-preview" />
+                                            <div className="badge-select-info">
+                                                <span className="badge-select-name">{badge.name}</span>
+                                                <span className="badge-select-rarity" style={{ color: badge.color }}>{badge.rarity}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <div className="modal-footer">
+                            <button className="cancel-btn" onClick={() => setShowBadgeModal(false)}>Cancel</button>
+                            <button className="save-btn" onClick={saveBadges} disabled={badgesLoading}>
+                                {badgesLoading ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
