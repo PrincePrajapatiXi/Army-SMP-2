@@ -79,6 +79,7 @@
     }
 }
 
+/* Responsive Card Styles */
 .user-card {
     background-color: var(--bg-card);
     border-radius: 16px;
@@ -87,6 +88,7 @@
     transition: all 0.2s ease;
     display: flex;
     flex-direction: column;
+    max-width: 100%;
 }
 
 .user-card:hover {
@@ -107,6 +109,10 @@
     justify-content: space-between;
     align-items: flex-start;
     border-bottom: 1px solid var(--border-color);
+    flex-wrap: wrap;
+    /* Added wrapping */
+    gap: 15px;
+    /* Added gap for wrapped items */
 }
 
 .user-avatar-section {
@@ -192,6 +198,13 @@
     margin-bottom: 20px;
 }
 
+@media (max-width: 480px) {
+    .user-info-grid {
+        grid-template-columns: 1fr;
+        /* Stack info on small screens */
+    }
+}
+
 .user-info-item {
     display: flex;
     flex-direction: column;
@@ -270,6 +283,8 @@
     border-top: 1px solid var(--border-color);
     display: flex;
     gap: 10px;
+    flex-wrap: wrap;
+    /* Allow buttons to wrap */
 }
 
 .action-btn {
