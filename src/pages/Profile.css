@@ -143,6 +143,12 @@
     font-weight: 600;
 }
 
+.badge-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
 .badge.verified {
     background: rgba(34, 197, 94, 0.15);
     color: #22c55e;

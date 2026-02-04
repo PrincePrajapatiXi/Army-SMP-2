@@ -333,7 +333,7 @@ const Profile = () => {
                                         }}
                                         title={badge.description || badge.name}
                                     >
-                                        {badge.image && <img src={badge.image} alt="" className="badge-icon" style={{ width: '12px', height: '12px', objectFit: 'contain' }} />}
+                                        {badge.image && <img src={badge.image} alt="" className="badge-icon" />}
                                         {badge.name}
                                     </span>
                                 );
