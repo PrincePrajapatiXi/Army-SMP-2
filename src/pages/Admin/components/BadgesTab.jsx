@@ -182,7 +182,7 @@ const BadgesTab = () => {
                             <span className="rarity" style={{ color: RARITY_COLORS[badge.rarity] }}>
                                 {badge.rarity?.toUpperCase()}
                             </span>
-                            <p>{badge.description || 'No description'}</p>
+
                         </div>
                         <div className="badge-actions">
                             <button className="edit-btn" onClick={() => openEditModal(badge)}>
