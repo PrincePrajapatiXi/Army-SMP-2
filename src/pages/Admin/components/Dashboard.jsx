@@ -165,11 +165,15 @@ const Dashboard = ({ orders, analytics }) => {
         // Status Pie Chart
         const pieCtx = document.getElementById('statusPieChart');
         if (pieCtx) {
-            const statusData = [
-                orders.filter(o => o.status === 'pending').length,
-                orders.filter(o => o.status === 'completed').length,
-                orders.filter(o => o.status === 'cancelled').length
-            ];
+            const pendingCount = orders.filter(o => o.status === 'pending').length;
+            const completedCount = orders.filter(o => o.status === 'completed').length;
+            const cancelledCount = orders.filter(o => o.status === 'cancelled').length;
+            const totalOrders = pendingCount + completedCount + cancelledCount;
+
+            // If 0 orders, show 100% completed (green) as requested
+            const statusData = totalOrders === 0
+                ? [0, 1, 0]
+                : [pendingCount, completedCount, cancelledCount];
 
             pieChartRef.current = {
                 chartInstance: new window.Chart(pieCtx, {
