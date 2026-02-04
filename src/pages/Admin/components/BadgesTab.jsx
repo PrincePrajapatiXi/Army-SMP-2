@@ -249,28 +249,10 @@ const BadgesTab = () => {
                                 />
                             </div>
 
-                            <div className="form-group">
-                                <label>Description</label>
-                                <textarea
-                                    value={formData.description}
-                                    onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                                    placeholder="What this badge represents..."
-                                    rows={2}
-                                />
-                            </div>
+
 
                             <div className="form-row">
-                                <div className="form-group">
-                                    <label>Color</label>
-                                    <div className="color-picker">
-                                        <input
-                                            type="color"
-                                            value={formData.color}
-                                            onChange={e => setFormData(prev => ({ ...prev, color: e.target.value }))}
-                                        />
-                                        <span>{formData.color}</span>
-                                    </div>
-                                </div>
+
 
                                 <div className="form-group">
                                     <label>Rarity</label>
