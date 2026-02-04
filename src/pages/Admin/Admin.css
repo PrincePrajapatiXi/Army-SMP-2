@@ -87,9 +87,53 @@
     padding-bottom: 0;
 }
 
-/* Mobile Bottom Navigation - Hidden on desktop */
+/* Mobile Bottom Navigation */
 .admin-mobile-nav {
     display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--card-border);
+    padding: 10px 15px;
+    z-index: 1000;
+    justify-content: space-between;
+    overflow-x: auto;
+    gap: 15px;
+}
+
+@media (max-width: 768px) {
+    .admin-mobile-nav {
+        display: flex;
+    }
+}
+
+.mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    cursor: pointer;
+    min-width: 50px;
+    padding: 4px;
+}
+
+.mobile-nav-item.active {
+    color: var(--primary);
+}
+
+.mobile-nav-item svg {
+    width: 20px;
+    height: 20px;
+}
+
+.mobile-nav-item.logout {
+    color: #ef4444;
 }
 
 /* Sidebar - Desktop */
@@ -140,6 +184,12 @@
     text-align: left;
 }
 
+@media (max-width: 768px) {
+    .admin-sidebar {
+        display: none;
+    }
+}
+
 .sidebar-item:hover {
     background: rgba(255, 255, 255, 0.05);
     color: var(--text-primary);
@@ -173,6 +223,15 @@
     margin-left: 240px;
     padding: var(--space-8);
     min-height: 100vh;
+}
+
+@media (max-width: 768px) {
+    .admin-main {
+        margin-left: 0;
+        padding: var(--space-4);
+        padding-bottom: 80px;
+        /* Space for mobile nav */
+    }
 }
 
 .admin-header {
