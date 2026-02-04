@@ -367,13 +367,13 @@ img {
   }
 
   .hero {
-    padding-top: 120px !important;
+    padding-top: 100px !important;
     min-height: auto !important;
-    padding-bottom: 4rem !important;
+    padding-bottom: 3rem !important;
   }
 
   .hero h1 {
-    font-size: 2rem !important;
+    font-size: 1.8rem !important;
     padding: 0 !important;
     word-break: break-word;
   }

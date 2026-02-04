@@ -19,8 +19,8 @@ const Home = () => {
         loading: true
     });
 
-    const ip = "store.armysmp.fun";
-    const port = ""; // Default port
+    const ip = "play.armysmp.fun";
+    const port = "19216";
     const fullAddress = ip;
 
     // Fetch live server status
@@ -161,9 +161,9 @@ const Home = () => {
                             <RippleButton
                                 variant="primary"
                                 style={{
-                                    padding: '16px 40px',
-                                    fontSize: '1.2rem',
-                                    minWidth: '180px',
+                                    padding: 'clamp(12px, 2.5vw, 16px) clamp(24px, 5vw, 40px)',
+                                    fontSize: 'clamp(1rem, 2vw, 1.2rem)',
+                                    minWidth: 'clamp(150px, 40vw, 180px)',
                                     animation: 'glowPulse 2s ease-in-out infinite'
                                 }}
                                 onClick={handleJoin}
@@ -174,9 +174,9 @@ const Home = () => {
                                 <RippleButton
                                     variant="outline"
                                     style={{
-                                        padding: '16px 40px',
-                                        fontSize: '1.2rem',
-                                        minWidth: '180px'
+                                        padding: 'clamp(12px, 2.5vw, 16px) clamp(24px, 5vw, 40px)',
+                                        fontSize: 'clamp(1rem, 2vw, 1.2rem)',
+                                        minWidth: 'clamp(150px, 40vw, 180px)'
                                     }}
                                 >
                                     🛒 Visit Store

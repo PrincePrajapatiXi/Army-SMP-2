@@ -319,6 +319,30 @@
     }
 }
 
+/* Very small screens */
+@media (max-width: 400px) {
+    .card-image-container {
+        height: 120px;
+    }
+
+    .card-content {
+        padding: 0.75rem;
+    }
+
+    .card-title {
+        font-size: 0.9rem;
+    }
+
+    .card-price {
+        font-size: 0.95rem;
+    }
+
+    .btn-buy {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+}
+
 /* Touch feedback for mobile */
 @media (hover: none) {
     .product-card:active {
