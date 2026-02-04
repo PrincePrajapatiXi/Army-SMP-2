@@ -87,6 +87,19 @@
     padding-bottom: 0;
 }
 
+@media (max-width: 768px) {
+    .admin-page {
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100vw;
+    }
+
+    html {
+        font-size: 14px;
+        /* Global scaling down */
+    }
+}
+
 /* Mobile Bottom Navigation */
 .admin-mobile-nav {
     display: none;
@@ -3105,9 +3118,42 @@
 
 @media (max-width: 480px) {
 
-    /* Extra small screens */
-    .stats-grid {
-        grid-template-columns: 1fr;
+    @media (max-width: 480px) {
+
+        /* Aggressive Scaling */
+        .admin-header h1 {
+            font-size: 1.25rem !important;
+        }
+
+        h2,
+        h3 {
+            font-size: 1.1rem !important;
+        }
+
+        .stat-value {
+            font-size: 1.25rem !important;
+        }
+
+        /* Compact Grid */
+        .stats-grid {
+            gap: 12px;
+        }
+
+        /* Reduce Padding globally for cards on mobile */
+        .stat-card,
+        .chart-card,
+        .recent-orders,
+        .status-summary {
+            padding: 12px !important;
+        }
+
+        /* Compact Buttons */
+        button,
+        .action-btn,
+        .refresh-btn {
+            padding: 8px 12px !important;
+            font-size: 0.8rem !important;
+        }
     }
 
     .stat-card {
