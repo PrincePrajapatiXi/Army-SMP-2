@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     LogOut, Package, TrendingUp, Box, Ticket, Megaphone,
-    RefreshCw, BarChart3, Users, Star
+    RefreshCw, BarChart3, Users, Star, Award
 } from 'lucide-react';
 import './Admin.css';
 
@@ -21,6 +21,7 @@ import CouponsTab from './components/CouponsTab';
 import PromotionsTab from './components/PromotionsTab';
 import UsersTab from './components/UsersTab';
 import FeaturedRanksTab from './components/FeaturedRanksTab';
+import BadgesTab from './components/BadgesTab';
 
 const Admin = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -126,6 +127,13 @@ const Admin = () => {
                     <Users size={20} />
                     <span>Users</span>
                 </button>
+                <button
+                    className={`mobile-nav-item ${activeTab === 'badges' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('badges')}
+                >
+                    <Award size={20} />
+                    <span>Badges</span>
+                </button>
                 <button className="mobile-nav-item logout" onClick={handleLogout}>
                     <LogOut size={20} />
                     <span>Logout</span>
@@ -187,6 +195,13 @@ const Admin = () => {
                         <Users size={20} />
                         <span>Users</span>
                     </button>
+                    <button
+                        className={`sidebar-item ${activeTab === 'badges' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('badges')}
+                    >
+                        <Award size={20} />
+                        <span>Badges</span>
+                    </button>
                 </nav>
                 <button className="logout-btn" onClick={handleLogout}>
                     <LogOut size={20} />
@@ -206,6 +221,7 @@ const Admin = () => {
                         {activeTab === 'coupons' && '🎟️ Coupon Management'}
                         {activeTab === 'promotions' && '📣 Promotion Banners'}
                         {activeTab === 'users' && '👥 User Management'}
+                        {activeTab === 'badges' && '🎖️ Badge Management'}
                     </h1>
                     <button
                         className="refresh-btn"
@@ -330,7 +346,13 @@ const Admin = () => {
                         setUserSearch={usersHook.setUserSearch}
                         toggleBlockUser={usersHook.toggleBlockUser}
                         sendPasswordReset={usersHook.sendPasswordReset}
+                        refreshUsers={usersHook.fetchUsers}
                     />
+                )}
+
+                {/* Badges Tab */}
+                {activeTab === 'badges' && (
+                    <BadgesTab />
                 )}
             </main>
         </div>

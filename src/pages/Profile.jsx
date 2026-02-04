@@ -314,6 +314,30 @@ const Profile = () => {
                                 {user.authProvider === 'google' ? 'Google' :
                                     user.authProvider === 'facebook' ? 'Facebook' : 'Email'}
                             </span>
+
+                            {/* Custom Badges */}
+                            {user.badges && user.badges.map((userBadge, index) => {
+                                const badge = userBadge.badge || userBadge;
+                                // Skip if badge data is missing (e.g., deleted badge)
+                                if (!badge || !badge.name) return null;
+
+                                return (
+                                    <span
+                                        key={badge._id || index}
+                                        className="badge custom-badge"
+                                        style={{
+                                            backgroundColor: badge.color ? `${badge.color}20` : 'rgba(255, 255, 255, 0.1)',
+                                            color: badge.color || 'inherit',
+                                            borderColor: badge.color ? `${badge.color}50` : 'transparent',
+                                            border: '1px solid'
+                                        }}
+                                        title={badge.description || badge.name}
+                                    >
+                                        {badge.image && <img src={badge.image} alt="" className="badge-icon" style={{ width: '12px', height: '12px', objectFit: 'contain' }} />}
+                                        {badge.name}
+                                    </span>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>

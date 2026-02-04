@@ -322,24 +322,26 @@
 /* Very small screens */
 @media (max-width: 400px) {
     .card-image-container {
-        height: 120px;
+        height: 110px;
+        padding: 5px;
     }
 
     .card-content {
-        padding: 0.75rem;
+        padding: 0.5rem;
     }
 
     .card-title {
-        font-size: 0.9rem;
+        font-size: 0.8rem;
+        margin-bottom: 0.25rem;
     }
 
     .card-price {
-        font-size: 0.95rem;
+        font-size: 0.85rem;
     }
 
     .btn-buy {
-        padding: 6px 12px;
-        font-size: 0.85rem;
+        padding: 6px 10px;
+        font-size: 0.8rem;
     }
 }
 
