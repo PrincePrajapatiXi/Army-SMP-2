@@ -30,20 +30,27 @@ const upload = multer({
 
 // Upload image endpoint
 router.post('/', requireAdminAuth, upload.single('image'), async (req, res) => {
+    console.log('[Upload API] Request received');
     try {
         if (!req.file) {
+            console.error('[Upload API] No file received');
             return res.status(400).json({ error: 'No image file provided' });
         }
+
+        console.log(`[Upload API] Processing file: ${req.file.originalname} (${req.file.mimetype}, ${req.file.size} bytes)`);
 
         // Convert buffer to base64
         const b64 = Buffer.from(req.file.buffer).toString('base64');
         const dataURI = `data:${req.file.mimetype};base64,${b64}`;
 
         // Upload to Cloudinary using secure signed upload
+        console.log('[Upload API] Uploading to Cloudinary...');
         const result = await cloudinary.uploader.upload(dataURI, {
             folder: 'army-smp',
             resource_type: 'image'
         });
+
+        console.log('[Upload API] Upload success:', result.secure_url);
 
         res.json({
             success: true,
@@ -52,10 +59,11 @@ router.post('/', requireAdminAuth, upload.single('image'), async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Upload error:', error);
+        console.error('[Upload API] Upload error:', error);
         res.status(500).json({
             error: 'Upload failed',
-            message: error.message
+            message: error.message,
+            details: error
         });
     }
 });

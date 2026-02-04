@@ -51,26 +51,32 @@ const BadgesTab = () => {
         if (!file) return;
 
         setUploading(true);
+        setError(''); // Clear previous errors
         const formDataUpload = new FormData();
         formDataUpload.append('image', file);
 
         try {
             const token = sessionStorage.getItem('adminToken');
+            console.log('Uploading with token:', token ? 'Token exists' : 'No token');
+
             const response = await fetch(`${API_BASE_URL}/upload`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` },
                 body: formDataUpload
             });
             const data = await response.json();
-            if (data.success) {
+
+            if (response.ok && data.success) {
                 setFormData(prev => ({ ...prev, image: data.url }));
                 setSuccess('Image uploaded!');
                 setTimeout(() => setSuccess(''), 2000);
             } else {
-                setError('Upload failed');
+                console.error('Upload failed response:', data);
+                setError(data.message || data.error || 'Upload failed');
             }
         } catch (err) {
-            setError('Failed to upload image');
+            console.error('Upload error:', err);
+            setError('Failed to upload: ' + err.message);
         } finally {
             setUploading(false);
         }
