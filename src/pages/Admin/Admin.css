@@ -243,6 +243,24 @@
     gap: 15px;
 }
 
+@media (max-width: 480px) {
+    .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .admin-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .refresh-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
 .admin-header h1 {
     color: var(--text-primary);
     font-size: 1.75rem;

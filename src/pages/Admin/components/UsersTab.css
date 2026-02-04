@@ -54,8 +54,28 @@
 .users-list {
     display: grid;
     gap: 20px;
-    /* Responsive Grid */
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    /* Responsive Grid - Adjusted for mobile */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+@media (max-width: 480px) {
+    .users-list {
+        grid-template-columns: 1fr;
+    }
+
+    .users-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+
+    .users-search-box {
+        max-width: 100%;
+    }
+
+    .users-count {
+        align-self: flex-start;
+    }
 }
 
 .user-card {
