@@ -10,9 +10,7 @@ const Dashboard = ({ orders, analytics }) => {
     const [chartPeriod, setChartPeriod] = useState('week');
 
     useEffect(() => {
-        if (orders.length > 0) {
-            initCharts();
-        }
+        initCharts();
     }, [orders, chartPeriod]);
 
     const initCharts = () => {
