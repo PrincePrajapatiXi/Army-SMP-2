@@ -262,14 +262,14 @@ export const userApi = {
 export const adminApi = {
     // Badge CRUD
     getBadges: async () => {
-        const token = localStorage.getItem('adminToken');
+        const token = sessionStorage.getItem('adminToken');
         return fetchWithCredentials(`${API_BASE_URL}/admin/badges`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
     },
 
     createBadge: async (badgeData) => {
-        const token = localStorage.getItem('adminToken');
+        const token = sessionStorage.getItem('adminToken');
         return fetchWithCredentials(`${API_BASE_URL}/admin/badges`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` },
@@ -278,7 +278,7 @@ export const adminApi = {
     },
 
     updateBadge: async (id, badgeData) => {
-        const token = localStorage.getItem('adminToken');
+        const token = sessionStorage.getItem('adminToken');
         return fetchWithCredentials(`${API_BASE_URL}/admin/badges/${id}`, {
             method: 'PUT',
             headers: { 'Authorization': `Bearer ${token}` },
@@ -287,7 +287,7 @@ export const adminApi = {
     },
 
     deleteBadge: async (id) => {
-        const token = localStorage.getItem('adminToken');
+        const token = sessionStorage.getItem('adminToken');
         return fetchWithCredentials(`${API_BASE_URL}/admin/badges/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` },
@@ -296,7 +296,7 @@ export const adminApi = {
 
     // User badge management
     updateUserBadges: async (userId, badgeIds) => {
-        const token = localStorage.getItem('adminToken');
+        const token = sessionStorage.getItem('adminToken');
         return fetchWithCredentials(`${API_BASE_URL}/admin/users/${userId}/badges`, {
             method: 'PUT',
             headers: { 'Authorization': `Bearer ${token}` },
