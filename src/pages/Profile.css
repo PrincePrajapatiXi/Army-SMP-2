@@ -31,12 +31,13 @@
 
 .profile-header {
     display: flex;
-    align-items: center;
-    gap: 1.5rem;
+    align-items: flex-start;
+    /* Changed to flex-start for better alignment with new layout */
+    gap: 2rem;
     background: rgba(26, 26, 46, 0.95);
     border: 1px solid rgba(249, 115, 22, 0.2);
     border-radius: 20px;
-    padding: 2rem;
+    padding: 2.5rem;
     margin-bottom: 1.5rem;
     backdrop-filter: blur(20px);
 }
@@ -48,10 +49,13 @@
 
 .profile-avatar img,
 .avatar-placeholder {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    /* Increased size */
+    height: 120px;
     border-radius: 50%;
     object-fit: cover;
+    border: 4px solid rgba(255, 255, 255, 0.05);
+    /* Added border */
 }
 
 .avatar-placeholder {
@@ -68,8 +72,8 @@
     position: absolute;
     bottom: 5px;
     right: 5px;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     background: #1a1a2e;
     border-radius: 50%;
     display: flex;
@@ -83,8 +87,8 @@
     position: absolute;
     top: 0;
     left: 0;
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     background: rgba(0, 0, 0, 0.6);
     display: flex;
@@ -100,8 +104,8 @@
 }
 
 .avatar-loading {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     background: rgba(249, 115, 22, 0.2);
     display: flex;
@@ -114,20 +118,74 @@
     animation: spin 1s linear infinite;
 }
 
+/* New Layout Styles */
+.profile-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.name-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.25rem;
+}
+
 .profile-info h1 {
     color: #ffffff;
-    font-size: 1.75rem;
+    font-size: 2rem;
     font-weight: 700;
-    margin-bottom: 0.25rem;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.status-badges {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .profile-info .username {
     color: #9ca3af;
-    font-size: 1rem;
-    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+
+.rank-badges-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.rank-badge-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.rank-badge-item img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.rank-badge-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .badges {
+    /* Legacy - kept for backward compatibility if needed */
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
@@ -137,34 +195,30 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    padding: 0.35rem 0.75rem;
-    border-radius: 20px;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
     font-size: 0.75rem;
     font-weight: 600;
-}
-
-.badge-icon {
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .badge.verified {
-    background: rgba(34, 197, 94, 0.15);
+    background: rgba(34, 197, 94, 0.1);
     color: #22c55e;
-    border: 1px solid rgba(34, 197, 94, 0.3);
+    border: 1px solid rgba(34, 197, 94, 0.2);
 }
 
 .badge.unverified {
-    background: rgba(245, 158, 11, 0.15);
+    background: rgba(245, 158, 11, 0.1);
     color: #f59e0b;
-    border: 1px solid rgba(245, 158, 11, 0.3);
+    border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
 .badge.provider {
-    background: rgba(249, 115, 22, 0.15);
-    color: #f97316;
-    border: 1px solid rgba(249, 115, 22, 0.3);
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 /* Alert Messages */
@@ -208,7 +262,7 @@
     background: rgba(26, 26, 46, 0.95);
     border: 1px solid rgba(249, 115, 22, 0.2);
     border-radius: 20px;
-    padding: 1.5rem;
+    padding: 2rem;
     margin-bottom: 1.5rem;
     backdrop-filter: blur(20px);
 }
@@ -225,9 +279,9 @@
 .section-header h2 {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
     color: #ffffff;
-    font-size: 1.1rem;
+    font-size: 1.25rem;
     font-weight: 600;
 }
 
@@ -251,13 +305,13 @@
 }
 
 .edit-btn {
-    background: rgba(249, 115, 22, 0.15);
+    background: rgba(249, 115, 22, 0.1);
     color: #f97316;
     border: 1px solid rgba(249, 115, 22, 0.3);
 }
 
 .edit-btn:hover {
-    background: rgba(249, 115, 22, 0.25);
+    background: rgba(249, 115, 22, 0.2);
 }
 
 .cancel-btn {
@@ -268,6 +322,7 @@
 
 .cancel-btn:hover {
     background: rgba(255, 255, 255, 0.1);
+    color: white;
 }
 
 .save-btn {
@@ -291,9 +346,10 @@
 
 /* Profile Fields */
 .profile-fields {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    /* Grid layout for fields */
+    gap: 1.5rem;
 }
 
 .field {
@@ -317,8 +373,9 @@
 
 .field span {
     color: #ffffff;
-    font-size: 1rem;
-    padding: 0.75rem 0;
+    font-size: 1.1rem;
+    padding: 0.5rem 0;
+    font-weight: 500;
 }
 
 .field span.non-editable {
@@ -365,6 +422,11 @@
 
 .field input::placeholder {
     color: #6b7280;
+}
+
+/* Password Section Override for flex container */
+.profile-section .password-form {
+    max-width: 500px;
 }
 
 /* Password Section */
@@ -475,16 +537,28 @@
 
     .profile-header {
         flex-direction: column;
+        align-items: center;
         text-align: center;
         padding: 1.5rem;
+        gap: 1.5rem;
+    }
+
+    .name-row {
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .status-badges {
+        justify-content: center;
+    }
+
+    .rank-badges-section {
+        justify-content: center;
     }
 
     .profile-info h1 {
-        font-size: 1.5rem;
-    }
-
-    .badges {
-        justify-content: center;
+        font-size: 1.75rem;
     }
 
     .profile-section {
@@ -503,6 +577,10 @@
 
     .edit-actions button {
         flex: 1;
+    }
+
+    .profile-fields {
+        grid-template-columns: 1fr;
     }
 
     .password-actions {

@@ -25,6 +25,7 @@ const UsersTab = ({
     const [selectedUser, setSelectedUser] = useState(null);
     const [allBadges, setAllBadges] = useState([]);
     const [selectedBadgeIds, setSelectedBadgeIds] = useState([]);
+    const [ownedBadgeIds, setOwnedBadgeIds] = useState([]);
     const [badgesLoading, setBadgesLoading] = useState(false);
 
     const showToast = (message, type = 'success') => {
@@ -55,6 +56,7 @@ const UsersTab = ({
         // User.badges is array of objects { badge: { _id, name... }, ... }
         const currentIds = user.badges?.map(b => b.badge._id || b.badge) || [];
         setSelectedBadgeIds(currentIds);
+        setOwnedBadgeIds(currentIds);
 
         try {
             const badges = await adminApi.getBadges();
@@ -290,7 +292,22 @@ const UsersTab = ({
                                             />
                                             <img src={badge.image} alt={badge.name} className="badge-mini-preview" />
                                             <div className="badge-select-info">
-                                                <span className="badge-select-name">{badge.name}</span>
+                                                <span className="badge-select-name">
+                                                    {badge.name}
+                                                    {ownedBadgeIds.includes(badge._id) && (
+                                                        <span className="owned-label" style={{
+                                                            fontSize: '0.7em',
+                                                            marginLeft: '8px',
+                                                            color: '#22c55e',
+                                                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                                            padding: '2px 6px',
+                                                            borderRadius: '4px',
+                                                            border: '1px solid rgba(34, 197, 94, 0.2)'
+                                                        }}>
+                                                            Owned
+                                                        </span>
+                                                    )}
+                                                </span>
                                                 <span className="badge-select-rarity" style={{ color: badge.color }}>{badge.rarity}</span>
                                             </div>
                                         </div>
