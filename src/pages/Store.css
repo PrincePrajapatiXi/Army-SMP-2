@@ -413,9 +413,25 @@
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
+
+    /* Sticky Search & Filter Header */
+    .store-sticky-header {
+        position: sticky;
+        top: 60px;
+        z-index: 40;
+        background: rgba(10, 10, 15, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        margin: 0 -1rem;
+        padding: 0.75rem 1rem 0.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
     .search-sort-bar {
         flex-direction: column;
         gap: var(--space-3);
+        margin-bottom: 0.5rem;
     }
 
     .search-box {
@@ -432,16 +448,24 @@
     }
 
     .store-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.75rem;
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 10px !important;
+        margin-bottom: 100px;
+    }
+
+    /* Force cards to shrink - remove any min-width */
+    .store-grid>* {
+        min-width: 0 !important;
+        width: 100% !important;
     }
 }
 
 /* Very small screens */
 @media (max-width: 400px) {
     .store-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.5rem;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px !important;
     }
 
     .store-header {

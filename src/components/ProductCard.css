@@ -270,85 +270,174 @@
     transform: scale(0.95);
 }
 
-/* Mobile Adjustments */
+/* Button text/icon visibility - Desktop: text, Mobile: icon */
+.btn-buy .btn-icon {
+    display: none;
+}
+
+.btn-buy .btn-text {
+    display: inline;
+}
+
+/* ============================================ */
+/* ===== MOBILE MICRO-CARD STYLES (<768px) ===== */
+/* ============================================ */
 @media (max-width: 768px) {
     .product-card {
-        border-radius: var(--radius-md);
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: linear-gradient(145deg, rgba(26, 26, 37, 0.75), rgba(18, 18, 26, 0.85));
+        /* CRITICAL: Force shrinking in grid */
+        min-width: 0 !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+    }
+
+    .product-card::before,
+    .product-card::after {
+        display: none;
     }
 
     .product-card:hover {
-        transform: translateY(-4px) scale(1.01);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3),
+            0 0 12px rgba(255, 107, 53, 0.12);
     }
 
+    /* Wishlist button - smaller */
+    .wishlist-btn {
+        top: 4px;
+        right: 4px;
+        width: 22px;
+        height: 22px;
+    }
+
+    .wishlist-btn svg {
+        width: 11px;
+        height: 11px;
+    }
+
+    /* Image container - full width, optimized height */
     .card-image-container {
-        height: 140px;
-        padding: 10px;
+        height: 90px;
+        padding: 6px;
+        background: radial-gradient(circle at center, rgba(255, 107, 53, 0.05) 0%, rgba(20, 20, 28, 1) 70%);
+    }
+
+    .card-image-container::before {
+        display: none;
     }
 
     .product-card:hover .card-image {
-        transform: scale(1.08) translateY(-4px);
+        transform: scale(1.04);
     }
 
+    .card-image {
+        filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5));
+    }
+
+    /* Compact content area - minimal padding */
     .card-content {
-        padding: 1rem;
+        padding: 6px;
     }
 
+    /* Title - 11px, tight line height, truncated */
     .card-title {
-        font-size: 1rem;
+        font-size: 11px;
+        font-weight: 600;
+        margin-bottom: 2px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        line-height: 1.15;
     }
 
+    /* Price - compact, bold */
     .card-price {
-        font-size: 1rem;
+        font-size: 11px;
+        font-weight: 700;
     }
 
-    .btn-buy {
-        padding: 8px 16px;
-        font-size: 0.9rem;
-        width: 100%;
-        justify-content: center;
-        margin-top: 0.5rem;
-    }
-
+    /* Footer - horizontal layout */
     .card-footer {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 4px;
+        margin-top: 4px;
+    }
+
+    /* Compact cart icon button */
+    .btn-buy {
+        padding: 5px 7px;
+        min-width: auto;
+        border-radius: 5px;
+    }
+
+    .btn-buy .btn-text {
+        display: none;
+    }
+
+    .btn-buy .btn-icon {
+        display: flex;
+        margin: 0;
+    }
+
+    .btn-buy svg {
+        width: 14px;
+        height: 14px;
     }
 }
 
-/* Very small screens */
+/* ===== VERY SMALL SCREENS (<400px) - Even more compact ===== */
 @media (max-width: 400px) {
+    .product-card {
+        border-radius: 8px;
+    }
+
+    .wishlist-btn {
+        top: 4px;
+        right: 4px;
+        width: 20px;
+        height: 20px;
+    }
+
+    .wishlist-btn svg {
+        width: 10px;
+        height: 10px;
+    }
+
     .card-image-container {
-        height: 110px;
-        padding: 5px;
+        height: 65px;
+        padding: 6px;
     }
 
     .card-content {
-        padding: 0.5rem;
+        padding: 0.4rem;
     }
 
     .card-title {
-        font-size: 0.8rem;
-        margin-bottom: 0.25rem;
+        font-size: 0.6rem;
     }
 
     .card-price {
-        font-size: 0.85rem;
+        font-size: 0.7rem;
     }
 
     .btn-buy {
-        padding: 6px 10px;
-        font-size: 0.8rem;
+        padding: 5px 6px;
+    }
+
+    .btn-buy svg {
+        width: 12px;
+        height: 12px;
     }
 }
 
 /* Touch feedback for mobile */
 @media (hover: none) {
     .product-card:active {
-        transform: scale(0.98);
+        transform: scale(0.97);
         transition-duration: 0.1s;
     }
 }

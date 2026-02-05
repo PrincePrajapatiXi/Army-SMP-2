@@ -27,8 +27,8 @@ const Footer = () => {
                         </ul>
                     </div>
 
-                    {/* Legal & Social */}
-                    <div>
+                    {/* Community - Centered on mobile */}
+                    <div className="footer-community">
                         <h4 className="footer-heading">Community</h4>
                         <div className="footer-social-links">
                             <a href="https://discord.gg/EBmGM2jsdt" className="social-icon-link">
