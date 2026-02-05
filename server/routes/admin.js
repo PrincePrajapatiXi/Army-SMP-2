@@ -761,7 +761,7 @@ router.put('/promotions/reorder', requireAdminAuth, async (req, res) => {
 // GET /api/admin/users - Get all users with order statistics
 router.get('/users', requireAdminAuth, async (req, res) => {
     try {
-        const users = await User.find().sort({ createdAt: -1 });
+        const users = await User.find().populate('badges.badge').sort({ createdAt: -1 });
         const orders = await Order.find();
 
         // Calculate order stats for each user
@@ -788,7 +788,8 @@ router.get('/users', requireAdminAuth, async (req, res) => {
                 blockedAt: user.blockedAt,
                 createdAt: user.createdAt,
                 orderCount: userOrders.length,
-                totalSpent: completedOrders.reduce((sum, o) => sum + (o.total || 0), 0)
+                totalSpent: completedOrders.reduce((sum, o) => sum + (o.total || 0), 0),
+                badges: user.badges || []  // Include badges in response
             };
         });
 

@@ -499,7 +499,8 @@
     width: 100%;
     max-width: 500px;
     max-height: 90vh;
-    overflow-y: auto;
+    overflow: hidden;
+    /* Changed: Only badge-selection-grid should scroll */
     display: flex;
     flex-direction: column;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
@@ -545,7 +546,11 @@
 
 .modal-body {
     padding: 20px;
-    overflow-y: auto;
+    overflow: visible;
+    /* Changed: Let badge-selection-grid handle scrolling */
+    flex: 1;
+    min-height: 0;
+    /* Important for flex child overflow */
 }
 
 .modal-footer {
