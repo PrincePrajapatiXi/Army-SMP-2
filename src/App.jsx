@@ -6,6 +6,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './components/ThemeToggle';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import Partners from './components/Partners';
 import PageTransition from './components/PageTransition';
 import PageLoader from './components/PageLoader';
 import { ToastProvider } from './components/Toast';
@@ -60,6 +61,7 @@ function Layout({ children }) {
           </Suspense>
         </main>
       </PageTransition>
+      {!isAdminPage && !isAuthPage && <Partners />}
       {!isAdminPage && !isAuthPage && <Footer />}
 
       {/* Back to Top Button */}
