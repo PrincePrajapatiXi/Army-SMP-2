@@ -248,244 +248,248 @@ const Store = () => {
                         <p style={{ color: 'var(--text-secondary)' }}>Enhance your experience with exclusive items.</p>
                     </div>
 
-                    {/* Search & Sort Bar */}
-                    <div className="search-sort-bar">
-                        <div className="search-box" ref={searchRef}>
-                            <Search size={20} className="search-icon" />
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                placeholder="Search products..."
-                                value={searchQuery}
-                                onChange={handleSearchChange}
-                                onFocus={() => setShowSuggestions(true)}
-                                onKeyDown={handleKeyDown}
-                                className="search-input"
-                                autoComplete="off"
-                            />
-                            {searchQuery && (
-                                <button
-                                    className="search-clear"
-                                    onClick={() => {
-                                        setSearchQuery('');
-                                        setShowSuggestions(false);
-                                    }}
-                                >
-                                    ✕
-                                </button>
-                            )}
+                    {/* Sticky Search & Filter Container (Mobile) */}
+                    <div className="store-sticky-header">
+                        {/* Search & Sort Bar */}
+                        <div className="search-sort-bar">
+                            <div className="search-box" ref={searchRef}>
+                                <Search size={20} className="search-icon" />
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    placeholder="Search products..."
+                                    value={searchQuery}
+                                    onChange={handleSearchChange}
+                                    onFocus={() => setShowSuggestions(true)}
+                                    onKeyDown={handleKeyDown}
+                                    className="search-input"
+                                    autoComplete="off"
+                                />
+                                {searchQuery && (
+                                    <button
+                                        className="search-clear"
+                                        onClick={() => {
+                                            setSearchQuery('');
+                                            setShowSuggestions(false);
+                                        }}
+                                    >
+                                        ✕
+                                    </button>
+                                )}
 
-                            {/* Auto-suggestions Dropdown */}
-                            {showSuggestions && (
-                                <div className="search-suggestions">
-                                    {/* Recent Searches */}
-                                    {!searchQuery.trim() && suggestions.recent.length > 0 && (
-                                        <div className="suggestion-group">
-                                            <div className="suggestion-group-header">
-                                                <Clock size={14} />
-                                                <span>Recent Searches</span>
-                                            </div>
-                                            {suggestions.recent.map((item, index) => (
-                                                <div
-                                                    key={`recent-${index}`}
-                                                    className={`suggestion-item ${highlightedIndex === index ? 'highlighted' : ''}`}
-                                                    onClick={() => handleSuggestionClick({ type: 'recent', value: item })}
-                                                >
-                                                    <Clock size={14} className="suggestion-item-icon" />
-                                                    <span>{item}</span>
+                                {/* Auto-suggestions Dropdown */}
+                                {showSuggestions && (
+                                    <div className="search-suggestions">
+                                        {/* Recent Searches */}
+                                        {!searchQuery.trim() && suggestions.recent.length > 0 && (
+                                            <div className="suggestion-group">
+                                                <div className="suggestion-group-header">
+                                                    <Clock size={14} />
+                                                    <span>Recent Searches</span>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Popular Searches */}
-                                    {!searchQuery.trim() && suggestions.popular.length > 0 && (
-                                        <div className="suggestion-group">
-                                            <div className="suggestion-group-header">
-                                                <TrendingUp size={14} />
-                                                <span>Popular Searches</span>
-                                            </div>
-                                            {suggestions.popular.map((item, index) => {
-                                                const actualIndex = suggestions.recent.length + index;
-                                                return (
+                                                {suggestions.recent.map((item, index) => (
                                                     <div
-                                                        key={`popular-${index}`}
-                                                        className={`suggestion-item ${highlightedIndex === actualIndex ? 'highlighted' : ''}`}
-                                                        onClick={() => handleSuggestionClick({ type: 'popular', value: item })}
+                                                        key={`recent-${index}`}
+                                                        className={`suggestion-item ${highlightedIndex === index ? 'highlighted' : ''}`}
+                                                        onClick={() => handleSuggestionClick({ type: 'recent', value: item })}
                                                     >
-                                                        <TrendingUp size={14} className="suggestion-item-icon" />
+                                                        <Clock size={14} className="suggestion-item-icon" />
                                                         <span>{item}</span>
                                                     </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-
-                                    {/* Category Suggestions */}
-                                    {searchQuery.trim() && suggestions.categories?.length > 0 && (
-                                        <div className="suggestion-group">
-                                            <div className="suggestion-group-header">
-                                                <Tag size={14} />
-                                                <span>Categories</span>
+                                                ))}
                                             </div>
-                                            {suggestions.categories.map((cat, index) => (
-                                                <div
-                                                    key={`cat-${cat.id}`}
-                                                    className={`suggestion-item ${highlightedIndex === index ? 'highlighted' : ''}`}
-                                                    onClick={() => handleSuggestionClick({ type: 'category', value: cat.label, id: cat.id })}
-                                                >
-                                                    <Tag size={14} className="suggestion-item-icon" />
-                                                    <span>{highlightMatch(cat.label, searchQuery)}</span>
+                                        )}
+
+                                        {/* Popular Searches */}
+                                        {!searchQuery.trim() && suggestions.popular.length > 0 && (
+                                            <div className="suggestion-group">
+                                                <div className="suggestion-group-header">
+                                                    <TrendingUp size={14} />
+                                                    <span>Popular Searches</span>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Product Suggestions */}
-                                    {searchQuery.trim() && suggestions.products.length > 0 && (
-                                        <div className="suggestion-group">
-                                            <div className="suggestion-group-header">
-                                                <Search size={14} />
-                                                <span>Products</span>
-                                            </div>
-                                            {suggestions.products.map((product, index) => {
-                                                const actualIndex = (suggestions.categories?.length || 0) + index;
-                                                return (
-                                                    <div
-                                                        key={`product-${product.id}`}
-                                                        className={`suggestion-item product-suggestion ${highlightedIndex === actualIndex ? 'highlighted' : ''}`}
-                                                        onClick={() => handleSuggestionClick({ type: 'product', value: product.name, product })}
-                                                    >
+                                                {suggestions.popular.map((item, index) => {
+                                                    const actualIndex = suggestions.recent.length + index;
+                                                    return (
                                                         <div
-                                                            className="suggestion-product-image"
-                                                            style={{
-                                                                background: product.color ? `linear-gradient(135deg, ${product.color}40, ${product.color}20)` : 'rgba(255,255,255,0.1)',
-                                                                borderColor: product.color || 'rgba(255,255,255,0.2)'
-                                                            }}
+                                                            key={`popular-${index}`}
+                                                            className={`suggestion-item ${highlightedIndex === actualIndex ? 'highlighted' : ''}`}
+                                                            onClick={() => handleSuggestionClick({ type: 'popular', value: item })}
                                                         >
-                                                            {product.name.charAt(0)}
+                                                            <TrendingUp size={14} className="suggestion-item-icon" />
+                                                            <span>{item}</span>
                                                         </div>
-                                                        <div className="suggestion-product-info">
-                                                            <span className="suggestion-product-name">
-                                                                {highlightMatch(product.name, searchQuery)}
-                                                            </span>
-                                                            <span className="suggestion-product-price">
-                                                                ₹{product.price}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
 
-                                    {/* No Results */}
-                                    {searchQuery.trim() && suggestions.products.length === 0 && suggestions.categories?.length === 0 && (
-                                        <div className="suggestion-no-results">
-                                            <span>No products found for "{searchQuery}"</span>
-                                        </div>
-                                    )}
+                                        {/* Category Suggestions */}
+                                        {searchQuery.trim() && suggestions.categories?.length > 0 && (
+                                            <div className="suggestion-group">
+                                                <div className="suggestion-group-header">
+                                                    <Tag size={14} />
+                                                    <span>Categories</span>
+                                                </div>
+                                                {suggestions.categories.map((cat, index) => (
+                                                    <div
+                                                        key={`cat-${cat.id}`}
+                                                        className={`suggestion-item ${highlightedIndex === index ? 'highlighted' : ''}`}
+                                                        onClick={() => handleSuggestionClick({ type: 'category', value: cat.label, id: cat.id })}
+                                                    >
+                                                        <Tag size={14} className="suggestion-item-icon" />
+                                                        <span>{highlightMatch(cat.label, searchQuery)}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Product Suggestions */}
+                                        {searchQuery.trim() && suggestions.products.length > 0 && (
+                                            <div className="suggestion-group">
+                                                <div className="suggestion-group-header">
+                                                    <Search size={14} />
+                                                    <span>Products</span>
+                                                </div>
+                                                {suggestions.products.map((product, index) => {
+                                                    const actualIndex = (suggestions.categories?.length || 0) + index;
+                                                    return (
+                                                        <div
+                                                            key={`product-${product.id}`}
+                                                            className={`suggestion-item product-suggestion ${highlightedIndex === actualIndex ? 'highlighted' : ''}`}
+                                                            onClick={() => handleSuggestionClick({ type: 'product', value: product.name, product })}
+                                                        >
+                                                            <div
+                                                                className="suggestion-product-image"
+                                                                style={{
+                                                                    background: product.color ? `linear-gradient(135deg, ${product.color}40, ${product.color}20)` : 'rgba(255,255,255,0.1)',
+                                                                    borderColor: product.color || 'rgba(255,255,255,0.2)'
+                                                                }}
+                                                            >
+                                                                {product.name.charAt(0)}
+                                                            </div>
+                                                            <div className="suggestion-product-info">
+                                                                <span className="suggestion-product-name">
+                                                                    {highlightMatch(product.name, searchQuery)}
+                                                                </span>
+                                                                <span className="suggestion-product-price">
+                                                                    ₹{product.price}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+
+                                        {/* No Results */}
+                                        {searchQuery.trim() && suggestions.products.length === 0 && suggestions.categories?.length === 0 && (
+                                            <div className="suggestion-no-results">
+                                                <span>No products found for "{searchQuery}"</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Mobile Hamburger Menu Button */}
+                        <div className="mobile-category-menu">
+                            <button
+                                className="hamburger-btn"
+                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            >
+                                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                                <span>Categories</span>
+                            </button>
+
+                            {/* Mobile Dropdown */}
+                            {mobileMenuOpen && (
+                                <div className="mobile-category-dropdown">
+                                    {categories.map(cat => (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() => {
+                                                setActiveCategory(cat.id);
+                                                setMobileMenuOpen(false);
+                                            }}
+                                            className={`mobile-category-item ${activeCategory === cat.id ? 'active' : ''}`}
+                                        >
+                                            {cat.label}
+                                        </button>
+                                    ))}
                                 </div>
                             )}
                         </div>
                     </div>
-
-                    {/* Mobile Hamburger Menu Button */}
-                    <div className="mobile-category-menu">
-                        <button
-                            className="hamburger-btn"
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        >
-                            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                            <span>Categories</span>
-                        </button>
-
-                        {/* Mobile Dropdown */}
-                        {mobileMenuOpen && (
-                            <div className="mobile-category-dropdown">
-                                {categories.map(cat => (
-                                    <button
-                                        key={cat.id}
-                                        onClick={() => {
-                                            setActiveCategory(cat.id);
-                                            setMobileMenuOpen(false);
-                                        }}
-                                        className={`mobile-category-item ${activeCategory === cat.id ? 'active' : ''}`}
-                                    >
-                                        {cat.label}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                    {/* End Sticky Header */}
 
                     {/* Desktop Categories */}
                     <div className="category-tabs desktop-only">
-                        {categories.map(cat => (
-                            <button
-                                key={cat.id}
-                                onClick={() => setActiveCategory(cat.id)}
-                                className={activeCategory === cat.id ? 'btn btn-primary' : 'btn btn-outline'}
-                                style={{ minWidth: '100px', flexShrink: 0, justifyContent: 'center' }}
-                            >
-                                {cat.label}
-                            </button>
-                        ))}
+                            {categories.map(cat => (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => setActiveCategory(cat.id)}
+                                    className={activeCategory === cat.id ? 'btn btn-primary' : 'btn btn-outline'}
+                                    style={{ minWidth: '100px', flexShrink: 0, justifyContent: 'center' }}
+                                >
+                                    {cat.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Results Count */}
+                        {searchQuery && (
+                            <div className="search-results-info">
+                                Found <strong>{filteredProducts.length}</strong> {filteredProducts.length === 1 ? 'product' : 'products'}
+                                {searchQuery && <span> for "<strong>{searchQuery}</strong>"</span>}
+                            </div>
+                        )}
+
+                        {/* Product Grid */}
+                        {loading ? (
+                            <SkeletonGrid count={8} />
+                        ) : (
+                            <>
+                                <div className="store-grid">
+                                    {filteredProducts.map(product => (
+                                        <ProductCard
+                                            key={product.id}
+                                            product={product}
+                                            onBuy={setSelectedProduct}
+                                        />
+                                    ))}
+                                </div>
+
+                                {filteredProducts.length === 0 && (
+                                    <div className="no-products">
+                                        <div className="no-products-icon">🔍</div>
+                                        <h3>No products found</h3>
+                                        <p>Try adjusting your search or filter criteria</p>
+                                        {searchQuery && (
+                                            <button
+                                                className="btn btn-outline"
+                                                onClick={() => setSearchQuery('')}
+                                            >
+                                                Clear Search
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </>
+                        )}
+
                     </div>
 
-                    {/* Results Count */}
-                    {searchQuery && (
-                        <div className="search-results-info">
-                            Found <strong>{filteredProducts.length}</strong> {filteredProducts.length === 1 ? 'product' : 'products'}
-                            {searchQuery && <span> for "<strong>{searchQuery}</strong>"</span>}
-                        </div>
-                    )}
 
-                    {/* Product Grid */}
-                    {loading ? (
-                        <SkeletonGrid count={8} />
-                    ) : (
-                        <>
-                            <div className="store-grid">
-                                {filteredProducts.map(product => (
-                                    <ProductCard
-                                        key={product.id}
-                                        product={product}
-                                        onBuy={setSelectedProduct}
-                                    />
-                                ))}
-                            </div>
-
-                            {filteredProducts.length === 0 && (
-                                <div className="no-products">
-                                    <div className="no-products-icon">🔍</div>
-                                    <h3>No products found</h3>
-                                    <p>Try adjusting your search or filter criteria</p>
-                                    {searchQuery && (
-                                        <button
-                                            className="btn btn-outline"
-                                            onClick={() => setSearchQuery('')}
-                                        >
-                                            Clear Search
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-                        </>
-                    )}
-
+                    <ProductModal
+                        isOpen={!!selectedProduct}
+                        product={selectedProduct}
+                        onClose={() => setSelectedProduct(null)}
+                    />
                 </div>
-
-
-                <ProductModal
-                    isOpen={!!selectedProduct}
-                    product={selectedProduct}
-                    onClose={() => setSelectedProduct(null)}
-                />
-            </div>
-        </>
-    );
+            </>
+            );
 };
 
-export default Store;
+            export default Store;
 

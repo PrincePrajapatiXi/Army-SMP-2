@@ -99,7 +99,8 @@ const ProductCard = ({ product, onBuy }) => {
                         color: (hasColor && (cardColor === '#FFD700' || cardColor === '#44FF44')) ? '#000' : '#fff',
                         boxShadow: hasColor ? `0 0 10px ${cardColor}60` : 'none'
                     }}>
-                        Buy
+                        <ShoppingCart size={16} className="btn-icon" />
+                        <span className="btn-text">Buy</span>
                     </button>
                 </div>
             </div>

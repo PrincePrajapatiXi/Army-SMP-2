@@ -1,57 +1,62 @@
-/* Skeleton Card Styles */
+/* ============================================ */
+/* ===== SKELETON CARD - MICRO STYLE ===== */
+/* ============================================ */
+
 .skeleton-card {
-    background: linear-gradient(145deg, rgba(26, 26, 37, 0.7), rgba(18, 18, 26, 0.9));
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
+    background: linear-gradient(145deg, rgba(30, 30, 42, 0.8), rgba(20, 20, 28, 0.9));
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
     overflow: hidden;
-    padding: 0;
+    /* Force shrinking in 3-column grid */
+    min-width: 0;
+    max-width: 100%;
 }
 
 .skeleton-image {
     width: 100%;
-    height: 180px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 16px 16px 0 0;
+    aspect-ratio: 1 / 1;
+    background: rgba(255, 255, 255, 0.04);
 }
 
 .skeleton-content {
-    padding: 1.25rem;
+    padding: 0.75rem;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
 }
 
 .skeleton-title {
-    height: 24px;
-    width: 80%;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 6px;
-}
-
-.skeleton-category {
-    height: 16px;
-    width: 50%;
-    background: rgba(255, 255, 255, 0.05);
+    height: 14px;
+    width: 85%;
+    background: rgba(255, 255, 255, 0.06);
     border-radius: 4px;
 }
 
+.skeleton-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+}
+
 .skeleton-price {
-    height: 28px;
-    width: 40%;
+    height: 16px;
+    width: 45%;
+    background: rgba(255, 107, 53, 0.12);
+    border-radius: 4px;
+}
+
+.skeleton-btn {
+    height: 24px;
+    width: 24px;
     background: rgba(255, 107, 53, 0.15);
-    border-radius: 6px;
-    margin-top: 4px;
+    border-radius: 4px;
+    flex-shrink: 0;
 }
 
-.skeleton-button {
-    height: 44px;
-    width: 100%;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 10px;
-    margin-top: 8px;
-}
-
-/* Shimmer Animation */
+/* ============================================ */
+/* ===== SHIMMER ANIMATION ===== */
+/* ============================================ */
 .shimmer {
     position: relative;
     overflow: hidden;
@@ -66,9 +71,9 @@
     bottom: 0;
     background: linear-gradient(90deg,
             transparent 0%,
-            rgba(255, 255, 255, 0.08) 20%,
-            rgba(255, 255, 255, 0.12) 50%,
-            rgba(255, 255, 255, 0.08) 80%,
+            rgba(255, 255, 255, 0.06) 20%,
+            rgba(255, 255, 255, 0.1) 50%,
+            rgba(255, 255, 255, 0.06) 80%,
             transparent 100%);
     background-size: 200% 100%;
     animation: shimmerMove 1.5s ease-in-out infinite;
@@ -84,48 +89,87 @@
     }
 }
 
-/* Skeleton Grid */
+/* ============================================ */
+/* ===== SKELETON GRID - 3-COLUMN MOBILE ===== */
+/* ============================================ */
 .skeleton-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.5rem;
     width: 100%;
 }
 
-/* Mobile Responsive */
-@media (max-width: 600px) {
+/* MOBILE: Force 3-column layout */
+@media (max-width: 768px) {
     .skeleton-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 10px !important;
     }
 
+    .skeleton-card {
+        border-radius: 6px;
+    }
+
+    /* Match ProductCard image height exactly */
     .skeleton-image {
-        height: 120px;
+        height: 90px;
+        aspect-ratio: unset;
     }
 
     .skeleton-content {
-        padding: 1rem;
-        gap: 8px;
+        padding: 6px;
+        gap: 4px;
     }
 
     .skeleton-title {
-        height: 18px;
+        height: 10px;
+        width: 80%;
     }
 
-    .skeleton-category {
-        height: 12px;
+    .skeleton-footer {
+        gap: 4px;
     }
 
     .skeleton-price {
-        height: 22px;
+        height: 12px;
+        width: 50%;
     }
 
-    .skeleton-button {
-        height: 36px;
+    .skeleton-btn {
+        height: 20px;
+        width: 20px;
+        border-radius: 3px;
     }
 }
 
-/* Featured Ranks Skeleton */
+/* Very small screens */
+@media (max-width: 400px) {
+    .skeleton-grid {
+        gap: 8px !important;
+    }
+
+    .skeleton-content {
+        padding: 4px;
+    }
+
+    .skeleton-title {
+        height: 8px;
+    }
+
+    .skeleton-price {
+        height: 10px;
+    }
+
+    .skeleton-btn {
+        height: 18px;
+        width: 18px;
+    }
+}
+
+/* ============================================ */
+/* ===== FEATURED RANKS SKELETON ===== */
+/* ============================================ */
 .skeleton-rank-card {
     background: linear-gradient(145deg, rgba(26, 26, 37, 0.7), rgba(18, 18, 26, 0.9));
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -180,7 +224,9 @@
     border-radius: 12px;
 }
 
-/* Promo Slider Skeleton */
+/* ============================================ */
+/* ===== PROMO SLIDER SKELETON ===== */
+/* ============================================ */
 .skeleton-promo {
     background: linear-gradient(135deg, rgba(30, 58, 95, 0.5), rgba(13, 27, 42, 0.5));
     border-radius: 20px;
