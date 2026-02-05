@@ -3,7 +3,7 @@ const User = require('../models/User');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'army-smp-jwt-secret-2024-super-secure';
 const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || 'army-smp-ADMIN-jwt-2024-ultra-secure';
-const JWT_EXPIRES_IN = '7d'; // Token valid for 7 days
+const JWT_EXPIRES_IN = '30d'; // Token valid for 30 days
 const ADMIN_JWT_EXPIRES_IN = '24h'; // Admin token valid for 24 hours only
 
 // Generate JWT token for regular users

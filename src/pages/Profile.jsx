@@ -296,49 +296,55 @@ const Profile = () => {
                         />
                     </div>
                     <div className="profile-info">
-                        <h1>{user.name}</h1>
-                        <p className="username">@{user.username}</p>
-                        <div className="badges">
-                            {user.isEmailVerified ? (
-                                <span className="badge verified">
-                                    <Shield size={12} />
-                                    Verified
-                                </span>
-                            ) : (
-                                <span className="badge unverified">
-                                    <AlertCircle size={12} />
-                                    Email Not Verified
-                                </span>
-                            )}
-                            <span className="badge provider">
-                                {user.authProvider === 'google' ? 'Google' :
-                                    user.authProvider === 'facebook' ? 'Facebook' : 'Email'}
-                            </span>
-
-                            {/* Custom Badges */}
-                            {user.badges && user.badges.map((userBadge, index) => {
-                                const badge = userBadge.badge || userBadge;
-                                // Skip if badge data is missing (e.g., deleted badge)
-                                if (!badge || !badge.name) return null;
-
-                                return (
-                                    <span
-                                        key={badge._id || index}
-                                        className="badge custom-badge"
-                                        style={{
-                                            backgroundColor: badge.color ? `${badge.color}20` : 'rgba(255, 255, 255, 0.1)',
-                                            color: badge.color || 'inherit',
-                                            borderColor: badge.color ? `${badge.color}50` : 'transparent',
-                                            border: '1px solid'
-                                        }}
-                                        title={badge.description || badge.name}
-                                    >
-                                        {badge.image && <img src={badge.image} alt="" className="badge-icon" />}
-                                        {badge.name}
+                        <div className="name-row">
+                            <h1>{user.name}</h1>
+                            <div className="status-badges">
+                                {user.isEmailVerified ? (
+                                    <span className="badge verified" title="Email Verified">
+                                        <Shield size={12} />
+                                        Verified
                                     </span>
-                                );
-                            })}
+                                ) : (
+                                    <span className="badge unverified" title="Email Not Verified">
+                                        <AlertCircle size={12} />
+                                        Unverified
+                                    </span>
+                                )}
+                                <span className="badge provider">
+                                    {user.authProvider === 'google' ? 'Google' :
+                                        user.authProvider === 'facebook' ? 'Facebook' :
+                                            user.authProvider === 'discord' ? 'Discord' : 'Email'}
+                                </span>
+                            </div>
                         </div>
+                        <p className="username">@{user.username}</p>
+
+                        {/* Custom Rank Badges Section */}
+                        {user.badges && user.badges.length > 0 && (
+                            <div className="rank-badges-section">
+                                {user.badges.map((userBadge, index) => {
+                                    const badge = userBadge.badge || userBadge;
+                                    // Skip if badge data is missing
+                                    if (!badge || !badge.name) return null;
+
+                                    return (
+                                        <div
+                                            key={badge._id || index}
+                                            className="rank-badge-item"
+                                            style={{
+                                                backgroundColor: badge.color ? `${badge.color}15` : 'rgba(255, 255, 255, 0.05)',
+                                                border: `1px solid ${badge.color ? `${badge.color}40` : 'rgba(255, 255, 255, 0.1)'}`,
+                                                color: badge.color || '#fff'
+                                            }}
+                                            title={badge.description || badge.name}
+                                        >
+                                            {badge.image && <img src={badge.image} alt="" />}
+                                            <span>{badge.name}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                 </div>
 
