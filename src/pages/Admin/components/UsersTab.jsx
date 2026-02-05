@@ -60,8 +60,10 @@ const UsersTab = ({
 
         try {
             const badges = await adminApi.getBadges();
+            console.log('Fetched badges:', badges);
             setAllBadges(badges);
         } catch (error) {
+            console.error('Badge fetch error:', error);
             showToast('Failed to fetch badges', 'error');
         } finally {
             setBadgesLoading(false);
