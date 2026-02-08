@@ -77,27 +77,9 @@ const ProductCard = ({ product, onBuy }) => {
             </button>
 
             <div className="card-image-container" style={{
-                // 1. Box ki height wapis normal/choti kar di
-                height: '110px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'visible', // Taki zoom hone par image kate nahi
                 background: hasColor ? `radial-gradient(circle at center, ${cardColor}20 0%, transparent 70%)` : 'none'
             }}>
-                <img
-                    src={product.image}
-                    alt={product.name}
-                    className="card-image"
-                    style={{
-                        height: '100%',
-                        width: '100%',
-                        objectFit: 'contain',
-                        // 2. YAHAN JADU HAI: Image ko 1.6x zoom kar diya
-                        transform: 'scale(3.0)',
-                        filter: 'drop-shadow(0 10px 10px rgba(0,0,0,0.5))'
-                    }}
-                />
+                <img src={product.image} alt={product.name} className="card-image" />
             </div>
 
             <div className="card-content">
