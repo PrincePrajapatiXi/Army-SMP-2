@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, ShieldAlert, Clock, ShieldCheck, Mail, RefreshCw } from 'lucide-react';
 
-const API_BASE_URL = window.location.hostname === 'localhost'
-    ? 'http://localhost:5000/api'
-    : 'https://army-smp-2.onrender.com/api';
+const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
 
 const AdminLogin = ({ onLoginSuccess }) => {
     const [password, setPassword] = useState('');
@@ -311,3 +309,4 @@ const AdminLogin = ({ onLoginSuccess }) => {
 };
 
 export default AdminLogin;
+

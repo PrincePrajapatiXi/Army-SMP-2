@@ -15,6 +15,8 @@ import BackToTop from './components/BackToTop';
 import MobileNav from './components/MobileNav';
 import StructuredData from './components/StructuredData';
 import CookieConsent from './components/CookieConsent';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
+import useGestureNavigation from './hooks/useGestureNavigation';
 
 // Lazy load pages for code splitting
 // This reduces initial bundle size by loading pages only when needed
@@ -42,6 +44,12 @@ function Layout({ children }) {
   const isAuthPage = ['/login', '/signup', '/verify-email', '/forgot-password', '/reset-password', '/oauth-callback'].includes(location.pathname);
   const is404Page = !['/', '/store', '/checkout', '/orders', '/admin', '/login', '/signup', '/verify-email', '/forgot-password', '/reset-password', '/profile', '/oauth-callback', '/wishlist'].includes(location.pathname);
 
+  // Enable gesture navigation for native app-like experience
+  useGestureNavigation({
+    enabled: !isAdminPage && !isAuthPage,
+    excludePaths: ['/']
+  });
+
   return (
     <div className="app-container">
       {/* Global SEO Structured Data */}
@@ -67,6 +75,9 @@ function Layout({ children }) {
 
       {/* Mobile Navigation */}
       {!isAdminPage && !isAuthPage && !is404Page && <MobileNav />}
+
+      {/* PWA Install Prompt */}
+      {!isAdminPage && <PWAInstallPrompt />}
 
       {/* Cookie Consent Banner */}
       <CookieConsent />
@@ -116,3 +127,4 @@ function App() {
 }
 
 export default App;
+

@@ -2,9 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './FeaturedRanks.css';
 
-const API_BASE_URL = window.location.hostname === 'localhost'
-    ? 'http://localhost:5000/api'
-    : 'https://army-smp-2.onrender.com/api';
+const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
 
 // Fallback ranks if API fails
 const fallbackRanks = [
@@ -130,4 +128,5 @@ const FeaturedRanks = () => {
 };
 
 export default FeaturedRanks;
+
 

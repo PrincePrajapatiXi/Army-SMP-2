@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = 'https://army-smp-2.onrender.com/api';
 
 /**
  * Custom hook for push notification management
@@ -196,3 +196,4 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 export default usePushNotifications;
+

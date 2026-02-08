@@ -370,3 +370,4 @@ const Dashboard = ({ orders, analytics }) => {
 };
 
 export default Dashboard;
+

@@ -9,9 +9,7 @@ const Leaderboard = () => {
     const [activePeriod, setActivePeriod] = useState('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const API_BASE_URL = window.location.hostname === 'localhost'
-        ? 'http://localhost:5000/api'
-        : 'https://army-smp-2.onrender.com/api';
+    const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
 
     const periods = [
         { id: 'all', label: 'All Time' },
@@ -234,3 +232,4 @@ const Leaderboard = () => {
 };
 
 export default Leaderboard;
+

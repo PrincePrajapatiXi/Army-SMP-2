@@ -2,6 +2,7 @@ import { useLocation, Link } from 'react-router-dom';
 import { Home, ShoppingBag, ShoppingCart, User } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { triggerHaptic } from '../hooks/useHaptics';
 import './MobileNav.css';
 
 /**
@@ -39,6 +40,7 @@ const MobileNav = () => {
                             key={item.path}
                             to={item.path}
                             className={`mobile-nav-item ${active ? 'active' : ''}`}
+                            onClick={() => triggerHaptic('light')}
                         >
                             <div className="mobile-nav-icon-wrapper">
                                 <Icon
@@ -61,3 +63,4 @@ const MobileNav = () => {
 };
 
 export default MobileNav;
+

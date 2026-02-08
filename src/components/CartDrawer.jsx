@@ -174,3 +174,4 @@ const CartDrawer = ({ isOpen, onClose }) => {
 };
 
 export default CartDrawer;
+

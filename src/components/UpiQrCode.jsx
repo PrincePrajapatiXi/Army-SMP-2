@@ -76,3 +76,4 @@ const UpiQrCode = ({ amount, orderId, onCopy }) => {
 };
 
 export default UpiQrCode;
+

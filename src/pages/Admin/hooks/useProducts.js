@@ -1,8 +1,6 @@
 import { useState, useCallback } from 'react';
 
-const API_BASE_URL = window.location.hostname === 'localhost'
-    ? 'http://localhost:5000/api'
-    : 'https://army-smp-2.onrender.com/api';
+const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
 
 // Helper to get auth headers
 const getAuthHeaders = () => {
@@ -217,4 +215,5 @@ const useProducts = () => {
 };
 
 export default useProducts;
+
 

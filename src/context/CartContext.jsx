@@ -242,3 +242,4 @@ export const CartProvider = ({ children }) => {
 export { CartContext };
 export default CartContext;
 
+

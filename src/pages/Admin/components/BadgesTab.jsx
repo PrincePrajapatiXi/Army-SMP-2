@@ -3,9 +3,8 @@ import { Plus, Edit2, Trash2, X, Save, Image, Loader, Award } from 'lucide-react
 import { adminApi } from '../../../services/api';
 import './BadgesTab.css';
 
-// Use logic consistent with api.js
-const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const API_BASE_URL = (import.meta.env.VITE_API_URL || (isLocalhost ? 'http://localhost:5000' : 'https://army-smp-2.onrender.com')) + '/api';
+// Use production API URL
+const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
 
 const RARITY_COLORS = {
     common: '#9ca3af',
@@ -284,3 +283,4 @@ const BadgesTab = () => {
 };
 
 export default BadgesTab;
+

@@ -90,3 +90,4 @@ export const useStaggeredReveal = (options = {}) => {
 };
 
 export default useScrollReveal;
+

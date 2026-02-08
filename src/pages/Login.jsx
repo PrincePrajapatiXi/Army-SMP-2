@@ -177,9 +177,7 @@ const Login = () => {
                         <button
                             className="oauth-btn google"
                             onClick={() => {
-                                const apiUrl = window.location.hostname === 'localhost'
-                                    ? 'http://localhost:5000'
-                                    : 'https://army-smp-2.onrender.com';
+                                const apiUrl = 'https://army-smp-2.onrender.com';
                                 window.location.href = `${apiUrl}/api/auth/google`;
                             }}
                         >
@@ -194,9 +192,7 @@ const Login = () => {
                         <button
                             className="oauth-btn discord"
                             onClick={() => {
-                                const apiUrl = window.location.hostname === 'localhost'
-                                    ? 'http://localhost:5000'
-                                    : 'https://army-smp-2.onrender.com';
+                                const apiUrl = 'https://army-smp-2.onrender.com';
                                 window.location.href = `${apiUrl}/api/auth/discord`;
                             }}
                         >
@@ -220,3 +216,4 @@ const Login = () => {
 };
 
 export default Login;
+

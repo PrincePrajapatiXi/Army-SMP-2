@@ -1,10 +1,6 @@
 // API Service for Army SMP 2 Store
-// Auto-detect: use local API when on localhost, production API otherwise
-const isLocalhost = typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-const API_BASE_URL = isLocalhost
-    ? 'http://localhost:5000/api'
-    : 'https://army-smp-2.onrender.com/api';
+// Force production API for now (backend on Render)
+const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
 
 
 // Helper function for API requests with credentials (for session cookies)
@@ -304,3 +300,4 @@ export const adminApi = {
         });
     },
 };
+

@@ -8,9 +8,7 @@ import Confetti from '../components/Confetti';
 import UpiQrCode from '../components/UpiQrCode';
 import './Checkout.css';
 
-const API_BASE_URL = window.location.hostname === 'localhost'
-    ? 'http://localhost:5000/api'
-    : 'https://army-smp-2.onrender.com/api';
+const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
 
 const Checkout = () => {
     const navigate = useNavigate();
@@ -694,3 +692,4 @@ const Checkout = () => {
 };
 
 export default Checkout;
+

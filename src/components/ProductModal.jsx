@@ -2,6 +2,8 @@ import { X, ShoppingCart, Check } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useToast } from './Toast';
+import { triggerHaptic } from '../hooks/useHaptics';
+import ImageGallery from './ImageGallery';
 import './ProductModal.css';
 
 const Modal = ({ isOpen, onClose, product }) => {
@@ -34,6 +36,7 @@ const Modal = ({ isOpen, onClose, product }) => {
     const handleAddToCart = () => {
         addToCart(product, quantity);
         setAddedToCart(true);
+        triggerHaptic('success');
         toast.success(`${product.name} added to cart!`);
         setTimeout(() => {
             setAddedToCart(false);
@@ -52,10 +55,10 @@ const Modal = ({ isOpen, onClose, product }) => {
                 </div>
 
                 <div className="product-modal-body">
-                    <img
-                        src={product.image || '/images/stone.png'}
+                    {/* Swipeable Image Gallery */}
+                    <ImageGallery
+                        images={product.images || [product.image || '/images/stone.png']}
                         alt={product.name}
-                        className="product-modal-image"
                     />
 
                     <p className="product-modal-desc">
@@ -88,3 +91,4 @@ const Modal = ({ isOpen, onClose, product }) => {
 };
 
 export default Modal;
+

@@ -3,9 +3,7 @@ import { ChevronLeft, ChevronRight, TrendingUp, Sparkles, Package } from 'lucide
 import { CartContext } from '../context/CartContext';
 import './RecommendedProducts.css';
 
-const API_BASE_URL = window.location.hostname === 'localhost'
-    ? 'http://localhost:5000/api'
-    : 'https://army-smp-2.onrender.com/api';
+const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
 
 const RecommendedProducts = ({
     type = 'trending', // 'trending', 'personalized', 'together'
@@ -199,3 +197,4 @@ const RecommendedProducts = ({
 };
 
 export default RecommendedProducts;
+

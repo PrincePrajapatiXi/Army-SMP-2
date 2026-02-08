@@ -68,3 +68,4 @@ const BackToTop = ({ showAfter = 300 }) => {
 };
 
 export default BackToTop;
+
