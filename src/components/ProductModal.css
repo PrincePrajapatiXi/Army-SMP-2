@@ -278,3 +278,67 @@ body.modal-open {
         justify-content: center;
     }
 }
+
+/* ============================================ */
+/* ===== DESKTOP COMPACT MODAL (≥1024px) ===== */
+/* ============================================ */
+@media (min-width: 1024px) {
+    .product-modal {
+        width: 450px;
+        max-width: 450px;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* Header - never shrink, always visible */
+    .product-modal-header {
+        flex-shrink: 0;
+        padding: 16px 20px;
+    }
+
+    /* Body - scrollable if content overflows */
+    .product-modal-body {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 20px;
+    }
+
+    /* Image container - smaller on desktop */
+    .product-modal-body .image-gallery {
+        max-height: 180px !important;
+    }
+
+    .product-modal-body .image-gallery img,
+    .product-modal-body .gallery-main-image {
+        height: 180px !important;
+        max-height: 180px !important;
+        object-fit: contain;
+        width: 100%;
+    }
+
+    /* Feature list - compact */
+    .product-features-list {
+        max-height: 150px;
+        overflow-y: auto;
+        padding: 10px 14px;
+        gap: 8px;
+    }
+
+    .feature-item {
+        font-size: 0.85rem;
+    }
+
+    /* Actions area - never shrink, always visible at bottom */
+    .product-modal-actions {
+        flex-shrink: 0;
+        margin-bottom: 12px;
+    }
+
+    /* Buy button - always visible */
+    .add-to-cart-btn {
+        flex-shrink: 0;
+        padding: 12px;
+    }
+}
