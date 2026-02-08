@@ -61,9 +61,20 @@ const Modal = ({ isOpen, onClose, product }) => {
                         alt={product.name}
                     />
 
-                    <p className="product-modal-desc">
-                        {product.description || "Unlock exclusive features with this package."}
-                    </p>
+                    {/* Feature List - split description by comma */}
+                    <div className="product-features-list">
+                        {(product.description || "Unlock exclusive features with this package")
+                            .split(',')
+                            .map((feature, index) => feature.trim())
+                            .filter(feature => feature.length > 0)
+                            .map((feature, index) => (
+                                <div key={index} className="feature-item">
+                                    <Check size={16} className="feature-check" />
+                                    <span>{feature}</span>
+                                </div>
+                            ))
+                        }
+                    </div>
 
                     <div className="product-modal-actions">
                         <span className="product-modal-price">{product.price}</span>

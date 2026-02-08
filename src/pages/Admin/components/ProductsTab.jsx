@@ -272,22 +272,12 @@ const ProductsTab = ({
                             </div>
 
                             <div className="form-group">
-                                <label>Description</label>
+                                <label>Description (comma separated features)</label>
                                 <textarea
                                     value={form.description}
                                     onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                    placeholder="Brief description of the product..."
-                                    rows={3}
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>Features (comma separated) {form.isFeatured && <span className="required-hint">- Required for Featured</span>}</label>
-                                <textarea
-                                    value={form.features}
-                                    onChange={(e) => setForm({ ...form, features: e.target.value })}
                                     placeholder="Priority Queue, Green Name Color, 1x Kit Key..."
-                                    rows={2}
+                                    rows={3}
                                 />
                             </div>
 
