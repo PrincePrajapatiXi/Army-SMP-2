@@ -10,20 +10,20 @@
     z-index: var(--z-navbar);
     width: calc(100% - 24px);
     max-width: 360px;
-    /* Pill shape with heavy glassmorphism */
-    background: rgba(18, 18, 26, 0.85);
-    backdrop-filter: blur(25px) saturate(180%);
-    -webkit-backdrop-filter: blur(25px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 22px;
-    padding: 6px 8px;
-    /* Island-style elevation with orange glow */
+    /* PWA-enhanced pill shape with stronger glassmorphism */
+    background: rgba(18, 18, 26, 0.88);
+    backdrop-filter: blur(35px) saturate(200%);
+    -webkit-backdrop-filter: blur(35px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 24px;
+    padding: 6px 10px;
+    /* Stronger elevation with vibrant glow */
     box-shadow:
-        0 4px 24px rgba(0, 0, 0, 0.4),
-        0 8px 32px rgba(0, 0, 0, 0.2),
-        0 0 0 1px rgba(255, 255, 255, 0.05),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08),
-        0 0 40px rgba(255, 107, 53, 0.08);
+        0 6px 32px rgba(0, 0, 0, 0.5),
+        0 12px 48px rgba(0, 0, 0, 0.25),
+        0 0 0 1px rgba(255, 255, 255, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 60px rgba(255, 107, 53, 0.1);
 }
 
 /* Subtle gradient border effect */
