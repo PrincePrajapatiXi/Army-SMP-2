@@ -429,3 +429,18 @@
         transition-duration: 0.1s;
     }
 }
+
+/* ============================================ */
+/* ===== MOBILE ZOOMED IMAGE OVERRIDE ===== */
+/* ============================================ */
+@media (max-width: 768px) {
+    .card-image-container {
+        height: 110px !important;
+        overflow: visible !important;
+    }
+
+    .card-image {
+        transform: scale(1.8) !important;
+        width: 100% !important;
+    }
+}
