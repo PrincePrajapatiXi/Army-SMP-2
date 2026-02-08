@@ -1,0 +1,136 @@
+/* PWAInstallPrompt.css - PWA Install Banner Styles */
+
+.pwa-install-prompt {
+    position: fixed;
+    bottom: 80px;
+    /* Above mobile nav */
+    left: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, var(--bg-surface), rgba(26, 26, 46, 0.98));
+    border: 1px solid var(--primary);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    z-index: 999;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 107, 53, 0.2);
+    animation: slideUpPrompt 0.4s ease;
+}
+
+@keyframes slideUpPrompt {
+    from {
+        opacity: 0;
+        transform: translateY(100px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.pwa-prompt-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.pwa-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.pwa-text h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 4px;
+}
+
+.pwa-text p {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.pwa-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.pwa-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.pwa-install-btn {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+}
+
+.pwa-install-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+}
+
+.pwa-dismiss-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    padding: 10px;
+}
+
+.pwa-dismiss-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+}
+
+/* Light theme */
+[data-theme="light"] .pwa-install-prompt {
+    background: white;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 0 20px rgba(255, 107, 53, 0.1);
+}
+
+[data-theme="light"] .pwa-dismiss-btn {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .pwa-dismiss-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* Desktop - hide since PWA install is mobile-focused */
+@media (min-width: 769px) {
+    .pwa-install-prompt {
+        bottom: 24px;
+        left: auto;
+        right: 24px;
+        max-width: 360px;
+    }
+}
+
+/* Safe area */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .pwa-install-prompt {
+        bottom: calc(80px + env(safe-area-inset-bottom));
+    }
+}

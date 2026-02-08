@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import './PromoSlider.css';
 
-const API_BASE_URL = window.location.hostname === 'localhost'
-    ? 'http://localhost:5000/api'
-    : 'https://army-smp-2.onrender.com/api';
+const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
 
 // Fallback promos if API is empty
 const defaultPromos = [
@@ -353,3 +351,4 @@ const PromoSlider = () => {
 };
 
 export default PromoSlider;
+

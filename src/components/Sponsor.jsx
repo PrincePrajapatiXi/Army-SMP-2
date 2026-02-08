@@ -4,7 +4,12 @@ const Sponsor = () => {
     return (
         <section className="sponsor-section">
             <div className="container">
-                <div className="sponsor-card">
+                <div className="sponsor-card" style={{
+                    padding: '15px',
+                    maxWidth: '350px',
+                    margin: '0 auto',
+                    width: '90%'
+                }}>
                     <div className="sponsor-header">
                         <img
                             src="/images/dragohost-logo.png"
@@ -41,3 +46,4 @@ const Sponsor = () => {
 };
 
 export default Sponsor;
+

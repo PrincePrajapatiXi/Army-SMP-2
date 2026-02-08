@@ -54,3 +54,4 @@ const NetworkStatus = () => {
 };
 
 export default NetworkStatus;
+

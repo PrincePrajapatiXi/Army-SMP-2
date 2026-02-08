@@ -98,3 +98,4 @@ const NotificationPrompt = () => {
 };
 
 export default NotificationPrompt;
+

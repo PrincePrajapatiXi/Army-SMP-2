@@ -131,3 +131,4 @@ const StructuredData = ({ type = 'organization', data = null }) => {
 
 export { createProductSchema, createBreadcrumbSchema };
 export default StructuredData;
+

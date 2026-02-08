@@ -56,3 +56,4 @@ export const useIntersectionObserver = (options = {}) => {
 };
 
 export default useIntersectionObserver;
+

@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from './Toast';
 import './ReferralDashboard.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = 'https://army-smp-2.onrender.com/api';
 
 const ReferralDashboard = () => {
     const { user, token } = useAuth();
@@ -235,3 +235,4 @@ const ReferralDashboard = () => {
 };
 
 export default ReferralDashboard;
+

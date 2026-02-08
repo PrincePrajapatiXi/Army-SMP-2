@@ -1,16 +1,15 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback, useContext } from 'react';
-import { Search, TrendingUp, Clock, Tag, Menu, X } from 'lucide-react';
+import { Search, TrendingUp, Clock, Tag, SlidersHorizontal } from 'lucide-react';
 import { products as staticProducts } from '../data/products';
 import ProductCard from '../components/ProductCard';
 import ProductModal from '../components/ProductModal';
 import { SkeletonGrid } from '../components/SkeletonCard';
+import FilterDrawer from '../components/FilterDrawer';
 import { AuthContext } from '../context/AuthContext';
 import SEO from '../components/SEO';
 import './Store.css';
 
-const API_BASE_URL = window.location.hostname === 'localhost'
-    ? 'http://localhost:5000/api'
-    : 'https://army-smp-2.onrender.com/api';
+const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
 
 const categories = [
     { id: 'all', label: 'All Items' },
@@ -29,7 +28,7 @@ const Store = () => {
     const [activeCategory, setActiveCategory] = useState('all');
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
 
     // Auto-suggestions state
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -392,104 +391,96 @@ const Store = () => {
                             </div>
                         </div>
 
-                        {/* Mobile Hamburger Menu Button */}
+                        {/* Mobile Filter Button */}
                         <div className="mobile-category-menu">
                             <button
                                 className="hamburger-btn"
-                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                onClick={() => setFilterDrawerOpen(true)}
                             >
-                                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                                <span>Categories</span>
+                                <SlidersHorizontal size={20} />
+                                <span>Filters</span>
                             </button>
-
-                            {/* Mobile Dropdown */}
-                            {mobileMenuOpen && (
-                                <div className="mobile-category-dropdown">
-                                    {categories.map(cat => (
-                                        <button
-                                            key={cat.id}
-                                            onClick={() => {
-                                                setActiveCategory(cat.id);
-                                                setMobileMenuOpen(false);
-                                            }}
-                                            className={`mobile-category-item ${activeCategory === cat.id ? 'active' : ''}`}
-                                        >
-                                            {cat.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
                         </div>
                     </div>
                     {/* End Sticky Header */}
 
+                    {/* Filter Drawer */}
+                    <FilterDrawer
+                        isOpen={filterDrawerOpen}
+                        onClose={() => setFilterDrawerOpen(false)}
+                        categories={categories}
+                        activeCategory={activeCategory}
+                        onCategoryChange={setActiveCategory}
+                    />
+
                     {/* Desktop Categories */}
                     <div className="category-tabs desktop-only">
-                            {categories.map(cat => (
-                                <button
-                                    key={cat.id}
-                                    onClick={() => setActiveCategory(cat.id)}
-                                    className={activeCategory === cat.id ? 'btn btn-primary' : 'btn btn-outline'}
-                                    style={{ minWidth: '100px', flexShrink: 0, justifyContent: 'center' }}
-                                >
-                                    {cat.label}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Results Count */}
-                        {searchQuery && (
-                            <div className="search-results-info">
-                                Found <strong>{filteredProducts.length}</strong> {filteredProducts.length === 1 ? 'product' : 'products'}
-                                {searchQuery && <span> for "<strong>{searchQuery}</strong>"</span>}
-                            </div>
-                        )}
-
-                        {/* Product Grid */}
-                        {loading ? (
-                            <SkeletonGrid count={8} />
-                        ) : (
-                            <>
-                                <div className="store-grid">
-                                    {filteredProducts.map(product => (
-                                        <ProductCard
-                                            key={product.id}
-                                            product={product}
-                                            onBuy={setSelectedProduct}
-                                        />
-                                    ))}
-                                </div>
-
-                                {filteredProducts.length === 0 && (
-                                    <div className="no-products">
-                                        <div className="no-products-icon">🔍</div>
-                                        <h3>No products found</h3>
-                                        <p>Try adjusting your search or filter criteria</p>
-                                        {searchQuery && (
-                                            <button
-                                                className="btn btn-outline"
-                                                onClick={() => setSearchQuery('')}
-                                            >
-                                                Clear Search
-                                            </button>
-                                        )}
-                                    </div>
-                                )}
-                            </>
-                        )}
-
+                        {categories.map(cat => (
+                            <button
+                                key={cat.id}
+                                onClick={() => setActiveCategory(cat.id)}
+                                className={activeCategory === cat.id ? 'btn btn-primary' : 'btn btn-outline'}
+                                style={{ minWidth: '100px', flexShrink: 0, justifyContent: 'center' }}
+                            >
+                                {cat.label}
+                            </button>
+                        ))}
                     </div>
 
+                    {/* Results Count */}
+                    {searchQuery && (
+                        <div className="search-results-info">
+                            Found <strong>{filteredProducts.length}</strong> {filteredProducts.length === 1 ? 'product' : 'products'}
+                            {searchQuery && <span> for "<strong>{searchQuery}</strong>"</span>}
+                        </div>
+                    )}
 
-                    <ProductModal
-                        isOpen={!!selectedProduct}
-                        product={selectedProduct}
-                        onClose={() => setSelectedProduct(null)}
-                    />
+                    {/* Product Grid */}
+                    {loading ? (
+                        <SkeletonGrid count={8} />
+                    ) : (
+                        <>
+                            <div className="store-grid">
+                                {filteredProducts.map(product => (
+                                    <ProductCard
+                                        key={product.id}
+                                        product={product}
+                                        onBuy={setSelectedProduct}
+                                    />
+                                ))}
+                            </div>
+
+                            {filteredProducts.length === 0 && (
+                                <div className="no-products">
+                                    <div className="no-products-icon">🔍</div>
+                                    <h3>No products found</h3>
+                                    <p>Try adjusting your search or filter criteria</p>
+                                    {searchQuery && (
+                                        <button
+                                            className="btn btn-outline"
+                                            onClick={() => setSearchQuery('')}
+                                        >
+                                            Clear Search
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </>
+                    )}
+
                 </div>
-            </>
-            );
+
+
+                <ProductModal
+                    isOpen={!!selectedProduct}
+                    product={selectedProduct}
+                    onClose={() => setSelectedProduct(null)}
+                />
+            </div>
+        </>
+    );
 };
 
-            export default Store;
+export default Store;
+
 

@@ -12,7 +12,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import './AnalyticsDashboard.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = 'https://army-smp-2.onrender.com/api';
 
 const AnalyticsDashboard = () => {
     const { adminToken } = useAuth();
@@ -344,3 +344,4 @@ const AnalyticsDashboard = () => {
 };
 
 export default AnalyticsDashboard;
+

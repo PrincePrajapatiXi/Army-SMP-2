@@ -83,3 +83,4 @@ export const AnimatedGrid = ({
 };
 
 export default AnimatedSection;
+

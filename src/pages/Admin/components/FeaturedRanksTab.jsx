@@ -171,3 +171,4 @@ const FeaturedRanksTab = ({
 };
 
 export default FeaturedRanksTab;
+

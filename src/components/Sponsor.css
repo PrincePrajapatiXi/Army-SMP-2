@@ -21,7 +21,7 @@
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 85, 0, 0.2);
     border-radius: 20px;
-    padding: 3rem;
+    padding: 1.5rem;
     text-align: center;
     transition: all 0.3s ease;
     position: relative;
@@ -204,5 +204,16 @@
     .discord-icon {
         width: 20px;
         height: 20px;
+    }
+}
+/* Mobile Fix - Paste at the bottom of Sponsor.css */
+@media (max-width: 768px) {
+    .sponsor-card {
+        padding: 10px !important;
+        width: 90% !important;
+        /* यह लाइन सबसे जरूरी है, यह बॉक्स को 320px से चौड़ा नहीं होने देगी */
+        max-width: 320px !important; 
+        margin-left: auto !important;
+        margin-right: auto !important;
     }
 }

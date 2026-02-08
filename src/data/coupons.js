@@ -9,3 +9,4 @@ export const coupons = [];
 export const validateCoupon = (code, orderTotal) => {
     return { valid: false, error: "Invalid coupon code" };
 };
+

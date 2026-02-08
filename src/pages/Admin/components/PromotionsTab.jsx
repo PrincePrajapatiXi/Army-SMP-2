@@ -239,3 +239,4 @@ const PromotionsTab = ({
 };
 
 export default PromotionsTab;
+
