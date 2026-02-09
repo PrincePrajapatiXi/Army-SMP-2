@@ -375,9 +375,9 @@
         margin-top: clamp(2px, 1vw, 6px);
     }
 
-    /* Hide cart button on mobile */
+    /* Hide cart button on mobile - force override */
     .btn-buy {
-        display: none;
+        display: none !important;
     }
 }
 
