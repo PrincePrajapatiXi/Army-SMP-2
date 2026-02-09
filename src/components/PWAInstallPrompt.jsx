@@ -1,20 +1,30 @@
 import { useState, useEffect } from 'react';
-import { Download, X, Smartphone } from 'lucide-react';
+import { Download, X, Smartphone, Share } from 'lucide-react';
 import { triggerHaptic } from '../hooks/useHaptics';
 import './PWAInstallPrompt.css';
 
 /**
  * PWAInstallPrompt - Shows install banner for PWA
- * Captures beforeinstallprompt event and provides custom install UI
+ * Handles both Android (beforeinstallprompt) and iOS (manual instructions)
  */
 const PWAInstallPrompt = () => {
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [showPrompt, setShowPrompt] = useState(false);
     const [isInstalled, setIsInstalled] = useState(false);
+    const [isIOS, setIsIOS] = useState(false);
+    const [isInStandaloneMode, setIsInStandaloneMode] = useState(false);
 
     useEffect(() => {
-        // Check if already installed
-        if (window.matchMedia('(display-mode: standalone)').matches) {
+        // Detect iOS
+        const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        setIsIOS(isIOSDevice);
+
+        // Check if already installed (standalone mode)
+        const standalone = window.matchMedia('(display-mode: standalone)').matches ||
+            window.navigator.standalone === true;
+        setIsInStandaloneMode(standalone);
+
+        if (standalone) {
             setIsInstalled(true);
             return;
         }
@@ -29,11 +39,16 @@ const PWAInstallPrompt = () => {
             }
         }
 
-        // Listen for install prompt
+        // For iOS - show custom instructions prompt
+        if (isIOSDevice) {
+            setTimeout(() => setShowPrompt(true), 3000);
+            return;
+        }
+
+        // For Android/Chrome - listen for install prompt
         const handleBeforeInstall = (e) => {
             e.preventDefault();
             setDeferredPrompt(e);
-            // Show prompt after delay
             setTimeout(() => setShowPrompt(true), 3000);
         };
 
@@ -74,8 +89,35 @@ const PWAInstallPrompt = () => {
         localStorage.setItem('pwa-install-dismissed', Date.now().toString());
     };
 
-    // Don't show if already installed or prompt not available
-    if (isInstalled || !showPrompt || !deferredPrompt) {
+    // Don't show if already installed or prompt not ready
+    if (isInstalled || isInStandaloneMode || !showPrompt) {
+        return null;
+    }
+
+    // iOS - Show manual instructions
+    if (isIOS) {
+        return (
+            <div className="pwa-install-prompt pwa-ios-prompt">
+                <div className="pwa-prompt-content">
+                    <div className="pwa-icon">
+                        <Smartphone size={28} />
+                    </div>
+                    <div className="pwa-text">
+                        <h4>Install Army SMP 2</h4>
+                        <p>Tap <Share size={16} className="inline-icon" /> then "Add to Home Screen"</p>
+                    </div>
+                </div>
+                <div className="pwa-actions">
+                    <button className="pwa-btn pwa-dismiss-btn" onClick={handleDismiss}>
+                        <X size={18} />
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // Android/Chrome - Normal install button
+    if (!deferredPrompt) {
         return null;
     }
 
@@ -104,4 +146,5 @@ const PWAInstallPrompt = () => {
 };
 
 export default PWAInstallPrompt;
+
 
