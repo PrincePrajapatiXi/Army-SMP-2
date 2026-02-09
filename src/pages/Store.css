@@ -447,25 +447,26 @@
         padding: 12px 40px;
     }
 
+    /* UNIFIED GRID - Same on ALL devices */
     .store-grid {
-        display: grid !important;
-        grid-template-columns: repeat(3, 1fr) !important;
-        gap: 10px !important;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: clamp(6px, 2vw, 12px);
         margin-bottom: 100px;
     }
 
     /* Force cards to shrink - remove any min-width */
     .store-grid>* {
-        min-width: 0 !important;
-        width: 100% !important;
+        min-width: 0;
+        width: 100%;
     }
 }
 
-/* Very small screens */
+/* Very small screens - same as above but fluid */
 @media (max-width: 400px) {
     .store-grid {
         grid-template-columns: repeat(3, 1fr);
-        gap: 8px !important;
+        gap: clamp(4px, 1.5vw, 8px);
     }
 
     .store-header {

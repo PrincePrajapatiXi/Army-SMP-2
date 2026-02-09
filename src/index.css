@@ -11,6 +11,12 @@
   --accent-rgb: 255, 193, 7;
   --accent-glow: rgba(255, 193, 7, 0.4);
 
+  /* ===== CROSS-DEVICE RESPONSIVE UTILITIES ===== */
+  --mobile-max-width: 768px;
+  --container-padding: clamp(12px, 4vw, 24px);
+  --card-gap: clamp(6px, 2vw, 12px);
+  --safe-bottom: max(12px, env(safe-area-inset-bottom, 12px));
+
   --gradient-primary: linear-gradient(135deg, #ff6b35, #ff8555, #ffc107);
   --gradient-dark: linear-gradient(180deg, #0a0a0f 0%, #12121a 100%);
   --gradient-card: linear-gradient(145deg, rgba(30, 30, 45, 0.8), rgba(20, 20, 30, 0.9));
