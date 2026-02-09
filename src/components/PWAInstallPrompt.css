@@ -134,3 +134,17 @@
         bottom: calc(80px + env(safe-area-inset-bottom));
     }
 }
+
+/* iOS specific styles */
+.pwa-ios-prompt .pwa-text p {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.pwa-ios-prompt .inline-icon {
+    display: inline-block;
+    vertical-align: middle;
+    color: var(--primary);
+}
