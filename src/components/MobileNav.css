@@ -4,11 +4,12 @@
 .mobile-nav {
     display: none;
     position: fixed;
-    bottom: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom, 12px));
     left: 50%;
     transform: translateX(-50%);
     z-index: var(--z-navbar);
-    width: calc(100% - 24px);
+    /* Fluid width - consistent on all devices */
+    width: min(calc(100vw - 24px), 360px);
     max-width: 360px;
     /* PWA-enhanced pill shape with stronger glassmorphism */
     background: rgba(18, 18, 26, 0.88);

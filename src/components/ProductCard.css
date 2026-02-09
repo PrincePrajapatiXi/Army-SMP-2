@@ -280,17 +280,18 @@
 }
 
 /* ============================================ */
-/* ===== MOBILE MICRO-CARD STYLES (<768px) ===== */
+/* ===== UNIFIED MOBILE STYLES (all phones) === */
 /* ============================================ */
 @media (max-width: 768px) {
     .product-card {
-        border-radius: 6px;
+        border-radius: clamp(6px, 1.5vw, 10px);
         border: 1px solid rgba(255, 255, 255, 0.05);
         background: linear-gradient(145deg, rgba(26, 26, 37, 0.75), rgba(18, 18, 26, 0.85));
-        /* CRITICAL: Force shrinking in grid */
-        min-width: 0 !important;
-        max-width: 100% !important;
-        overflow: hidden !important;
+        /* Force consistent shrinking on ALL devices */
+        min-width: 0;
+        max-width: 100%;
+        width: 100%;
+        overflow: hidden;
     }
 
     .product-card::before,
@@ -304,61 +305,64 @@
             0 0 12px rgba(255, 107, 53, 0.12);
     }
 
-    /* Wishlist button - smaller */
+    /* Wishlist button - fluid sizing */
     .wishlist-btn {
-        top: 4px;
-        right: 4px;
-        width: 22px;
-        height: 22px;
+        top: clamp(4px, 1vw, 8px);
+        right: clamp(4px, 1vw, 8px);
+        width: clamp(20px, 5vw, 28px);
+        height: clamp(20px, 5vw, 28px);
     }
 
     .wishlist-btn svg {
-        width: 11px;
-        height: 11px;
+        width: clamp(10px, 2.5vw, 14px);
+        height: clamp(10px, 2.5vw, 14px);
     }
 
-    /* Image container - full width, BIGGER height */
+    /* Image container - FLUID height for all devices */
     .card-image-container {
-        height: 200px;
-        padding: 10px;
+        height: clamp(90px, 25vw, 130px);
+        padding: clamp(6px, 2vw, 12px);
         background: radial-gradient(circle at center, rgba(255, 107, 53, 0.05) 0%, rgba(20, 20, 28, 1) 70%);
+        overflow: visible;
     }
 
     .card-image-container::before {
         display: none;
     }
 
-    .product-card:hover .card-image {
-        transform: scale(1.04);
-    }
-
+    /* Image scaling - consistent across devices */
     .card-image {
+        transform: scale(1.6);
+        width: 100%;
         filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5));
     }
 
-    /* Compact content area - minimal padding */
-    .card-content {
-        padding: 6px;
+    .product-card:hover .card-image {
+        transform: scale(1.65);
     }
 
-    /* Title - show full name on 2 lines */
+    /* Compact content area - fluid padding */
+    .card-content {
+        padding: clamp(4px, 1.5vw, 8px);
+    }
+
+    /* Title - fluid font size */
     .card-title {
-        font-size: 11px;
+        font-size: clamp(10px, 2.8vw, 13px);
         font-weight: 600;
-        margin-bottom: 3px;
+        margin-bottom: clamp(2px, 0.5vw, 4px);
         white-space: normal;
         overflow: hidden;
         text-overflow: ellipsis;
         display: -webkit-box;
         -webkit-line-clamp: 2;
+        line-clamp: 2;
         -webkit-box-orient: vertical;
-        line-height: 1.3;
-        min-height: calc(11px * 1.3 * 2);
     }
 
-    /* Price - compact, bold */
+    /* Price - fluid font size */
     .card-price {
-        font-size: 11px;
+        font-size: clamp(10px, 2.8vw, 13px);
         font-weight: 700;
     }
 
@@ -367,80 +371,20 @@
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
-        gap: 4px;
-        margin-top: 4px;
+        gap: clamp(2px, 1vw, 6px);
+        margin-top: clamp(2px, 1vw, 6px);
     }
 
-    /* HIDE cart button on mobile - only show price */
+    /* Hide cart button on mobile */
     .btn-buy {
-        display: none !important;
+        display: none;
     }
 }
 
-/* ===== VERY SMALL SCREENS (<400px) - Even more compact ===== */
-@media (max-width: 400px) {
-    .product-card {
-        border-radius: 8px;
-    }
-
-    .wishlist-btn {
-        top: 4px;
-        right: 4px;
-        width: 20px;
-        height: 20px;
-    }
-
-    .wishlist-btn svg {
-        width: 10px;
-        height: 10px;
-    }
-
-    .card-image-container {
-        height: 100px;
-        padding: 8px;
-    }
-
-    .card-content {
-        padding: 0.4rem;
-    }
-
-    .card-title {
-        font-size: 0.6rem;
-    }
-
-    .card-price {
-        font-size: 0.7rem;
-    }
-
-    .btn-buy {
-        padding: 5px 6px;
-    }
-
-    .btn-buy svg {
-        width: 12px;
-        height: 12px;
-    }
-}
-
-/* Touch feedback for mobile */
+/* Touch feedback for all mobile devices */
 @media (hover: none) {
     .product-card:active {
         transform: scale(0.97);
         transition-duration: 0.1s;
-    }
-}
-
-/* ============================================ */
-/* ===== MOBILE ZOOMED IMAGE OVERRIDE ===== */
-/* ============================================ */
-@media (max-width: 768px) {
-    .card-image-container {
-        height: 110px !important;
-        overflow: visible !important;
-    }
-
-    .card-image {
-        transform: scale(1.8) !important;
-        width: 100% !important;
     }
 }
