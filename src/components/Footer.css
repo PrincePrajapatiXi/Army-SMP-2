@@ -408,49 +408,7 @@
     }
 }
 
-/* ===== VERY SMALL SCREENS (< 400px) ===== */
-@media (max-width: 400px) {
-    .site-footer {
-        padding: 1.25rem 0.75rem 6rem;
-    }
-
-    .footer-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem 0.5rem;
-    }
-
-    .footer-brand-link {
-        font-size: 1.35rem;
-    }
-
-    .footer-brand-desc {
-        font-size: 0.75rem;
-        max-width: 220px;
-    }
-
-    .footer-heading {
-        font-size: 0.65rem;
-    }
-
-    .footer-link {
-        font-size: 0.8rem;
-    }
-
-    .social-icon-link {
-        width: 28px;
-        height: 28px;
-    }
-
-    .social-icon-link svg {
-        width: 14px;
-        height: 14px;
-    }
-
-    .footer-email {
-        font-size: 0.7rem;
-        padding: 0.3rem 0.4rem;
-    }
-}
+/* 400px breakpoint removed - all fluid values now in 768px block using clamp() */
 
 /* ===== LIGHT THEME ADJUSTMENTS ===== */
 [data-theme="light"] .site-footer {
