@@ -5,6 +5,10 @@ const OTP = require('../models/OTP');
 const { generateToken, requireAuth } = require('../middleware/authMiddleware');
 const { sendOTPEmail } = require('../services/email');
 
+const frontendURL = process.env.NODE_ENV === 'production'
+    ? 'https://store.armysmp.fun'
+    : 'http://localhost:5173';
+
 // ==================== SIGNUP ====================
 router.post('/signup', async (req, res) => {
     try {
@@ -478,7 +482,7 @@ router.get('/google', passport.authenticate('google', {
 router.get('/google/callback',
     passport.authenticate('google', {
         session: false,
-        failureRedirect: '/login?error=oauth_failed'
+        failureRedirect: `${frontendURL}/login?error=oauth_failed`
     }),
     async (req, res) => {
         try {
@@ -494,14 +498,11 @@ router.get('/google/callback',
             });
 
             // Redirect to frontend with token
-            const frontendURL = process.env.NODE_ENV === 'production'
-                ? 'https://store.armysmp.fun'
-                : 'http://localhost:5173';
-
+            // Redirect to frontend with token
             res.redirect(`${frontendURL}/oauth-callback?token=${token}`);
         } catch (error) {
             console.error('Google OAuth callback error:', error);
-            res.redirect('/login?error=oauth_failed');
+            res.redirect(`${frontendURL}/login?error=oauth_failed`);
         }
     }
 );
@@ -516,7 +517,7 @@ router.get('/discord', passport.authenticate('discord', {
 router.get('/discord/callback',
     passport.authenticate('discord', {
         session: false,
-        failureRedirect: '/login?error=oauth_failed'
+        failureRedirect: `${frontendURL}/login?error=oauth_failed`
     }),
     async (req, res) => {
         try {
@@ -532,14 +533,11 @@ router.get('/discord/callback',
             });
 
             // Redirect to frontend with token
-            const frontendURL = process.env.NODE_ENV === 'production'
-                ? 'https://store.armysmp.fun'
-                : 'http://localhost:5173';
-
+            // Redirect to frontend with token
             res.redirect(`${frontendURL}/oauth-callback?token=${token}`);
         } catch (error) {
             console.error('Discord OAuth callback error:', error);
-            res.redirect('/login?error=oauth_failed');
+            res.redirect(`${frontendURL}/login?error=oauth_failed`);
         }
     }
 );
