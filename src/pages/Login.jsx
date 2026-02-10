@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, User, LogIn, AlertCircle, CheckCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, LogIn, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './Login.css';
 
@@ -65,6 +65,10 @@ const Login = () => {
             <div className="auth-container">
                 <div className="auth-card">
                     <div className="auth-header">
+                        <Link to="/" className="auth-back-btn">
+                            <ArrowLeft size={18} />
+                            <span>Home</span>
+                        </Link>
                         <div className="auth-logo">
                             <img src="/images/Army logo.png" alt="Army SMP 2" />
                         </div>

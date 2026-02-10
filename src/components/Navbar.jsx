@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Menu, X, User, LogIn, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { ShoppingCart, User, LogIn, LogOut, Settings, ChevronDown } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import CartDrawer from './CartDrawer';
@@ -8,7 +8,7 @@ import ThemeToggle from './ThemeToggle';
 import './Navbar.css';
 
 const Navbar = () => {
-    const [isOpen, setIsOpen] = useState(false);
+    // const [isOpen, setIsOpen] = useState(false); // Removed mobile menu state
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const location = useLocation();
@@ -17,7 +17,7 @@ const Navbar = () => {
     const { user, isAuthenticated, logout } = useAuth();
     const userMenuRef = useRef(null);
 
-    const toggleMenu = () => setIsOpen(!isOpen);
+    // const toggleMenu = () => setIsOpen(!isOpen); // Removed toggle function
 
     const isActive = (path) => location.pathname === path ? 'active' : '';
 
@@ -50,19 +50,19 @@ const Navbar = () => {
                     </Link>
 
                     {/* Desktop Menu */}
-                    <ul className={`nav-links ${isOpen ? 'open' : ''}`}>
+                    <ul className={`nav-links`}>
                         <li>
-                            <Link to="/" className={`nav-item ${isActive('/')}`} onClick={() => setIsOpen(false)}>
+                            <Link to="/" className={`nav-item ${isActive('/')}`}>
                                 Home
                             </Link>
                         </li>
                         <li>
-                            <Link to="/store" className={`nav-item ${isActive('/store')}`} onClick={() => setIsOpen(false)}>
+                            <Link to="/store" className={`nav-item ${isActive('/store')}`}>
                                 Store
                             </Link>
                         </li>
                         <li>
-                            <Link to="/orders" className={`nav-item ${isActive('/orders')}`} onClick={() => setIsOpen(false)}>
+                            <Link to="/orders" className={`nav-item ${isActive('/orders')}`}>
                                 My Orders
                             </Link>
                         </li>
@@ -70,34 +70,7 @@ const Navbar = () => {
                             <a href="https://discord.gg/EBmGM2jsdt" className="nav-item">Discord</a>
                         </li>
 
-                        {/* Mobile Auth Links */}
-                        {isOpen && (
-                            <>
-                                {isAuthenticated ? (
-                                    <>
-                                        <li className="mobile-only">
-                                            <Link to="/profile" className={`nav-item ${isActive('/profile')}`} onClick={() => setIsOpen(false)}>
-                                                <User size={16} style={{ marginRight: '0.5rem' }} />
-                                                Profile
-                                            </Link>
-                                        </li>
-                                        <li className="mobile-only">
-                                            <button className="nav-item logout-mobile" onClick={() => { setIsOpen(false); handleLogout(); }}>
-                                                <LogOut size={16} style={{ marginRight: '0.5rem' }} />
-                                                Logout
-                                            </button>
-                                        </li>
-                                    </>
-                                ) : (
-                                    <li className="mobile-only">
-                                        <Link to="/login" className="nav-item login-mobile" onClick={() => setIsOpen(false)}>
-                                            <LogIn size={16} style={{ marginRight: '0.5rem' }} />
-                                            Login
-                                        </Link>
-                                    </li>
-                                )}
-                            </>
-                        )}
+                        {/* Mobile Auth Links - Removed as mobile menu is removed */}
                     </ul>
 
                     <div className="nav-actions">
@@ -176,9 +149,9 @@ const Navbar = () => {
                             }}>{cartCount}</span>
                         </button>
 
-                        <div className="mobile-toggle" onClick={toggleMenu}>
+                        {/* <div className="mobile-toggle" onClick={toggleMenu}>
                             {isOpen ? <X size={24} /> : <Menu size={24} />}
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </nav>
