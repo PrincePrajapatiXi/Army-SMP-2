@@ -20,7 +20,7 @@ const Home = () => {
     });
 
     const ip = "play.armysmp.fun";
-    const port = "19216";
+    const port = "25567";
     const fullAddress = ip;
 
     // Fetch live server status
