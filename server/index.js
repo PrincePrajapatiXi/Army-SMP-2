@@ -143,6 +143,24 @@ app.use('/api/referrals', referralsRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/notifications', notificationsRouter);
 
+// Import keep-alive service
+const { startKeepAlive } = require('./services/keepAlive');
+
+// Start keep-alive service
+startKeepAlive();
+
+// Serve static files from the 'public' directory if it exists
+app.use(express.static(path.join(__dirname, '../public')));
+
+// Root route for UptimeRobot
+app.get('/', (req, res) => {
+    // Check if we have a static index.html, if not return a simple message
+    // Note: express.static usually handles this if index.html exists in public
+    // avoiding double-sending headers if static handled it is important, 
+    // but express.static calls next() if file not found.
+    res.status(200).send('Army SMP Server is Running! 🚀');
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Army SMP Backend is running!' });
