@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, TrendingUp, Sparkles, Package } from 'lucide-react';
-import { CartContext } from '../context/CartContext';
+import { useCart } from '../context/CartContext';
 import './RecommendedProducts.css';
 
 const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
@@ -16,7 +16,7 @@ const RecommendedProducts = ({
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [scrollPosition, setScrollPosition] = useState(0);
-    const { addToCart } = useContext(CartContext);
+    const { addToCart } = useCart();
 
     const containerRef = React.useRef(null);
 

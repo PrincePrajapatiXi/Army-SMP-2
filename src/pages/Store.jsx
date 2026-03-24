@@ -5,7 +5,7 @@ import ProductCard from '../components/ProductCard';
 import ProductModal from '../components/ProductModal';
 import { SkeletonGrid } from '../components/SkeletonCard';
 import FilterDrawer from '../components/FilterDrawer';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import SEO from '../components/SEO';
 import './Store.css';
 
@@ -38,7 +38,7 @@ const Store = () => {
     const inputRef = useRef(null);
 
     // Get user for personalized recommendations
-    const { user } = useContext(AuthContext) || {};
+    const { user } = useAuth();
 
     // Load recent searches from localStorage
     useEffect(() => {

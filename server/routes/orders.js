@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
@@ -21,7 +22,7 @@ const sanitizeInput = (str) => {
 // POST /api/orders/create - Create a new order
 router.post('/create', async (req, res) => {
     try {
-        const { minecraftUsername, email, items, platform, couponInfo, transactionId, paymentScreenshot } = req.body;
+        const { minecraftUsername, email, items, platform, couponInfo, transactionId, paymentScreenshot, razorpayPaymentId, razorpayOrderId, razorpaySignature } = req.body;
 
         if (!minecraftUsername) {
             return res.status(400).json({ error: 'Minecraft username is required' });
@@ -37,8 +38,8 @@ router.post('/create', async (req, res) => {
             return res.status(400).json({ error: 'Cart is empty' });
         }
 
-        // UTR/Transaction ID Validation
-        if (transactionId) {
+        // UTR/Transaction ID Validation - Only if not using Razorpay
+        if (transactionId && !razorpayPaymentId) {
             const trimmedUTR = transactionId.trim();
 
             // Format validation: UTR should be 12-22 alphanumeric characters
@@ -59,6 +60,22 @@ router.post('/create', async (req, res) => {
                     error: 'This Transaction ID has already been used for another order. Please enter a different UTR.',
                     field: 'transactionId',
                     duplicate: true
+                });
+            }
+        }
+        
+        // Razorpay Verification
+        if (razorpayPaymentId && razorpayOrderId && razorpaySignature) {
+            const body = razorpayOrderId + "|" + razorpayPaymentId;
+            const expectedSignature = crypto
+                .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'dummy_key_secret')
+                .update(body.toString())
+                .digest('hex');
+                
+            if (expectedSignature !== razorpaySignature) {
+                return res.status(400).json({
+                    error: 'Invalid payment signature. Payment verification failed!',
+                    field: 'razorpay'
                 });
             }
         }
@@ -90,10 +107,10 @@ router.post('/create', async (req, res) => {
             couponInfo: couponInfo || null, // Store coupon info for Discord notification
             status: 'pending', // pending, processing, completed, cancelled
             // Payment tracking
-            transactionId: transactionId ? transactionId.trim() : null,
-            paymentScreenshot: paymentScreenshot || null,
-            paymentStatus: transactionId ? 'pending' : 'pending', // Will be verified by admin
-            paymentMethod: 'UPI',
+            transactionId: razorpayPaymentId ? razorpayPaymentId : (transactionId ? transactionId.trim() : undefined),
+            paymentScreenshot: paymentScreenshot || undefined,
+            paymentStatus: razorpayPaymentId ? 'paid' : (transactionId ? 'pending' : 'pending'),
+            paymentMethod: razorpayPaymentId ? 'Razorpay' : 'UPI',
             createdAt: new Date(),
             updatedAt: new Date()
         };
@@ -195,7 +212,10 @@ router.post('/create', async (req, res) => {
         });
     } catch (error) {
         console.error('Error creating order:', error);
-        res.status(500).json({ error: 'Failed to create order' });
+        if (error.errors) {
+            console.error('MONGOOSE VALIDATION ERRORS:', JSON.stringify(error.errors, null, 2));
+        }
+        res.status(500).json({ error: 'Failed to create order', details: error.message });
     }
 });
 

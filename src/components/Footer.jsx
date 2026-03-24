@@ -23,7 +23,18 @@ const Footer = () => {
                         <ul className="footer-links">
                             <li><Link to="/" className="footer-link">Home</Link></li>
                             <li><Link to="/store" className="footer-link">Store</Link></li>
-                            <li><a href="https://discord.gg/EBmGM2jsdt" className="footer-link">Discord</a></li>
+                            <li><Link to="/contact-us" className="footer-link">Contact Us</Link></li>
+                            <li><a href="https://discord.gg/EBmGM2jsdt" className="footer-link" target="_blank" rel="noopener noreferrer">Discord</a></li>
+                        </ul>
+                    </div>
+
+                    {/* Legal */}
+                    <div>
+                        <h4 className="footer-heading">Legal</h4>
+                        <ul className="footer-links">
+                            <li><Link to="/privacy-policy" className="footer-link">Privacy Policy</Link></li>
+                            <li><Link to="/terms-and-conditions" className="footer-link">Terms & Conditions</Link></li>
+                            <li><Link to="/refund-policy" className="footer-link">Refund Policy</Link></li>
                         </ul>
                     </div>
 

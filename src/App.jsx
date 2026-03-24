@@ -37,12 +37,19 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Profile = lazy(() => import('./pages/Profile'));
 const OAuthCallback = lazy(() => import('./pages/OAuthCallback'));
 
+// Policy pages
+const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
+const ContactUs = lazy(() => import('./pages/ContactUs'));
+
 // Layout wrapper to hide navbar/footer on admin and auth pages
 function Layout({ children }) {
   const location = useLocation();
   const isAdminPage = location.pathname === '/admin';
   const isAuthPage = ['/login', '/signup', '/verify-email', '/forgot-password', '/reset-password', '/oauth-callback'].includes(location.pathname);
-  const is404Page = !['/', '/store', '/checkout', '/orders', '/admin', '/login', '/signup', '/verify-email', '/forgot-password', '/reset-password', '/profile', '/oauth-callback', '/wishlist'].includes(location.pathname);
+  const isPolicyPage = ['/terms-and-conditions', '/privacy-policy', '/refund-policy', '/contact-us'].includes(location.pathname);
+  const is404Page = !['/', '/store', '/checkout', '/orders', '/admin', '/login', '/signup', '/verify-email', '/forgot-password', '/reset-password', '/profile', '/oauth-callback', '/wishlist', ...['/terms-and-conditions', '/privacy-policy', '/refund-policy', '/contact-us']].includes(location.pathname);
 
   // Enable gesture navigation for native app-like experience
   useGestureNavigation({
@@ -111,6 +118,12 @@ function App() {
                       <Route path="/reset-password" element={<ResetPassword />} />
                       <Route path="/profile" element={<Profile />} />
                       <Route path="/oauth-callback" element={<OAuthCallback />} />
+
+                      {/* Policy Routes */}
+                      <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+                      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                      <Route path="/refund-policy" element={<RefundPolicy />} />
+                      <Route path="/contact-us" element={<ContactUs />} />
 
                       {/* 404 Not Found - Catch all route */}
                       <Route path="*" element={<NotFound />} />

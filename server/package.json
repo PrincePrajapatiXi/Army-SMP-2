@@ -27,6 +27,8 @@
         "passport": "^0.7.0",
         "passport-discord": "^0.1.4",
         "passport-google-oauth20": "^2.0.0",
+        "razorpay": "^2.9.6",
+        "rcon-client": "^4.2.5",
         "resend": "^6.6.0",
         "uuid": "^10.0.0",
         "web-push": "^3.6.7",

@@ -1,6 +1,6 @@
 // API Service for Army SMP 2 Store
-// Force production API for now (backend on Render)
-const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
+// Use local backend for development, and Render for production
+const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:5000/api' : 'https://army-smp-2.onrender.com/api';
 
 
 // Helper function for API requests with credentials (for session cookies)
@@ -73,12 +73,29 @@ export const cartApi = {
     }
 };
 
+// Payment API
+export const paymentApi = {
+    createOrder: async (amount) => {
+        return fetchWithCredentials(`${API_BASE_URL}/payment/create-order`, {
+            method: 'POST',
+            body: JSON.stringify({ amount }),
+        });
+    }
+};
+
 // Orders API
 export const ordersApi = {
-    create: async (minecraftUsername, email = null, items = [], platform = 'Java', couponInfo = null, transactionId = null) => {
+    create: async (minecraftUsername, email = null, items = [], platform = 'Java', couponInfo = null, transactionId = null, razorpayDetails = null) => {
+        const payload = { minecraftUsername, email, items, platform, couponInfo, transactionId };
+        if (razorpayDetails) {
+            payload.razorpayPaymentId = razorpayDetails.razorpayPaymentId;
+            payload.razorpayOrderId = razorpayDetails.razorpayOrderId;
+            payload.razorpaySignature = razorpayDetails.razorpaySignature;
+        }
+        
         return fetchWithCredentials(`${API_BASE_URL}/orders/create`, {
             method: 'POST',
-            body: JSON.stringify({ minecraftUsername, email, items, platform, couponInfo, transactionId }),
+            body: JSON.stringify(payload),
         });
     },
 

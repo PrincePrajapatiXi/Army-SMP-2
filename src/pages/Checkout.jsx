@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingBag, Check, Loader2, MessageCircle, Tag, X, CreditCard, AlertCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { ordersApi } from '../services/api';
+import { ordersApi, paymentApi } from '../services/api';
 import { validateCoupon as validateCouponLocal } from '../data/coupons';
 import Confetti from '../components/Confetti';
-import UpiQrCode from '../components/UpiQrCode';
 import './Checkout.css';
 
 const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
@@ -21,11 +20,7 @@ const Checkout = () => {
     const [orderSuccess, setOrderSuccess] = useState(null);
 
     // Payment step state
-    const [showPayment, setShowPayment] = useState(false);
-    const [transactionId, setTransactionId] = useState('');
-    const [utrError, setUtrError] = useState(''); // UTR validation error
     const [orderDetails, setOrderDetails] = useState(null);
-    const [showUtrPopup, setShowUtrPopup] = useState(false); // Dismissible popup
 
     // Coupon state
     const [couponCode, setCouponCode] = useState('');
@@ -104,77 +99,86 @@ const Checkout = () => {
         setCouponError('');
     };
 
+    // Helper to load external scripts
+    const loadScript = (src) => {
+        return new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = () => resolve(true);
+            script.onerror = () => resolve(false);
+            document.body.appendChild(script);
+        });
+    };
+
     // Proceed to payment step
-    const handleProceedToPayment = (e) => {
+    const handleProceedToPayment = async (e) => {
         e.preventDefault();
 
-        if (!minecraftUsername.trim()) {
-            setError('Please enter your Minecraft username');
-            return;
-        }
-
-        if (!email.trim()) {
-            setError('Please enter your email address');
-            return;
-        }
-
-        if (!platform) {
-            setError('Please select your platform (Java or Bedrock)');
-            return;
-        }
-
-        if (cartItems.length === 0) {
-            setError('Your cart is empty');
+        if (!minecraftUsername.trim() || !email.trim() || !platform || cartItems.length === 0) {
+            setError('Please fill all required fields and ensure cart is not empty');
             return;
         }
 
         setError(null);
-        setOrderDetails({
-            minecraftUsername: minecraftUsername.trim(),
-            email: email.trim(),
-            platform,
-            items: cartItems,
-            subtotal,
-            discount: discountAmount,
-            total: finalTotal,
-            couponCode: appliedCoupon?.coupon?.code || null
-        });
-        setShowUtrPopup(true); // Show warning popup first
-    };
+        setLoading(true);
 
-    // Validate UTR format
-    const validateUTR = (utr) => {
-        const trimmed = utr.trim();
-        if (!trimmed) return 'Please enter your UPI Transaction ID';
-        if (trimmed.length < 12) return `UTR too short (${trimmed.length}/12 characters minimum)`;
-        if (trimmed.length > 22) return 'UTR too long (maximum 22 characters)';
-        if (!/^[a-zA-Z0-9]+$/.test(trimmed)) return 'UTR should only contain letters and numbers';
-        return '';
-    };
+        try {
+            // Load Razorpay Script
+            const isScriptLoaded = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
+            if (!isScriptLoaded) {
+                setError('Razorpay SDK failed to load. Are you online?');
+                setLoading(false);
+                return;
+            }
 
-    // Handle UTR input change with validation
-    const handleUtrChange = (value) => {
-        setTransactionId(value);
-        if (value.trim()) {
-            setUtrError(validateUTR(value));
-        } else {
-            setUtrError('');
+            // Create Order on Backend
+            const paymentRes = await paymentApi.createOrder(finalTotal);
+            if (!paymentRes || !paymentRes.orderId) {
+                setError('Failed to initialize payment order. Please try again.');
+                setLoading(false);
+                return;
+            }
+
+            // Setup Razorpay Options
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'dummy_key',
+                amount: paymentRes.amount.toString(),
+                currency: "INR",
+                name: "Army SMP Store",
+                description: "Minecraft Server Items",
+                order_id: paymentRes.orderId,
+                handler: async function (response) {
+                    await handleCompleteOrder(response);
+                },
+                prefill: {
+                    name: minecraftUsername,
+                    email: email,
+                    contact: "9999999999"
+                },
+                theme: {
+                    color: "#8b5cf6"
+                }
+            };
+
+            const paymentObject = new window.Razorpay(options);
+            paymentObject.on('payment.failed', function (response) {
+                setError('Payment failed: ' + response.error.description);
+                setLoading(false);
+            });
+            paymentObject.open();
+
+        } catch (err) {
+            console.error('Payment initialization error:', err);
+            setError('An error occurred during payment initialization');
+            setLoading(false);
         }
     };
 
-    // Complete order with transaction ID
-    const handleCompleteOrder = async () => {
-        // Validate UTR format
-        const validationError = validateUTR(transactionId);
-        if (validationError) {
-            setUtrError(validationError);
-            return;
-        }
-
+    // Complete order with Razorpay ID
+    const handleCompleteOrder = async (razorpayResponse) => {
         try {
             setLoading(true);
             setError(null);
-            setUtrError('');
 
             // Format items for API
             const orderItems = cartItems.map(item => ({
@@ -185,18 +189,26 @@ const Checkout = () => {
                 subtotal: (typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.-]+/g, ''))) * item.quantity
             }));
 
+            // Pass razorpay details to the order API
+            const razorpayDetails = {
+                razorpayPaymentId: razorpayResponse.razorpay_payment_id,
+                razorpayOrderId: razorpayResponse.razorpay_order_id,
+                razorpaySignature: razorpayResponse.razorpay_signature
+            };
+
             const result = await ordersApi.create(
-                orderDetails.minecraftUsername,
-                orderDetails.email,
+                minecraftUsername,
+                email,
                 orderItems,
-                orderDetails.platform,
+                platform,
                 {
                     couponCode: appliedCoupon?.coupon?.code || null,
                     discount: discountAmount,
                     subtotal: subtotal,
                     finalTotal: finalTotal
                 },
-                transactionId.trim() // Pass transaction ID
+                null,
+                razorpayDetails
             );
 
             setOrderSuccess({
@@ -206,36 +218,13 @@ const Checkout = () => {
                 subtotal: subtotal,
                 total: finalTotal,
                 totalDisplay: `₹${finalTotal.toFixed(2)}`,
-                transactionId: transactionId.trim()
+                transactionId: razorpayResponse.razorpay_payment_id
             });
             await clearCart();
 
         } catch (err) {
             console.error('Order failed:', err);
-            // If API fails, switch to local mode
-            const orderDataLocal = {
-                orderNumber: `LOCAL-${Date.now().toString(36).toUpperCase()}`,
-                minecraftUsername: orderDetails.minecraftUsername,
-                email: orderDetails.email,
-                platform: orderDetails.platform,
-                items: cartItems.map(item => ({
-                    id: item.id,
-                    name: item.name,
-                    price: item.price,
-                    quantity: item.quantity,
-                    subtotal: item.price * item.quantity
-                })),
-                subtotal: subtotal,
-                discount: discountAmount,
-                couponApplied: appliedCoupon?.coupon?.code || null,
-                total: finalTotal,
-                totalDisplay: `₹${finalTotal.toFixed(2)}`,
-                transactionId: transactionId.trim(),
-                status: 'pending'
-            };
-
-            setOrderSuccess(orderDataLocal);
-            await clearCart();
+            setError('Failed to verify payment and process order.');
         } finally {
             setLoading(false);
         }
@@ -348,158 +337,7 @@ const Checkout = () => {
         );
     }
 
-    // UTR Warning Popup
-    if (showUtrPopup) {
-        return (
-            <div className="checkout-page">
-                <div className="utr-popup-overlay">
-                    <div className="utr-popup-modal">
-                        <div className="utr-popup-icon">⚠️</div>
-                        <h2>Important Payment Notice</h2>
-                        <p>
-                            After completing your UPI payment, you <strong>MUST</strong> enter the
-                            <strong> UTR / Transaction ID</strong> to confirm your order.
-                        </p>
-                        <p className="utr-popup-warning">
-                            ❌ Orders without valid Transaction ID will NOT be processed!
-                        </p>
-                        <button
-                            className="btn btn-primary utr-popup-btn"
-                            onClick={() => {
-                                setShowUtrPopup(false);
-                                setShowPayment(true);
-                            }}
-                        >
-                            ✓ I Understand, Proceed to Payment
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
-    // Payment Step
-    if (showPayment) {
-        return (
-            <div className="checkout-page">
-                <div className="checkout-container">
-                    <div className="checkout-header">
-                        <button onClick={() => setShowPayment(false)} className="back-btn">
-                            <ArrowLeft size={20} />
-                            Back to Details
-                        </button>
-                        <h1>Payment</h1>
-                    </div>
-
-                    {/* Important Warning Banner */}
-                    <div className="utr-warning-banner">
-                        <span className="warning-icon">⚠️</span>
-                        <div className="warning-text">
-                            <strong>IMPORTANT:</strong> After completing payment, you MUST enter the UTR/Transaction ID below.
-                            Payment without UTR will NOT be processed.
-                        </div>
-                    </div>
-
-                    <div className="payment-content">
-                        {/* Order Summary */}
-                        <div className="payment-summary">
-                            <h2>Order Summary</h2>
-                            <div className="summary-items-compact">
-                                {orderDetails.items.map(item => (
-                                    <div key={item.id} className="summary-item-compact">
-                                        <span>{item.name} × {item.quantity}</span>
-                                        <span>₹{(item.price * item.quantity).toFixed(2)}</span>
-                                    </div>
-                                ))}
-                            </div>
-                            {orderDetails.couponCode && (
-                                <div className="coupon-applied-summary">
-                                    <span>Coupon: {orderDetails.couponCode}</span>
-                                    <span className="discount-amount">-₹{discountAmount.toFixed(2)}</span>
-                                </div>
-                            )}
-                            <div className="summary-total-compact">
-                                <span>Total</span>
-                                <span className="total-amount">₹{finalTotal.toFixed(2)}</span>
-                            </div>
-
-                            {/* Transaction ID Input - Moved here for visibility */}
-                            <div className="transaction-input-section" style={{ marginTop: '20px' }}>
-                                <label htmlFor="transaction-id">
-                                    Enter UPI Transaction ID / UTR Number <span style={{ color: '#ef4444' }}>*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    id="transaction-id"
-                                    value={transactionId}
-                                    onChange={(e) => handleUtrChange(e.target.value.replace(/\s/g, ''))}
-                                    placeholder="e.g., 483928472983"
-                                    disabled={loading}
-                                    style={{
-                                        borderColor: utrError ? '#ef4444' : transactionId.length >= 12 ? '#22c55e' : undefined
-                                    }}
-                                    maxLength={22}
-                                />
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <small>Find this in your UPI app → Payment History</small>
-                                    <small style={{
-                                        color: transactionId.length >= 12 ? '#22c55e' : transactionId.length > 0 ? '#f59e0b' : 'inherit'
-                                    }}>
-                                        {transactionId.length}/12-22
-                                    </small>
-                                </div>
-                                {utrError && (
-                                    <div style={{
-                                        color: '#ef4444',
-                                        fontSize: '0.85rem',
-                                        marginTop: '8px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '6px'
-                                    }}>
-                                        <AlertCircle size={14} />
-                                        {utrError}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* UPI QR Code */}
-                        <div className="payment-qr-section">
-                            <UpiQrCode
-                                amount={finalTotal}
-                                orderId={orderDetails.minecraftUsername}
-                            />
-
-                            {error && (
-                                <div className="error-message">
-                                    {error}
-                                </div>
-                            )}
-
-                            <button
-                                onClick={handleCompleteOrder}
-                                className="btn btn-primary complete-payment-btn"
-                                disabled={loading || !transactionId.trim() || !!utrError}
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2 size={20} className="spinner" />
-                                        Processing...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Check size={20} />
-                                        I Have Paid - Complete Order
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="checkout-page">
@@ -677,12 +515,21 @@ const Checkout = () => {
                             className="btn btn-primary checkout-btn"
                             disabled={loading}
                         >
-                            <CreditCard size={20} />
-                            Proceed to Payment - ₹{finalTotal.toFixed(2)}
+                            {loading ? (
+                                <>
+                                    <Loader2 size={20} className="spinner" />
+                                    Processing...
+                                </>
+                            ) : (
+                                <>
+                                    <CreditCard size={20} />
+                                    Pay with Razorpay - ₹{finalTotal.toFixed(2)}
+                                </>
+                            )}
                         </button>
 
                         <p className="payment-note">
-                            Pay via UPI (GPay, PhonePe, Paytm) with secure QR code
+                            Pay safely via UPI, Netbanking, or Cards with Razorpay.
                         </p>
                     </form>
                 </div>

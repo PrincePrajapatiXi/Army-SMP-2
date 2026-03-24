@@ -8,7 +8,7 @@ const orderSchema = new mongoose.Schema({
     discordId: { type: String },
     platform: { type: String, default: 'Java' }, // Java or Bedrock
     items: [{
-        id: Number,
+        id: String,
         name: String,
         price: Number,
         quantity: Number,

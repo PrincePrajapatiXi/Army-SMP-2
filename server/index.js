@@ -1,4 +1,5 @@
 const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env.local') });
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
@@ -29,6 +30,7 @@ const leaderboardRouter = require('./routes/leaderboard');
 const referralsRouter = require('./routes/referrals');
 const analyticsRouter = require('./routes/analytics');
 const notificationsRouter = require('./routes/notifications');
+const paymentRouter = require('./routes/payment');
 
 
 // Import email service
@@ -142,6 +144,7 @@ app.use('/api/leaderboard', leaderboardRouter);
 app.use('/api/referrals', referralsRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/notifications', notificationsRouter);
+app.use('/api/payment', paymentRouter);
 
 // Import keep-alive service
 const { startKeepAlive } = require('./services/keepAlive');
