@@ -2,12 +2,10 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingBag, Check, Loader2, MessageCircle, Tag, X, CreditCard, AlertCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { ordersApi, paymentApi } from '../services/api';
+import { ordersApi, paymentApi, API_BASE_URL } from '../services/api';
 import { validateCoupon as validateCouponLocal } from '../data/coupons';
 import Confetti from '../components/Confetti';
 import './Checkout.css';
-
-const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
 
 const Checkout = () => {
     const navigate = useNavigate();

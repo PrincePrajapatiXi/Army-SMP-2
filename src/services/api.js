@@ -1,6 +1,6 @@
 // API Service for Army SMP 2 Store
 // Use local backend for development, and Render for production
-const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:5000/api' : 'https://army-smp-2.onrender.com/api';
+export const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:5000/api' : 'https://army-smp-2.onrender.com/api';
 
 
 // Helper function for API requests with credentials (for session cookies)
