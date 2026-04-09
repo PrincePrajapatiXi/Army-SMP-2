@@ -9,6 +9,7 @@ import {
 import { ordersApi } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import './OrderHistory.css';
 
 const OrderHistory = () => {
@@ -220,7 +221,7 @@ const OrderHistory = () => {
         });
     };
 
-    // Generate PDF Invoice
+    // Generate PDF Invoice with autoTable
     const generateInvoice = (order) => {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -241,7 +242,7 @@ const OrderHistory = () => {
 
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text('INVOICE', 20, 35);
+        doc.text('PREMIUM INVOICE', 20, 35);
 
         // Order number on right
         doc.setTextColor(...primaryColor);
@@ -271,60 +272,67 @@ const OrderHistory = () => {
         yPos += 6;
         doc.text(`Platform: ${order.platform || 'Java'}`, 20, yPos);
 
-        // Items Table
-        yPos += 20;
-        doc.setFillColor(245, 245, 250);
-        doc.rect(15, yPos - 5, pageWidth - 30, 12, 'F');
-
-        doc.setTextColor(...darkColor);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.text('Item', 20, yPos + 3);
-        doc.text('Qty', 120, yPos + 3);
-        doc.text('Price', 145, yPos + 3);
-        doc.text('Total', pageWidth - 25, yPos + 3, { align: 'right' });
-
+        // Items Table using autoTable
         yPos += 15;
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(...grayColor);
+        const tableColumn = ["Item", "Quantity", "Unit Price", "Total"];
+        const tableRows = [];
 
         order.items?.forEach(item => {
-            doc.text(item.name.substring(0, 40), 20, yPos);
-            doc.text(String(item.quantity), 120, yPos);
-            doc.text(`₹${item.price}`, 145, yPos);
-            doc.text(`₹${item.subtotal}`, pageWidth - 25, yPos, { align: 'right' });
-            yPos += 8;
+            const itemData = [
+                item.name,
+                item.quantity.toString(),
+                `Rs. ${item.price || (item.subtotal / item.quantity)}`,
+                `Rs. ${item.subtotal}`
+            ];
+            tableRows.push(itemData);
         });
 
-        // Divider
-        yPos += 5;
-        doc.setDrawColor(220, 220, 225);
-        doc.line(15, yPos, pageWidth - 15, yPos);
-
-        // Totals
-        yPos += 12;
-        doc.setTextColor(...grayColor);
-        doc.text('Subtotal:', 130, yPos);
-        doc.text(`₹${order.subtotal || order.total}`, pageWidth - 25, yPos, { align: 'right' });
-
+        // Add subtotal, discount, total to rows at the end
+        tableRows.push(['', '', 'Subtotal', `Rs. ${order.subtotal || order.total}`]);
         if (order.couponInfo?.discount) {
-            yPos += 8;
-            doc.setTextColor(34, 197, 94);
-            doc.text(`Discount (${order.couponInfo.couponCode}):`, 130, yPos);
-            doc.text(`-₹${order.couponInfo.discount}`, pageWidth - 25, yPos, { align: 'right' });
+            tableRows.push(['', '', `Discount (${order.couponInfo.couponCode})`, `-Rs. ${order.couponInfo.discount}`]);
         }
+        tableRows.push(['', '', 'Total Paid', `Rs. ${order.total}`]);
 
-        yPos += 12;
-        doc.setFillColor(...primaryColor);
-        doc.rect(125, yPos - 6, pageWidth - 140, 14, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(12);
-        doc.text('Total:', 130, yPos + 2);
-        doc.text(order.totalDisplay || `₹${order.total}`, pageWidth - 25, yPos + 2, { align: 'right' });
+        autoTable(doc, {
+            startY: yPos,
+            head: [tableColumn],
+            body: tableRows,
+            theme: 'grid',
+            headStyles: { fillColor: primaryColor, textColor: [255, 255, 255], fontStyle: 'bold' },
+            bodyStyles: { textColor: darkColor, fontSize: 10 },
+            alternateRowStyles: { fillColor: [250, 250, 255] },
+            columnStyles: {
+                0: { cellWidth: 80 },
+                1: { cellWidth: 20, halign: 'center' },
+                2: { cellWidth: 40, halign: 'right' },
+                3: { cellWidth: 40, halign: 'right', fontStyle: 'bold' } // Make total column bold
+            },
+            willDrawCell: function(data) {
+                // Style the last few rows representing Totals
+                const rowCount = tableRows.length;
+                const isTotalRow = data.row.index >= rowCount - (order.couponInfo?.discount ? 3 : 2);
+                
+                if (isTotalRow) {
+                    doc.setFont('helvetica', 'bold');
+                    data.cell.styles.fontStyle = 'bold';
+                    
+                    if (data.row.index === rowCount - 1) {
+                         // Final Total row
+                         data.cell.styles.textColor = primaryColor;
+                    }
+                    
+                    if (data.row.index === rowCount - 2 && order.couponInfo?.discount) {
+                         // Discount row
+                         data.cell.styles.textColor = [34, 197, 94];
+                    }
+                }
+            }
+        });
+
+        yPos = doc.lastAutoTable.finalY + 20;
 
         // Payment Info
-        yPos += 25;
         doc.setTextColor(...darkColor);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(11);

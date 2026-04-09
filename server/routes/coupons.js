@@ -2,6 +2,32 @@ const express = require('express');
 const router = express.Router();
 const Coupon = require('../models/Coupon');
 
+// GET /api/coupons/active - Get all active coupons
+router.get('/active', async (req, res) => {
+    try {
+        const currentDate = new Date();
+        const activeCoupons = await Coupon.find({
+            isActive: true,
+            $or: [
+                { expiresAt: { $exists: false } },
+                { expiresAt: null },
+                { expiresAt: { $gt: currentDate } }
+            ],
+            $expr: {
+                $or: [
+                    { $eq: ["$usageLimit", null] },
+                    { $lt: ["$usedCount", "$usageLimit"] }
+                ]
+            }
+        }).select('-__v -createdAt -updatedAt -usedCount');
+
+        res.json({ success: true, coupons: activeCoupons });
+    } catch (error) {
+        console.error('Error fetching active coupons:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch active coupons' });
+    }
+});
+
 // GET /api/coupons/validate/:code - Validate a coupon code
 router.get('/validate/:code', async (req, res) => {
     try {

@@ -1198,3 +1198,72 @@
     background: white;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
 }
+
+/* Active Coupons UI */
+.active-coupons-list {
+    margin-top: 20px;
+}
+
+.active-coupons-title {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.active-coupon-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 107, 53, 0.05);
+    border: 1px solid rgba(255, 107, 53, 0.2);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    transition: all 0.2s ease;
+}
+
+.active-coupon-card:hover {
+    background: rgba(255, 107, 53, 0.1);
+    border-color: rgba(255, 107, 53, 0.4);
+}
+
+.active-coupon-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.active-coupon-code {
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: 1px;
+}
+
+.active-coupon-desc {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.active-coupon-apply-btn {
+    padding: 6px 14px;
+    background: var(--bg-surface);
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.active-coupon-apply-btn:hover:not(:disabled) {
+    background: var(--primary);
+    color: white;
+}
+
+.active-coupon-apply-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: var(--card-border);
+    color: var(--text-secondary);
+}

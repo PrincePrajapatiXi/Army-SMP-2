@@ -55,9 +55,27 @@ const limiter = rateLimit({
     legacyHeaders: false
 });
 
-// Apply rate limiting to all API routes
+// Protect auth routes
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30, // 30 auth requests per 15 min
+    message: { error: 'Too many authentication attempts.' }
+});
+
+// Protect payment & checkout routes
+const paymentLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 10, // 10 payment operations per minute
+    message: { error: 'Too many payment requests, please try again.' }
+});
+
+// Apply rate limiting to all API routes basic protection
 app.use('/api/', limiter);
 
+// Apply strict limiters to sensitive endpoints
+app.use('/api/auth', authLimiter);
+app.use('/api/payment', paymentLimiter);
+app.use('/api/orders/checkout', paymentLimiter);
 // Middleware
 app.use(cors({
     origin: [

@@ -46,6 +46,18 @@ const getCategoryColor = (category, explicitColor) => {
     return `hsl(${h}, 80%, 60%)`; // Vibrant neon-like color
 };
 
+const getOptimizedImageUrl = (url) => {
+    if (!url) return '';
+    // Check if it's a Cloudinary URL without existing transformations
+    if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+        const parts = url.split('/upload/');
+        if (!parts[1].startsWith('f_auto') && !parts[1].startsWith('q_auto')) {
+            return `${parts[0]}/upload/f_auto,q_auto/${parts[1]}`;
+        }
+    }
+    return url;
+};
+
 const ProductCard = ({ product, onBuy }) => {
     const { isInWishlist, toggleWishlist } = useWishlist();
     const cardColor = getCategoryColor(product.category, product.color);
@@ -79,7 +91,7 @@ const ProductCard = ({ product, onBuy }) => {
             <div className="card-image-container" style={{
                 background: hasColor ? `radial-gradient(circle at center, ${cardColor}20 0%, transparent 70%)` : 'none'
             }}>
-                <img src={product.image} alt={product.name} className="card-image" />
+                <img src={getOptimizedImageUrl(product.image)} alt={product.name} className="card-image" loading="lazy" />
             </div>
 
             <div className="card-content">

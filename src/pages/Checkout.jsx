@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingBag, Check, Loader2, MessageCircle, Tag, X, CreditCard, AlertCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -25,6 +25,27 @@ const Checkout = () => {
     const [appliedCoupon, setAppliedCoupon] = useState(null);
     const [couponError, setCouponError] = useState('');
     const [couponLoading, setCouponLoading] = useState(false);
+    const [activeCoupons, setActiveCoupons] = useState([]);
+    const [loadingCoupons, setLoadingCoupons] = useState(false);
+
+    // Fetch active coupons on mount
+    useEffect(() => {
+        const fetchActiveCoupons = async () => {
+            try {
+                setLoadingCoupons(true);
+                const response = await fetch(`${API_BASE_URL}/coupons/active`);
+                const data = await response.json();
+                if (data.success && Array.isArray(data.coupons)) {
+                    setActiveCoupons(data.coupons);
+                }
+            } catch (err) {
+                console.error("Failed to fetch active coupons:", err);
+            } finally {
+                setLoadingCoupons(false);
+            }
+        };
+        fetchActiveCoupons();
+    }, []);
 
     const subtotal = getCartTotal();
     const discountAmount = appliedCoupon?.discountAmount || 0;
@@ -40,13 +61,24 @@ const Checkout = () => {
         setCouponLoading(true);
         setCouponError('');
 
+        await processCouponApplication(couponCode.trim());
+    };
+
+    const handleApplySpecificCoupon = async (code) => {
+        setCouponCode(code);
+        setCouponLoading(true);
+        setCouponError('');
+        await processCouponApplication(code);
+    };
+
+    const processCouponApplication = async (codeToApply) => {
         try {
             // Try API first (coupons from Admin Panel / MongoDB)
             const response = await fetch(`${API_BASE_URL}/coupons/apply`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    code: couponCode.trim(),
+                    code: codeToApply,
                     orderTotal: subtotal
                 })
             });
@@ -64,7 +96,7 @@ const Checkout = () => {
                 setCouponError('');
             } else {
                 // API coupon not found, try local coupons
-                const localResult = validateCouponLocal(couponCode.trim(), subtotal);
+                const localResult = validateCouponLocal(codeToApply, subtotal);
                 if (localResult.valid) {
                     setAppliedCoupon(localResult);
                     setCouponCode('');
@@ -77,7 +109,7 @@ const Checkout = () => {
         } catch (err) {
             // API failed, fallback to local validation
             console.log('API coupon validation failed, using local:', err);
-            const localResult = validateCouponLocal(couponCode.trim(), subtotal);
+            const localResult = validateCouponLocal(codeToApply, subtotal);
             if (localResult.valid) {
                 setAppliedCoupon(localResult);
                 setCouponCode('');
@@ -424,6 +456,33 @@ const Checkout = () => {
 
                             {appliedCoupon && (
                                 <p className="coupon-success">{appliedCoupon.message}</p>
+                            )}
+
+                            {/* Active Offers Section */}
+                            {!appliedCoupon && activeCoupons.length > 0 && (
+                                <div className="active-coupons-list">
+                                    <h4 className="active-coupons-title">Available Offers</h4>
+                                    {activeCoupons.map((coupon) => (
+                                        <div key={coupon._id} className="active-coupon-card">
+                                            <div className="active-coupon-info">
+                                                <span className="active-coupon-code">{coupon.code}</span>
+                                                <span className="active-coupon-desc">
+                                                    {coupon.discountType === 'percentage' 
+                                                        ? `${coupon.discountValue}% OFF` 
+                                                        : `₹${coupon.discountValue} OFF`}
+                                                    {coupon.minOrderAmount > 0 && ` on orders above ₹${coupon.minOrderAmount}`}
+                                                </span>
+                                            </div>
+                                            <button 
+                                                className="active-coupon-apply-btn"
+                                                onClick={() => handleApplySpecificCoupon(coupon.code)}
+                                                disabled={couponLoading || subtotal < coupon.minOrderAmount}
+                                            >
+                                                Apply
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
                             )}
                         </div>
 
