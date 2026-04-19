@@ -93,7 +93,7 @@ app.use(cors({
     credentials: true
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 
 // Security Headers with Helmet.js
@@ -130,10 +130,7 @@ app.use(helmet({
 // Input Sanitization - Prevent XSS attacks
 app.use(sanitizeInputs);
 
-// Initialize Passport for OAuth
-app.use(passport.initialize());
-
-// Session configuration for cart persistence
+// Session configuration for cart persistence (MUST be before passport)
 app.use(session({
     secret: process.env.SESSION_SECRET || 'army-smp-fallback-secret',
     resave: false,
@@ -141,9 +138,13 @@ app.use(session({
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
 }));
+
+// Initialize Passport for OAuth (after session)
+app.use(passport.initialize());
 
 // API Routes
 app.use('/api/products', productsRouter);
@@ -190,10 +191,12 @@ app.get('/api/health', (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Error:', err);
+    
+    // SECURITY: Don't leak internal error details in production
+    const isDev = process.env.NODE_ENV !== 'production';
     res.status(500).json({
         error: 'Internal server error',
-        message: err.message,
-        details: err.errors // For Mongoose validation errors
+        ...(isDev && { message: err.message, details: err.errors })
     });
 });
 

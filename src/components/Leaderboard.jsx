@@ -35,7 +35,10 @@ const Leaderboard = () => {
                 const data = await response.json();
 
                 if (data.success) {
-                    setTopBuyers(data.data);
+                    const filteredBuyers = data.data.filter(
+                        buyer => buyer.username.toLowerCase() !== 'testuser'
+                    );
+                    setTopBuyers(filteredBuyers);
                 } else {
                     setError('Failed to load leaderboard');
                 }

@@ -1,8 +1,16 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'army-smp-jwt-secret-2024-super-secure';
-const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || 'army-smp-ADMIN-jwt-2024-ultra-secure';
+const JWT_SECRET = process.env.JWT_SECRET;
+const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET;
+
+// SECURITY: Crash on startup if JWT secrets are not configured
+if (!JWT_SECRET || !ADMIN_JWT_SECRET) {
+    console.error('\n❌ FATAL: JWT_SECRET and ADMIN_JWT_SECRET must be set in environment variables!');
+    console.error('Add them to server/.env.local:\n  JWT_SECRET=your-random-secret-here\n  ADMIN_JWT_SECRET=your-admin-secret-here\n');
+    process.exit(1);
+}
+
 const JWT_EXPIRES_IN = '30d'; // Token valid for 30 days
 const ADMIN_JWT_EXPIRES_IN = '24h'; // Admin token valid for 24 hours only
 
@@ -11,9 +19,9 @@ const generateToken = (userId) => {
     return jwt.sign({ userId }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 };
 
-// Generate JWT token for admin
-const generateAdminToken = () => {
-    return jwt.sign({ isAdmin: true, createdAt: Date.now() }, ADMIN_JWT_SECRET, { expiresIn: ADMIN_JWT_EXPIRES_IN });
+// Generate JWT token for admin (includes identity for audit trail)
+const generateAdminToken = (adminEmail = 'admin') => {
+    return jwt.sign({ isAdmin: true, adminEmail, createdAt: Date.now() }, ADMIN_JWT_SECRET, { expiresIn: ADMIN_JWT_EXPIRES_IN });
 };
 
 // Verify admin JWT token

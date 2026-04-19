@@ -30,9 +30,14 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
             });
 
             if (existingEmailUser) {
-                // Link Google account to existing user
-                existingEmailUser.authProvider = 'google';
-                existingEmailUser.providerId = profile.id;
+                // Link Google account to existing user (preserve authProvider if local)
+                if (existingEmailUser.authProvider === 'local') {
+                    // Keep 'local' so password login still works
+                    existingEmailUser.providerId = profile.id;
+                } else {
+                    existingEmailUser.authProvider = 'google';
+                    existingEmailUser.providerId = profile.id;
+                }
                 existingEmailUser.isEmailVerified = true; // Google emails are verified
                 if (!existingEmailUser.avatar && profile.photos[0]) {
                     existingEmailUser.avatar = profile.photos[0].value;
@@ -116,9 +121,14 @@ if (process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET) {
                 const existingEmailUser = await User.findOne({ email: email.toLowerCase() });
 
                 if (existingEmailUser) {
-                    // Link Discord account to existing user
-                    existingEmailUser.authProvider = 'discord';
-                    existingEmailUser.providerId = profile.id;
+                    // Link Discord account to existing user (preserve authProvider if local)
+                    if (existingEmailUser.authProvider === 'local') {
+                        // Keep 'local' so password login still works
+                        existingEmailUser.providerId = profile.id;
+                    } else {
+                        existingEmailUser.authProvider = 'discord';
+                        existingEmailUser.providerId = profile.id;
+                    }
                     existingEmailUser.isEmailVerified = true;
                     if (!existingEmailUser.avatar && profile.avatar) {
                         existingEmailUser.avatar = `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png`;

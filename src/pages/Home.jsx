@@ -92,7 +92,6 @@ const Home = () => {
                 `,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
-                    backgroundAttachment: 'fixed',
                     paddingTop: '100px',
                     paddingBottom: '4rem',
                     position: 'relative',
@@ -182,16 +181,13 @@ const Home = () => {
                             </Link>
                         </div>
 
-                        <div style={{
+                        <div className="server-status-pill" style={{
                             marginTop: '3rem',
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '10px',
                             padding: '12px 24px',
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            backdropFilter: 'blur(10px)',
                             borderRadius: '50px',
-                            border: '1px solid rgba(255, 255, 255, 0.1)'
                         }}>
                             <span style={{
                                 width: '10px',

@@ -134,7 +134,7 @@ router.post('/verify-2fa', async (req, res) => {
 
         if (result.valid) {
             // Generate admin JWT token
-            const token = generateAdminToken();
+            const token = generateAdminToken(ADMIN_EMAIL);
             return res.json({
                 success: true,
                 message: 'Login successful! Welcome Admin.',

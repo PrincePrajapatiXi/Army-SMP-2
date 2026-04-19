@@ -128,18 +128,7 @@
     transform: translateY(-1px);
 }
 
-.nav-item.active::after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, var(--primary), var(--accent));
-    box-shadow: 0 0 20px var(--primary);
-    border-radius: 2px;
-    animation: glowPulse 2s ease-in-out infinite;
-}
+
 
 .nav-actions {
     display: flex;

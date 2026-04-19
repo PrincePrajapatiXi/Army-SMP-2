@@ -421,13 +421,13 @@ const sendOTPEmail = async (email, otp, type, userName = 'User') => {
         console.log('⚠️ BREVO_API_KEY not configured');
     }
 
-    // Discord notification for admin (backup/logging)
+    // Discord notification for admin (backup logging - NO OTP CODE for security)
     if (DISCORD_WEBHOOK_URL) {
         try {
-            const title = isVerification ? '✉️ Verify Your Email' : '🔐 Password Reset Request';
+            const title = isVerification ? '✉️ Email Verification Sent' : '🔐 Password Reset OTP Sent';
             const description = isVerification
-                ? `Hello **${userName}**! Please verify your email address.`
-                : `Hello **${userName}**! Password reset requested.`;
+                ? `Verification email sent to **${userName}**.`
+                : `Password reset OTP sent to **${userName}**.`;
             const color = isVerification ? 0x22c55e : 0xf59e0b;
 
             const discordPayload = {
@@ -437,11 +437,10 @@ const sendOTPEmail = async (email, otp, type, userName = 'User') => {
                     description: description,
                     fields: [
                         { name: '📧 Email', value: email, inline: true },
-                        { name: '🔑 OTP Code', value: `\`${otp}\``, inline: true },
                         { name: '⏰ Valid For', value: '10 minutes', inline: true },
                         { name: '📋 Type', value: isVerification ? 'Email Verification' : 'Password Reset', inline: true }
                     ],
-                    footer: { text: 'Army SMP 2 - Authentication' },
+                    footer: { text: 'Army SMP 2 - Authentication (OTP not shown for security)' },
                     timestamp: new Date().toISOString()
                 }]
             };
@@ -451,7 +450,7 @@ const sendOTPEmail = async (email, otp, type, userName = 'User') => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(discordPayload)
             });
-            console.log('✅ OTP notification sent to Discord (backup)');
+            console.log('✅ OTP notification sent to Discord (backup - code hidden)');
         } catch (discordError) {
             console.error('❌ Discord notification error:', discordError.message);
         }

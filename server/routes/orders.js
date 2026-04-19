@@ -6,21 +6,15 @@ const { sendOrderNotification } = require('../services/email');
 const Order = require('../models/Order');
 const Coupon = require('../models/Coupon');
 const User = require('../models/User');
+const Product = require('../models/Product');
+const { optionalAuth } = require('../middleware/authMiddleware');
 const { analyzeOrder, createFraudAlert, updateUserFraudStats } = require('../services/fraudDetection');
 
-// XSS Sanitization helper - remove HTML tags and scripts
-const sanitizeInput = (str) => {
-    if (!str || typeof str !== 'string') return str;
-    return str
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#x27;')
-        .replace(/\//g, '&#x2F;');
-};
+// NOTE: Global sanitize middleware already handles XSS - no duplicate sanitizer needed here
 
 // POST /api/orders/create - Create a new order
-router.post('/create', async (req, res) => {
+// optionalAuth: links order to user if logged in, but doesn't require login
+router.post('/create', optionalAuth, async (req, res) => {
     try {
         const { minecraftUsername, email, items, platform, couponInfo, transactionId, paymentScreenshot, razorpayPaymentId, razorpayOrderId, razorpaySignature } = req.body;
 
@@ -28,8 +22,8 @@ router.post('/create', async (req, res) => {
             return res.status(400).json({ error: 'Minecraft username is required' });
         }
 
-        // Sanitize username to prevent XSS
-        const sanitizedUsername = sanitizeInput(minecraftUsername.trim());
+        // Username from request (already sanitized by global middleware)
+        const sanitizedUsername = minecraftUsername.trim();
 
         // Get cart from request body OR session (fallback)
         const cart = items && items.length > 0 ? items : (req.session?.cart || []);
@@ -80,12 +74,47 @@ router.post('/create', async (req, res) => {
             }
         }
 
-        // Calculate subtotal (before discount)
-        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        // SERVER-SIDE price verification: Fetch real prices from DB to prevent manipulation
+        let verifiedCart = cart;
+        try {
+            const productIds = cart.map(item => item.id);
+            const dbProducts = await Product.find({ id: { $in: productIds } });
+            const productMap = new Map(dbProducts.map(p => [p.id, p]));
+            
+            verifiedCart = cart.map(item => {
+                const dbProduct = productMap.get(item.id);
+                if (dbProduct) {
+                    return { ...item, price: dbProduct.price, name: dbProduct.name };
+                }
+                return item; // Keep client price if product not in DB
+            });
+        } catch (priceErr) {
+            console.error('Price verification failed, using client prices:', priceErr.message);
+        }
 
-        // Apply discount if coupon provided
-        const discount = couponInfo?.discount || 0;
-        const finalTotal = couponInfo?.finalTotal || (subtotal - discount);
+        // Calculate subtotal from verified prices
+        const subtotal = verifiedCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+        // Verify coupon discount server-side
+        let discount = 0;
+        let finalTotal = subtotal;
+        if (couponInfo?.couponCode) {
+            try {
+                const coupon = await Coupon.findOne({ code: couponInfo.couponCode.toUpperCase().trim(), isActive: true });
+                if (coupon) {
+                    if (coupon.discountType === 'percentage') {
+                        discount = (subtotal * coupon.discountValue) / 100;
+                        if (coupon.maxDiscount) discount = Math.min(discount, coupon.maxDiscount);
+                    } else {
+                        discount = coupon.discountValue;
+                    }
+                    finalTotal = Math.max(0, subtotal - discount);
+                }
+            } catch (couponErr) {
+                console.error('Coupon verification failed:', couponErr.message);
+                finalTotal = subtotal; // No discount on error
+            }
+        }
 
         // Create order object
         const orderData = {
@@ -94,9 +123,9 @@ router.post('/create', async (req, res) => {
             minecraftUsername: sanitizedUsername, // Use sanitized username
             email: email || null,
             platform: platform || 'Java', // Java or Bedrock
-            items: cart.map(item => ({
+            items: verifiedCart.map(item => ({
                 id: item.id,
-                name: sanitizeInput(item.name), // Sanitize item names too
+                name: item.name, // Already sanitized by global middleware
                 price: item.price,
                 quantity: item.quantity,
                 subtotal: item.price * item.quantity

@@ -3,12 +3,9 @@ import { cartApi } from '../services/api';
 
 const CartContext = createContext();
 
-// Check if we're in a browser and if backend is available
-const isBackendAvailable = () => {
-    // Always use localStorage for cart - backend sessions don't persist cross-origin on Render
-    // Orders still go to backend for notifications, but cart is local for reliability
-    return false;
-};
+// Cart always uses localStorage - backend sessions don't persist cross-origin on Render.
+// Orders still go through the backend API for processing and notifications.
+const USE_LOCAL_STORAGE = true;
 
 // Local storage helpers
 const saveCartToStorage = (cart) => {
@@ -37,7 +34,7 @@ export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [useLocalStorage, setUseLocalStorage] = useState(!isBackendAvailable());
+    const [useLocalStorage, setUseLocalStorage] = useState(USE_LOCAL_STORAGE);
 
     // Load cart on mount
     const loadCart = useCallback(async () => {

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const { requireAuth } = require('../middleware/authMiddleware');
+const { requireAuth, requireAdminAuth } = require('../middleware/authMiddleware');
 
 // Referral reward percentage (5% of referred user's purchase)
 const REFERRAL_REWARD_PERCENT = 5;
@@ -171,7 +171,8 @@ router.post('/apply', requireAuth, async (req, res) => {
 });
 
 // POST /api/referrals/reward - Calculate and add referral reward (called after order completion)
-router.post('/reward', async (req, res) => {
+// SECURITY: Requires admin auth to prevent abuse
+router.post('/reward', requireAdminAuth, async (req, res) => {
     try {
         const { userId, orderTotal } = req.body;
 

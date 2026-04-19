@@ -155,10 +155,16 @@ router.put('/change-password', requireAuth, async (req, res) => {
             });
         }
 
-        if (newPassword.length < 6) {
+        if (newPassword.length < 8) {
             return res.status(400).json({
                 success: false,
-                message: 'New password must be at least 6 characters'
+                message: 'New password must be at least 8 characters'
+            });
+        }
+        if (newPassword.length > 128) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password cannot exceed 128 characters'
             });
         }
 
@@ -220,10 +226,16 @@ router.put('/set-password', requireAuth, async (req, res) => {
             });
         }
 
-        if (newPassword.length < 6) {
+        if (newPassword.length < 8) {
             return res.status(400).json({
                 success: false,
-                message: 'Password must be at least 6 characters'
+                message: 'Password must be at least 8 characters'
+            });
+        }
+        if (newPassword.length > 128) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password cannot exceed 128 characters'
             });
         }
 

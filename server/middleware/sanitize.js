@@ -57,8 +57,9 @@ const removeDangerousPatterns = (str) => {
     // Remove javascript: protocol
     str = str.replace(/javascript:/gi, '');
 
-    // Remove data: protocol (can be used for XSS)
-    str = str.replace(/data:/gi, '');
+    // Remove data: protocol only in dangerous HTML contexts (href, src attributes)
+    // Don't remove standalone "data:" as it breaks legitimate base64 data URIs
+    str = str.replace(/(?:href|src)\s*=\s*["']?\s*data:/gi, 'blocked:');
 
     // Remove vbscript: protocol
     str = str.replace(/vbscript:/gi, '');
