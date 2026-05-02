@@ -181,7 +181,13 @@ const BadgesTab = () => {
                             <span className="rarity" style={{ color: RARITY_COLORS[badge.rarity] }}>
                                 {badge.rarity?.toUpperCase()}
                             </span>
-
+                            {badge.description && (
+                                <p className="badge-description">{badge.description}</p>
+                            )}
+                            <div className="badge-color-swatch">
+                                <span className="color-dot" style={{ background: badge.color || '#f97316' }}></span>
+                                <span className="color-label">{badge.color || '#f97316'}</span>
+                            </div>
                         </div>
                         <div className="badge-actions">
                             <button className="edit-btn" onClick={() => openEditModal(badge)}>
@@ -248,11 +254,29 @@ const BadgesTab = () => {
                                 />
                             </div>
 
-
+                            <div className="form-group">
+                                <label>Description</label>
+                                <textarea
+                                    value={formData.description}
+                                    onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                                    placeholder="Short description of this badge"
+                                    rows={2}
+                                    maxLength={200}
+                                />
+                            </div>
 
                             <div className="form-row">
-
-
+                                <div className="form-group">
+                                    <label>Color</label>
+                                    <div className="color-picker">
+                                        <input
+                                            type="color"
+                                            value={formData.color}
+                                            onChange={e => setFormData(prev => ({ ...prev, color: e.target.value }))}
+                                        />
+                                        <span>{formData.color}</span>
+                                    </div>
+                                </div>
                                 <div className="form-group">
                                     <label>Rarity</label>
                                     <select

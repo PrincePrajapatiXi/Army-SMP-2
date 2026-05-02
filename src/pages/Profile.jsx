@@ -320,31 +320,70 @@ const Profile = () => {
                         <p className="username">@{user.username}</p>
 
                         {/* Custom Rank Badges Section */}
-                        {user.badges && user.badges.length > 0 && (
-                            <div className="rank-badges-section">
-                                {user.badges.map((userBadge, index) => {
-                                    const badge = userBadge.badge || userBadge;
-                                    // Skip if badge data is missing
-                                    if (!badge || !badge.name) return null;
+                        {user.badges && user.badges.length > 0 && (() => {
+                            const RARITY_ORDER = { legendary: 0, epic: 1, rare: 2, common: 3 };
 
-                                    return (
-                                        <div
-                                            key={badge._id || index}
-                                            className="rank-badge-item"
-                                            style={{
-                                                backgroundColor: badge.color ? `${badge.color}15` : 'rgba(255, 255, 255, 0.05)',
-                                                border: `1px solid ${badge.color ? `${badge.color}40` : 'rgba(255, 255, 255, 0.1)'}`,
-                                                color: badge.color || '#fff'
-                                            }}
-                                            title={badge.description || badge.name}
-                                        >
-                                            {badge.image && <img src={badge.image} alt="" />}
-                                            <span>{badge.name}</span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
+                            const processedBadges = user.badges
+                                .map(userBadge => ({
+                                    badge: userBadge.badge || userBadge,
+                                    assignedAt: userBadge.assignedAt
+                                }))
+                                .filter(({ badge }) => badge && badge.name && badge.isActive !== false)
+                                .sort((a, b) => {
+                                    const rarityA = RARITY_ORDER[a.badge.rarity] ?? 3;
+                                    const rarityB = RARITY_ORDER[b.badge.rarity] ?? 3;
+                                    return rarityA - rarityB;
+                                });
+
+                            if (processedBadges.length === 0) return null;
+
+                            return (
+                                <div className="rank-badges-section">
+                                    <div className="badges-section-header">
+                                        <span className="badges-count-label">🎖️ {processedBadges.length} Badge{processedBadges.length !== 1 ? 's' : ''} Earned</span>
+                                    </div>
+                                    <div className="badges-grid-display">
+                                        {processedBadges.map(({ badge, assignedAt }, index) => (
+                                            <div
+                                                key={badge._id || index}
+                                                className={`rank-badge-item rarity-${badge.rarity || 'common'}`}
+                                                style={{
+                                                    '--badge-color': badge.color || '#f97316'
+                                                }}
+                                            >
+                                                {badge.image && <img src={badge.image} alt="" />}
+                                                <span>{badge.name}</span>
+
+                                                {/* Styled Tooltip */}
+                                                <div className="badge-tooltip">
+                                                    <div className="badge-tooltip-header">
+                                                        {badge.image && <img src={badge.image} alt="" className="tooltip-badge-img" />}
+                                                        <div>
+                                                            <div className="tooltip-name">{badge.name}</div>
+                                                            <div className={`tooltip-rarity rarity-text-${badge.rarity || 'common'}`}>
+                                                                {(badge.rarity || 'common').toUpperCase()}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {badge.description && (
+                                                        <div className="tooltip-description">{badge.description}</div>
+                                                    )}
+                                                    {assignedAt && (
+                                                        <div className="tooltip-date">
+                                                            Earned {new Date(assignedAt).toLocaleDateString('en-IN', {
+                                                                day: 'numeric',
+                                                                month: 'short',
+                                                                year: 'numeric'
+                                                            })}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </div>
                 </div>
 
