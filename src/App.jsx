@@ -46,10 +46,11 @@ const ContactUs = lazy(() => import('./pages/ContactUs'));
 // Layout wrapper to hide navbar/footer on admin and auth pages
 function Layout({ children }) {
   const location = useLocation();
-  const isAdminPage = location.pathname === '/cp-9x4kf7';
+  const adminPath = import.meta.env.VITE_ADMIN_PATH || '/admin-fallback-xyz';
+  const isAdminPage = location.pathname === adminPath;
   const isAuthPage = ['/login', '/signup', '/verify-email', '/forgot-password', '/reset-password', '/oauth-callback'].includes(location.pathname);
   const isPolicyPage = ['/terms-and-conditions', '/privacy-policy', '/refund-policy', '/contact-us'].includes(location.pathname);
-  const is404Page = !['/', '/store', '/checkout', '/orders', '/cp-9x4kf7', '/login', '/signup', '/verify-email', '/forgot-password', '/reset-password', '/profile', '/oauth-callback', '/wishlist', ...['/terms-and-conditions', '/privacy-policy', '/refund-policy', '/contact-us']].includes(location.pathname);
+  const is404Page = !['/', '/store', '/checkout', '/orders', adminPath, '/login', '/signup', '/verify-email', '/forgot-password', '/reset-password', '/profile', '/oauth-callback', '/wishlist', ...['/terms-and-conditions', '/privacy-policy', '/refund-policy', '/contact-us']].includes(location.pathname);
 
   // Enable gesture navigation for native app-like experience
   useGestureNavigation({
@@ -108,7 +109,7 @@ function App() {
                       <Route path="/checkout" element={<Checkout />} />
                       <Route path="/orders" element={<OrderHistory />} />
                       <Route path="/wishlist" element={<Wishlist />} />
-                      <Route path="/cp-9x4kf7" element={<Admin />} />
+                      <Route path={import.meta.env.VITE_ADMIN_PATH || '/admin-fallback-xyz'} element={<Admin />} />
 
                       {/* Auth Routes */}
                       <Route path="/login" element={<Login />} />
