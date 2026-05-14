@@ -1,17 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const { Cashfree } = require('cashfree-pg');
-
-// Initialize Cashfree
-Cashfree.XClientId = process.env.CASHFREE_APP_ID;
-Cashfree.XClientSecret = process.env.CASHFREE_SECRET_KEY;
-Cashfree.XEnvironment = process.env.CASHFREE_ENV === 'TEST' 
-    ? Cashfree.Environment.SANDBOX 
-    : Cashfree.Environment.PRODUCTION;
+const { Cashfree, CFEnvironment } = require('cashfree-pg');
 
 // POST /api/payment/create-order - Create Cashfree order and get payment_session_id
 router.post('/create-order', async (req, res) => {
     try {
+        // Initialize Cashfree instance dynamically per request to ensure env variables are loaded correctly
+        const cashfree = new Cashfree(
+            process.env.CASHFREE_ENV === 'TEST' ? CFEnvironment.SANDBOX : CFEnvironment.PRODUCTION,
+            process.env.CASHFREE_APP_ID,
+            process.env.CASHFREE_SECRET_KEY
+        );
+
         const { amount, customerEmail, customerName, customerPhone } = req.body;
 
         if (!amount || isNaN(amount) || amount <= 0) {
@@ -36,7 +36,7 @@ router.post('/create-order', async (req, res) => {
             }
         };
 
-        const response = await Cashfree.PGCreateOrder("2023-08-01", request);
+        const response = await cashfree.PGCreateOrder(request);
 
         if (!response || !response.data) {
             return res.status(500).json({ error: 'Failed to create order with Cashfree' });
@@ -61,13 +61,20 @@ router.post('/create-order', async (req, res) => {
 // POST /api/payment/verify - Verify Cashfree payment status
 router.post('/verify', async (req, res) => {
     try {
+        // Initialize Cashfree instance dynamically per request
+        const cashfree = new Cashfree(
+            process.env.CASHFREE_ENV === 'TEST' ? CFEnvironment.SANDBOX : CFEnvironment.PRODUCTION,
+            process.env.CASHFREE_APP_ID,
+            process.env.CASHFREE_SECRET_KEY
+        );
+
         const { orderId } = req.body;
 
         if (!orderId) {
             return res.status(400).json({ error: 'Order ID is required' });
         }
 
-        const response = await Cashfree.PGOrderFetchPayments("2023-08-01", orderId);
+        const response = await cashfree.PGOrderFetchPayments(orderId);
 
         if (!response || !response.data) {
             return res.status(400).json({ error: 'Failed to fetch payment details' });
