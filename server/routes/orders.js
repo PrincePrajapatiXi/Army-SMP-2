@@ -1,4 +1,3 @@
-const crypto = require('crypto');
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
@@ -16,7 +15,7 @@ const { analyzeOrder, createFraudAlert, updateUserFraudStats } = require('../ser
 // optionalAuth: links order to user if logged in, but doesn't require login
 router.post('/create', optionalAuth, async (req, res) => {
     try {
-        const { minecraftUsername, email, items, platform, couponInfo, transactionId, paymentScreenshot, razorpayPaymentId, razorpayOrderId, razorpaySignature } = req.body;
+        const { minecraftUsername, email, items, platform, couponInfo, transactionId, paymentScreenshot, cashfreePaymentId, cashfreeOrderId, paymentStatus: cfPaymentStatus, paymentMethod: cfPaymentMethod } = req.body;
 
         if (!minecraftUsername) {
             return res.status(400).json({ error: 'Minecraft username is required' });
@@ -32,8 +31,8 @@ router.post('/create', optionalAuth, async (req, res) => {
             return res.status(400).json({ error: 'Cart is empty' });
         }
 
-        // UTR/Transaction ID Validation - Only if not using Razorpay
-        if (transactionId && !razorpayPaymentId) {
+        // UTR/Transaction ID Validation - Only if not using Cashfree
+        if (transactionId && !cashfreePaymentId) {
             const trimmedUTR = transactionId.trim();
 
             // Format validation: UTR should be 12-22 alphanumeric characters
@@ -58,21 +57,8 @@ router.post('/create', optionalAuth, async (req, res) => {
             }
         }
         
-        // Razorpay Verification
-        if (razorpayPaymentId && razorpayOrderId && razorpaySignature) {
-            const body = razorpayOrderId + "|" + razorpayPaymentId;
-            const expectedSignature = crypto
-                .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'dummy_key_secret')
-                .update(body.toString())
-                .digest('hex');
-                
-            if (expectedSignature !== razorpaySignature) {
-                return res.status(400).json({
-                    error: 'Invalid payment signature. Payment verification failed!',
-                    field: 'razorpay'
-                });
-            }
-        }
+        // Cashfree payment verification is already done in /api/payment/verify endpoint
+        // Here we just record the payment details
 
         // SERVER-SIDE price verification: Fetch real prices from DB to prevent manipulation
         let verifiedCart = cart;
@@ -136,10 +122,11 @@ router.post('/create', optionalAuth, async (req, res) => {
             couponInfo: couponInfo || null, // Store coupon info for Discord notification
             status: 'pending', // pending, processing, completed, cancelled
             // Payment tracking
-            transactionId: razorpayPaymentId ? razorpayPaymentId : (transactionId ? transactionId.trim() : undefined),
+            transactionId: cashfreePaymentId ? cashfreePaymentId : (transactionId ? transactionId.trim() : undefined),
+            cashfreeOrderId: cashfreeOrderId || undefined,
             paymentScreenshot: paymentScreenshot || undefined,
-            paymentStatus: razorpayPaymentId ? 'paid' : (transactionId ? 'pending' : 'pending'),
-            paymentMethod: razorpayPaymentId ? 'Razorpay' : 'UPI',
+            paymentStatus: cashfreePaymentId ? 'paid' : (transactionId ? 'pending' : 'pending'),
+            paymentMethod: cashfreePaymentId ? (cfPaymentMethod || 'Cashfree') : 'UPI',
             createdAt: new Date(),
             updatedAt: new Date()
         };

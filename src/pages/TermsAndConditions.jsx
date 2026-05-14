@@ -38,7 +38,7 @@ const TermsAndConditions = () => {
                     <div className="policy-section">
                         <h2>4. Purchases and Payments</h2>
                         <p>
-                            All payments are processed through secure third-party payment gateways (including Razorpay). By making a purchase, you agree to provide current, complete, and accurate purchase and account information.
+                            All payments are processed through secure third-party payment gateways (including Cashfree). By making a purchase, you agree to provide current, complete, and accurate purchase and account information.
                         </p>
                         <p>
                             We reserve the right to refuse any order you place with us. Prices for our products are subject to change without notice.

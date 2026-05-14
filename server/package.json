@@ -12,6 +12,7 @@
     },
     "dependencies": {
         "bcryptjs": "^3.0.3",
+        "cashfree-pg": "^5.1.3",
         "cloudinary": "^2.8.0",
         "cookie-parser": "^1.4.7",
         "cors": "^2.8.5",
@@ -27,7 +28,6 @@
         "passport": "^0.7.0",
         "passport-discord": "^0.1.4",
         "passport-google-oauth20": "^2.0.0",
-        "razorpay": "^2.9.6",
         "rcon-client": "^4.2.5",
         "resend": "^6.6.0",
         "uuid": "^10.0.0",

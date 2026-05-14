@@ -38,6 +38,7 @@ const orderSchema = new mongoose.Schema({
         type: String,
         sparse: true // Allow null but enforce uniqueness when present
     },
+    cashfreeOrderId: { type: String }, // Cashfree order reference ID
     paymentMethod: { type: String, default: 'UPI' },
     paymentScreenshot: { type: String }, // Base64 or URL of payment proof
     paymentVerifiedAt: { type: Date },

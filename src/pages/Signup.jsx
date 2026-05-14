@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, User, UserPlus, AlertCircle, CheckCircle, AtSign } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../services/api';
 import './Login.css'; // Reuse auth styles
 
 const Signup = () => {
@@ -400,7 +401,7 @@ const Signup = () => {
                         <button
                             className="oauth-btn google"
                             onClick={() => {
-                                const apiUrl = 'https://army-smp-2.onrender.com';
+                                const apiUrl = API_BASE_URL.replace('/api', '');
                                 window.location.href = `${apiUrl}/api/auth/google`;
                             }}
                         >
@@ -415,7 +416,7 @@ const Signup = () => {
                         <button
                             className="oauth-btn discord"
                             onClick={() => {
-                                const apiUrl = 'https://army-smp-2.onrender.com';
+                                const apiUrl = API_BASE_URL.replace('/api', '');
                                 window.location.href = `${apiUrl}/api/auth/discord`;
                             }}
                         >

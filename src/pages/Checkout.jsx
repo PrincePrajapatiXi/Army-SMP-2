@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ShoppingBag, Check, Loader2, MessageCircle, Tag, X, CreditCard, AlertCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { ordersApi, paymentApi, API_BASE_URL } from '../services/api';
@@ -9,6 +9,7 @@ import './Checkout.css';
 
 const Checkout = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { cartItems, getCartTotal, clearCart } = useCart();
     const [minecraftUsername, setMinecraftUsername] = useState('');
     const [email, setEmail] = useState('');
@@ -27,6 +28,48 @@ const Checkout = () => {
     const [couponLoading, setCouponLoading] = useState(false);
     const [activeCoupons, setActiveCoupons] = useState([]);
     const [loadingCoupons, setLoadingCoupons] = useState(false);
+
+    // Handle Cashfree return URL (after payment redirect)
+    useEffect(() => {
+        const returnOrderId = searchParams.get('order_id');
+        if (returnOrderId) {
+            handlePaymentReturn(returnOrderId);
+        }
+    }, [searchParams]);
+
+    const handlePaymentReturn = async (cashfreeOrderId) => {
+        setLoading(true);
+        setError(null);
+        try {
+            // Verify payment with our backend
+            const verifyRes = await paymentApi.verifyPayment(cashfreeOrderId);
+            
+            if (verifyRes.success && verifyRes.verified) {
+                // Payment verified — retrieve stored order data from sessionStorage
+                const pendingOrder = JSON.parse(sessionStorage.getItem('pendingOrderData') || '{}');
+                
+                if (pendingOrder.minecraftUsername) {
+                    await handleCompleteOrder({
+                        cashfreePaymentId: verifyRes.paymentId,
+                        cashfreeOrderId: cashfreeOrderId,
+                        paymentStatus: verifyRes.paymentStatus,
+                        paymentMethod: verifyRes.paymentMethod
+                    }, pendingOrder);
+                } else {
+                    setError('Payment verified but order data was lost. Please contact support with Order ID: ' + cashfreeOrderId);
+                }
+            } else {
+                setError('Payment was not successful. Status: ' + (verifyRes.paymentStatus || 'Unknown'));
+            }
+        } catch (err) {
+            console.error('Payment return verification error:', err);
+            setError('Failed to verify payment. Please contact support.');
+        } finally {
+            setLoading(false);
+            // Clean up URL params
+            window.history.replaceState({}, '', '/checkout');
+        }
+    };
 
     // Fetch active coupons on mount
     useEffect(() => {
@@ -129,11 +172,15 @@ const Checkout = () => {
         setCouponError('');
     };
 
-    // Helper to load external scripts
-    const loadScript = (src) => {
+    // Load Cashfree JS SDK
+    const loadCashfreeSDK = () => {
         return new Promise((resolve) => {
+            if (window.Cashfree) {
+                resolve(true);
+                return;
+            }
             const script = document.createElement('script');
-            script.src = src;
+            script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
             script.onload = () => resolve(true);
             script.onerror = () => resolve(false);
             document.body.appendChild(script);
@@ -153,65 +200,97 @@ const Checkout = () => {
         setLoading(true);
 
         try {
-            // Load Razorpay Script
-            const isScriptLoaded = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
+            // Load Cashfree SDK
+            const isScriptLoaded = await loadCashfreeSDK();
             if (!isScriptLoaded) {
-                setError('Razorpay SDK failed to load. Are you online?');
+                setError('Payment SDK failed to load. Are you online?');
                 setLoading(false);
                 return;
             }
 
-            // Create Order on Backend
-            const paymentRes = await paymentApi.createOrder(finalTotal);
-            if (!paymentRes || !paymentRes.orderId) {
+            // Create Order on Backend (Cashfree)
+            const paymentRes = await paymentApi.createOrder(
+                finalTotal,
+                email,
+                minecraftUsername
+            );
+            
+            if (!paymentRes || !paymentRes.paymentSessionId) {
                 setError('Failed to initialize payment order. Please try again.');
                 setLoading(false);
                 return;
             }
 
-            // Setup Razorpay Options
-            const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'dummy_key',
-                amount: paymentRes.amount.toString(),
-                currency: "INR",
-                name: "Army SMP Store",
-                description: "Minecraft Server Items",
-                order_id: paymentRes.orderId,
-                handler: async function (response) {
-                    await handleCompleteOrder(response);
+            // Save order data to sessionStorage before redirect
+            const pendingOrderData = {
+                minecraftUsername,
+                email,
+                platform,
+                cartItems: cartItems.map(item => ({
+                    id: item.id,
+                    name: item.name,
+                    price: typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.-]+/g, '')),
+                    quantity: item.quantity,
+                    subtotal: (typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.-]+/g, ''))) * item.quantity
+                })),
+                couponInfo: {
+                    couponCode: appliedCoupon?.coupon?.code || null,
+                    discount: discountAmount,
+                    subtotal: subtotal,
+                    finalTotal: finalTotal
                 },
-                prefill: {
-                    name: minecraftUsername,
-                    email: email,
-                    contact: "9999999999"
-                },
-                theme: {
-                    color: "#8b5cf6"
-                }
+                cashfreeOrderId: paymentRes.orderId
+            };
+            sessionStorage.setItem('pendingOrderData', JSON.stringify(pendingOrderData));
+
+            // Initialize Cashfree checkout
+            const cashfreeMode = import.meta.env.VITE_CASHFREE_ENV || 'production';
+            const cashfree = window.Cashfree({ mode: cashfreeMode });
+
+            const checkoutOptions = {
+                paymentSessionId: paymentRes.paymentSessionId,
+                redirectTarget: '_self'  // Redirect in same window
             };
 
-            const paymentObject = new window.Razorpay(options);
-            paymentObject.on('payment.failed', function (response) {
-                setError('Payment failed: ' + response.error.description);
+            // Open Cashfree checkout
+            const result = await cashfree.checkout(checkoutOptions);
+
+            if (result.error) {
+                console.error('Cashfree checkout error:', result.error);
+                setError('Payment failed: ' + (result.error.message || 'Unknown error'));
                 setLoading(false);
-            });
-            paymentObject.open();
+            }
+            // If result.redirect — user will be redirected to Cashfree page
+            // After payment, user comes back to return_url with order_id
 
         } catch (err) {
             console.error('Payment initialization error:', err);
-            setError('An error occurred during payment initialization');
+            setError('An error occurred during payment initialization: ' + (err.message || ''));
             setLoading(false);
         }
     };
 
-    // Complete order with Razorpay ID
-    const handleCompleteOrder = async (razorpayResponse) => {
+    // Complete order after Cashfree payment verification
+    const handleCompleteOrder = async (cashfreeResponse, pendingData = null) => {
         try {
             setLoading(true);
             setError(null);
 
+            const orderData = pendingData || {
+                minecraftUsername,
+                email,
+                platform,
+                cartItems,
+                couponInfo: {
+                    couponCode: appliedCoupon?.coupon?.code || null,
+                    discount: discountAmount,
+                    subtotal: subtotal,
+                    finalTotal: finalTotal
+                }
+            };
+
             // Format items for API
-            const orderItems = cartItems.map(item => ({
+            const orderItems = (orderData.cartItems || cartItems).map(item => ({
                 id: item.id,
                 name: item.name,
                 price: typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.-]+/g, '')),
@@ -219,42 +298,49 @@ const Checkout = () => {
                 subtotal: (typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.-]+/g, ''))) * item.quantity
             }));
 
-            // Pass razorpay details to the order API
-            const razorpayDetails = {
-                razorpayPaymentId: razorpayResponse.razorpay_payment_id,
-                razorpayOrderId: razorpayResponse.razorpay_order_id,
-                razorpaySignature: razorpayResponse.razorpay_signature
+            // Pass Cashfree details to the order API
+            const cashfreeDetails = {
+                cashfreePaymentId: cashfreeResponse.cashfreePaymentId,
+                cashfreeOrderId: cashfreeResponse.cashfreeOrderId,
+                paymentStatus: cashfreeResponse.paymentStatus,
+                paymentMethod: cashfreeResponse.paymentMethod
             };
 
             const result = await ordersApi.create(
-                minecraftUsername,
-                email,
+                orderData.minecraftUsername || minecraftUsername,
+                orderData.email || email,
                 orderItems,
-                platform,
-                {
+                orderData.platform || platform,
+                orderData.couponInfo || {
                     couponCode: appliedCoupon?.coupon?.code || null,
                     discount: discountAmount,
                     subtotal: subtotal,
                     finalTotal: finalTotal
                 },
                 null,
-                razorpayDetails
+                cashfreeDetails
             );
+
+            const orderFinalTotal = orderData.couponInfo?.finalTotal || finalTotal;
+            const orderDiscount = orderData.couponInfo?.discount || discountAmount;
+            const orderSubtotal = orderData.couponInfo?.subtotal || subtotal;
 
             setOrderSuccess({
                 ...result.order,
-                couponApplied: appliedCoupon?.coupon?.code || null,
-                discount: discountAmount,
-                subtotal: subtotal,
-                total: finalTotal,
-                totalDisplay: `₹${finalTotal.toFixed(2)}`,
-                transactionId: razorpayResponse.razorpay_payment_id
+                couponApplied: orderData.couponInfo?.couponCode || appliedCoupon?.coupon?.code || null,
+                discount: orderDiscount,
+                subtotal: orderSubtotal,
+                total: orderFinalTotal,
+                totalDisplay: `₹${orderFinalTotal.toFixed(2)}`,
+                transactionId: cashfreeResponse.cashfreePaymentId
             });
             await clearCart();
+            // Clean up pending order data
+            sessionStorage.removeItem('pendingOrderData');
 
         } catch (err) {
             console.error('Order failed:', err);
-            setError('Failed to verify payment and process order.');
+            setError('Failed to process order after payment. Please contact support.');
         } finally {
             setLoading(false);
         }
@@ -350,7 +436,7 @@ const Checkout = () => {
     }
 
     // Empty Cart
-    if (cartItems.length === 0) {
+    if (cartItems.length === 0 && !searchParams.get('order_id')) {
         return (
             <div className="checkout-page">
                 <div className="checkout-container">
@@ -387,12 +473,30 @@ const Checkout = () => {
                         <div className="summary-items">
                             {cartItems.map(item => (
                                 <div key={item.id} className="summary-item">
+                                    {item.image ? (
+                                        <img 
+                                            src={item.image} 
+                                            alt={item.name} 
+                                            style={{
+                                                width: '50px',
+                                                height: '50px',
+                                                borderRadius: '8px',
+                                                objectFit: 'cover',
+                                                border: `1px solid ${item.color || 'rgba(255,255,255,0.1)'}`,
+                                                background: item.color ? `linear-gradient(135deg, ${item.color}40, ${item.color}20)` : 'rgba(255,255,255,0.1)'
+                                            }}
+                                            onError={(e) => {
+                                                e.target.style.display = 'none';
+                                                e.target.nextSibling.style.display = 'flex';
+                                            }}
+                                        />
+                                    ) : null}
                                     <div className="item-image-placeholder" style={{
                                         width: '50px',
                                         height: '50px',
                                         borderRadius: '8px',
                                         background: item.color ? `linear-gradient(135deg, ${item.color}40, ${item.color}20)` : 'rgba(255,255,255,0.1)',
-                                        display: 'flex',
+                                        display: item.image ? 'none' : 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         border: `1px solid ${item.color || 'rgba(255,255,255,0.1)'}`,
@@ -580,13 +684,13 @@ const Checkout = () => {
                             ) : (
                                 <>
                                     <CreditCard size={20} />
-                                    Pay with Razorpay - ₹{finalTotal.toFixed(2)}
+                                    Pay ₹{finalTotal.toFixed(2)} with Cashfree
                                 </>
                             )}
                         </button>
 
                         <p className="payment-note">
-                            Pay safely via UPI, Netbanking, or Cards with Razorpay.
+                            Pay safely via UPI, Netbanking, or Cards with Cashfree.
                         </p>
                     </form>
                 </div>
@@ -596,4 +700,5 @@ const Checkout = () => {
 };
 
 export default Checkout;
+
 

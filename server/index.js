@@ -101,12 +101,12 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://sdk.cashfree.com"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             imgSrc: ["'self'", "data:", "https:", "blob:"],
-            connectSrc: ["'self'", "https://api.cloudinary.com", "https://res.cloudinary.com"],
-            frameSrc: ["'none'"],
+            connectSrc: ["'self'", "https://api.cloudinary.com", "https://res.cloudinary.com", "https://sdk.cashfree.com", "https://api.cashfree.com", "https://sandbox.cashfree.com"],
+            frameSrc: ["'self'", "https://sdk.cashfree.com", "https://*.cashfree.com"],
             objectSrc: ["'none'"],
             upgradeInsecureRequests: []
         }

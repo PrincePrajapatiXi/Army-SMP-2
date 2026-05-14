@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { X, Trash2, Plus, Minus, ShoppingBag, ChevronDown, Gift, Sparkles } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ShoppingBag, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import './CartDrawer.css';
@@ -7,8 +6,6 @@ import './CartDrawer.css';
 const CartDrawer = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
     const { cartItems, removeFromCart, incrementQuantity, decrementQuantity, getCartTotal, clearCart, loading } = useCart();
-    const [couponOpen, setCouponOpen] = useState(false);
-    const [couponCode, setCouponCode] = useState('');
 
     // Upsell suggestions (could be fetched from API)
     const upsellItems = [
@@ -20,11 +17,6 @@ const CartDrawer = ({ isOpen, onClose }) => {
     const handleCheckout = () => {
         onClose();
         navigate('/checkout');
-    };
-
-    const handleApplyCoupon = () => {
-        // Placeholder for coupon logic
-        console.log('Applying coupon:', couponCode);
     };
 
     if (!isOpen) return null;
@@ -114,41 +106,13 @@ const CartDrawer = ({ isOpen, onClose }) => {
 
                             {/* Sticky Footer */}
                             <div className="cart-footer-sticky">
-                                {/* Coupon Accordion */}
-                                <div className="coupon-accordion">
-                                    <button
-                                        className={`coupon-toggle ${couponOpen ? 'open' : ''}`}
-                                        onClick={() => setCouponOpen(!couponOpen)}
-                                    >
-                                        <Gift size={16} />
-                                        <span>Have a coupon?</span>
-                                        <ChevronDown size={16} className="coupon-chevron" />
-                                    </button>
-                                    {couponOpen && (
-                                        <div className="coupon-content">
-                                            <input
-                                                type="text"
-                                                placeholder="Enter code"
-                                                value={couponCode}
-                                                onChange={(e) => setCouponCode(e.target.value)}
-                                                className="coupon-input"
-                                            />
-                                            <button
-                                                className="coupon-apply-btn"
-                                                onClick={handleApplyCoupon}
-                                            >
-                                                Apply
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-
                                 {/* Total & Checkout */}
                                 <div className="cart-summary">
                                     <div className="cart-total">
                                         <span>Total:</span>
                                         <span className="total-amount">₹{getCartTotal().toFixed(2)}</span>
                                     </div>
+                                    <p className="coupon-hint">💡 Have a coupon? Apply it at checkout!</p>
                                     <button
                                         className="btn btn-primary checkout-btn"
                                         onClick={handleCheckout}

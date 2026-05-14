@@ -73,24 +73,32 @@ export const cartApi = {
     }
 };
 
-// Payment API
+// Payment API (Cashfree)
 export const paymentApi = {
-    createOrder: async (amount) => {
+    createOrder: async (amount, customerEmail, customerName) => {
         return fetchWithCredentials(`${API_BASE_URL}/payment/create-order`, {
             method: 'POST',
-            body: JSON.stringify({ amount }),
+            body: JSON.stringify({ amount, customerEmail, customerName }),
+        });
+    },
+
+    verifyPayment: async (orderId) => {
+        return fetchWithCredentials(`${API_BASE_URL}/payment/verify`, {
+            method: 'POST',
+            body: JSON.stringify({ orderId }),
         });
     }
 };
 
 // Orders API
 export const ordersApi = {
-    create: async (minecraftUsername, email = null, items = [], platform = 'Java', couponInfo = null, transactionId = null, razorpayDetails = null) => {
+    create: async (minecraftUsername, email = null, items = [], platform = 'Java', couponInfo = null, transactionId = null, cashfreeDetails = null) => {
         const payload = { minecraftUsername, email, items, platform, couponInfo, transactionId };
-        if (razorpayDetails) {
-            payload.razorpayPaymentId = razorpayDetails.razorpayPaymentId;
-            payload.razorpayOrderId = razorpayDetails.razorpayOrderId;
-            payload.razorpaySignature = razorpayDetails.razorpaySignature;
+        if (cashfreeDetails) {
+            payload.cashfreePaymentId = cashfreeDetails.cashfreePaymentId;
+            payload.cashfreeOrderId = cashfreeDetails.cashfreeOrderId;
+            payload.paymentStatus = cashfreeDetails.paymentStatus;
+            payload.paymentMethod = cashfreeDetails.paymentMethod;
         }
         
         return fetchWithCredentials(`${API_BASE_URL}/orders/create`, {

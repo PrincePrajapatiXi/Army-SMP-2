@@ -211,6 +211,15 @@
     justify-content: center;
 }
 
+.coupon-hint {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    margin: 0;
+    padding: 4px 0;
+    opacity: 0.85;
+}
+
 /* ============================================ */
 /* ===== MOBILE ENHANCED CART (<768px) ===== */
 /* ============================================ */
