@@ -199,6 +199,17 @@ const Checkout = () => {
         setError(null);
         setLoading(true);
 
+        // Bypass payment gateway completely if order is 100% discounted / free
+        if (finalTotal <= 0) {
+            await handleCompleteOrder({
+                cashfreePaymentId: `FREE_${Date.now()}`,
+                cashfreeOrderId: `FREE_ORDER_${Date.now()}`,
+                paymentStatus: 'SUCCESS',
+                paymentMethod: 'Free / 100% Coupon'
+            });
+            return;
+        }
+
         try {
             // Load Cashfree SDK
             const isScriptLoaded = await loadCashfreeSDK();
@@ -681,6 +692,11 @@ const Checkout = () => {
                                     <Loader2 size={20} className="spinner" />
                                     Processing...
                                 </>
+                            ) : finalTotal <= 0 ? (
+                                <>
+                                    <Check size={20} />
+                                    Complete Free Order
+                                </>
                             ) : (
                                 <>
                                     <CreditCard size={20} />
@@ -690,7 +706,9 @@ const Checkout = () => {
                         </button>
 
                         <p className="payment-note">
-                            Pay safely via UPI, Netbanking, or Cards with Cashfree.
+                            {finalTotal <= 0 
+                                ? "100% discount applied. No payment required." 
+                                : "Pay safely via UPI, Netbanking, or Cards with Cashfree."}
                         </p>
                     </form>
                 </div>
