@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ShoppingBag, Check, Loader2, MessageCircle, Tag, X, CreditCard, AlertCircle } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Check, Loader2, MessageCircle, Tag, X, CreditCard, AlertCircle, Plus, Minus, Trash2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { ordersApi, paymentApi, API_BASE_URL } from '../services/api';
 import { validateCoupon as validateCouponLocal } from '../data/coupons';
@@ -10,7 +10,7 @@ import './Checkout.css';
 const Checkout = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { cartItems, getCartTotal, clearCart } = useCart();
+    const { cartItems, getCartTotal, clearCart, incrementQuantity, decrementQuantity, removeFromCart } = useCart();
     const [minecraftUsername, setMinecraftUsername] = useState('');
     const [email, setEmail] = useState('');
     const [platform, setPlatform] = useState('');
@@ -94,6 +94,18 @@ const Checkout = () => {
     const discountAmount = appliedCoupon?.discountAmount || 0;
     const finalTotal = subtotal - discountAmount;
 
+    // Re-evaluate coupon when subtotal changes
+    useEffect(() => {
+        if (appliedCoupon && appliedCoupon.coupon?.code) {
+            if (subtotal <= 0) {
+                setAppliedCoupon(null);
+                setCouponError('');
+            } else {
+                processCouponApplication(appliedCoupon.coupon.code, subtotal);
+            }
+        }
+    }, [subtotal]);
+
     // Apply coupon - try API first (MongoDB), fallback to local
     const handleApplyCoupon = async () => {
         if (!couponCode.trim()) {
@@ -114,7 +126,7 @@ const Checkout = () => {
         await processCouponApplication(code);
     };
 
-    const processCouponApplication = async (codeToApply) => {
+    const processCouponApplication = async (codeToApply, amountToUse = subtotal) => {
         try {
             // Try API first (coupons from Admin Panel / MongoDB)
             const response = await fetch(`${API_BASE_URL}/coupons/apply`, {
@@ -122,7 +134,7 @@ const Checkout = () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     code: codeToApply,
-                    orderTotal: subtotal
+                    orderTotal: amountToUse
                 })
             });
 
@@ -139,7 +151,7 @@ const Checkout = () => {
                 setCouponError('');
             } else {
                 // API coupon not found, try local coupons
-                const localResult = validateCouponLocal(codeToApply, subtotal);
+                const localResult = validateCouponLocal(codeToApply, amountToUse);
                 if (localResult.valid) {
                     setAppliedCoupon(localResult);
                     setCouponCode('');
@@ -152,7 +164,7 @@ const Checkout = () => {
         } catch (err) {
             // API failed, fallback to local validation
             console.log('API coupon validation failed, using local:', err);
-            const localResult = validateCouponLocal(codeToApply, subtotal);
+            const localResult = validateCouponLocal(codeToApply, amountToUse);
             if (localResult.valid) {
                 setAppliedCoupon(localResult);
                 setCouponCode('');
@@ -517,11 +529,20 @@ const Checkout = () => {
                                     </div>
                                     <div className="item-info">
                                         <h4>{item.name}</h4>
-                                        <span className="item-qty">× {item.quantity}</span>
+                                        <div className="item-qty-controls">
+                                            <button type="button" onClick={() => decrementQuantity(item.id)} className="qty-btn" disabled={loading}><Minus size={14} /></button>
+                                            <span className="item-qty">{item.quantity}</span>
+                                            <button type="button" onClick={() => incrementQuantity(item.id)} className="qty-btn" disabled={loading}><Plus size={14} /></button>
+                                        </div>
                                     </div>
-                                    <span className="item-price">
-                                        {getDisplayPrice(item)}
-                                    </span>
+                                    <div className="item-actions">
+                                        <span className="item-price">
+                                            {getDisplayPrice(item)}
+                                        </span>
+                                        <button type="button" onClick={() => removeFromCart(item.id)} className="remove-item-btn" disabled={loading} title="Remove item">
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>

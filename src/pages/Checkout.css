@@ -98,14 +98,78 @@
     margin-bottom: 4px;
 }
 
-.summary-item .item-qty {
-    font-size: 0.85rem;
+.item-qty-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.qty-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.qty-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+}
+
+.qty-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.summary-item .item-qty {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 20px;
+    text-align: center;
+}
+
+.item-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
 }
 
 .summary-item .item-price {
     font-weight: 600;
     color: var(--primary);
+}
+
+.remove-item-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.remove-item-btn:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.remove-item-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .summary-total {
