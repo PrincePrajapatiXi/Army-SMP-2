@@ -100,9 +100,39 @@ const Checkout = () => {
             if (subtotal <= 0) {
                 setAppliedCoupon(null);
                 setCouponError('');
-            } else {
-                processCouponApplication(appliedCoupon.coupon.code, subtotal);
+                return;
             }
+
+            // Optimistic update for instant price change
+            const activeCoupon = activeCoupons.find(c => c.code === appliedCoupon.coupon.code);
+            if (activeCoupon) {
+                if (subtotal < (activeCoupon.minOrderAmount || 0)) {
+                    setAppliedCoupon(null);
+                    setCouponError(`Minimum order of ₹${activeCoupon.minOrderAmount} required for ${activeCoupon.code}`);
+                    return; // Fail fast locally
+                } else {
+                    let newDiscount = 0;
+                    if (activeCoupon.discountType === 'percentage') {
+                        newDiscount = (subtotal * activeCoupon.discountValue) / 100;
+                        if (activeCoupon.maxDiscount && newDiscount > activeCoupon.maxDiscount) {
+                            newDiscount = activeCoupon.maxDiscount;
+                        }
+                    } else {
+                        newDiscount = activeCoupon.discountValue;
+                    }
+                    
+                    if (newDiscount > subtotal) newDiscount = subtotal;
+
+                    setAppliedCoupon(prev => prev ? ({
+                        ...prev,
+                        discountAmount: newDiscount,
+                        message: `Coupon applied! You save ₹${newDiscount.toFixed(2)}!`
+                    }) : null);
+                }
+            }
+
+            // Verify with backend
+            processCouponApplication(appliedCoupon.coupon.code, subtotal);
         }
     }, [subtotal]);
 
