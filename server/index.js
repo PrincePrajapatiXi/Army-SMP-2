@@ -91,7 +91,12 @@ app.use(cors({
     credentials: true
 }));
 
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ 
+    limit: '10mb',
+    verify: (req, res, buf) => {
+        req.rawBody = buf.toString();
+    }
+}));
 app.use(cookieParser());
 
 // Security Headers with Helmet.js

@@ -117,6 +117,28 @@ router.post('/verify', async (req, res) => {
 // This catches payments even when users don't return to the site
 router.post('/webhook', async (req, res) => {
     try {
+        const signature = req.headers['x-webhook-signature'];
+        const timestamp = req.headers['x-webhook-timestamp'];
+        const clientSecret = process.env.CASHFREE_SECRET_KEY;
+
+        if (!signature || !timestamp) {
+            console.error('❌ Webhook Verification Failed: Missing headers');
+            return res.status(400).json({ error: 'Missing webhook headers' });
+        }
+
+        // Verify the webhook signature using crypto HMAC
+        const crypto = require('crypto');
+        const message = timestamp + (req.rawBody || '');
+        const expectedSignature = crypto
+            .createHmac('sha256', clientSecret)
+            .update(message)
+            .digest('base64');
+
+        if (signature !== expectedSignature) {
+            console.error('❌ Webhook Verification Failed: Signature mismatch');
+            return res.status(401).json({ error: 'Invalid webhook signature' });
+        }
+
         const { data } = req.body;
 
         // Cashfree sends payment data in data.payment object
@@ -154,8 +176,8 @@ router.post('/webhook', async (req, res) => {
         res.status(200).json({ success: true });
     } catch (error) {
         console.error('Webhook processing error:', error.message);
-        // Still return 200 so Cashfree doesn't retry indefinitely
-        res.status(200).json({ success: true });
+        // Respond with 500/400 for internal errors so Cashfree knows there was a server issue
+        res.status(500).json({ error: 'Webhook processing error', details: error.message });
     }
 });
 
