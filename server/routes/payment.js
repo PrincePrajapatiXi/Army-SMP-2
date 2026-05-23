@@ -32,7 +32,7 @@ router.post('/create-order', async (req, res) => {
             },
             order_meta: {
                 return_url: `${process.env.FRONTEND_URL || 'https://store.armysmp.fun'}/checkout?order_id={order_id}`,
-                notify_url: process.env.CASHFREE_WEBHOOK_URL || undefined
+                notify_url: `${process.env.BACKEND_URL || 'https://army-smp-2.onrender.com'}/api/payment/webhook`
             }
         };
 
@@ -110,6 +110,52 @@ router.post('/verify', async (req, res) => {
             error: 'Payment verification failed',
             details: error?.response?.data?.message || error.message
         });
+    }
+});
+
+// POST /api/payment/webhook - Cashfree webhook for server-side payment notifications
+// This catches payments even when users don't return to the site
+router.post('/webhook', async (req, res) => {
+    try {
+        const { data } = req.body;
+
+        // Cashfree sends payment data in data.payment object
+        if (!data || !data.payment) {
+            return res.status(400).json({ error: 'Invalid webhook payload' });
+        }
+
+        const payment = data.payment;
+        const orderId = data.order?.order_id;
+
+        console.log(`🔔 Cashfree Webhook: Order ${orderId} - Status: ${payment.payment_status}`);
+
+        if (payment.payment_status === 'SUCCESS' && orderId) {
+            // Update order payment status in database
+            const Order = require('../models/Order');
+            const updatedOrder = await Order.findOneAndUpdate(
+                { cashfreeOrderId: orderId },
+                {
+                    paymentStatus: 'paid',
+                    transactionId: payment.cf_payment_id?.toString() || payment.payment_id,
+                    paymentMethod: payment.payment_group || 'Cashfree',
+                    updatedAt: new Date()
+                },
+                { new: true }
+            );
+
+            if (updatedOrder) {
+                console.log(`✅ Webhook: Order ${updatedOrder.orderNumber} payment status updated to 'paid'`);
+            } else {
+                console.log(`⚠️ Webhook: No order found with cashfreeOrderId: ${orderId}`);
+            }
+        }
+
+        // Always respond with 200 to acknowledge receipt
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.error('Webhook processing error:', error.message);
+        // Still return 200 so Cashfree doesn't retry indefinitely
+        res.status(200).json({ success: true });
     }
 });
 

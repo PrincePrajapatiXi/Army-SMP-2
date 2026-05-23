@@ -19,6 +19,18 @@ const Login = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    // Prepopulate saved email/username if Remember Me was selected previously
+    React.useEffect(() => {
+        const savedEmailOrUsername = localStorage.getItem('savedEmailOrUsername');
+        if (savedEmailOrUsername) {
+            setFormData(prev => ({
+                ...prev,
+                emailOrUsername: savedEmailOrUsername,
+                rememberMe: true
+            }));
+        }
+    }, []);
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData(prev => ({
@@ -44,6 +56,13 @@ const Login = () => {
             const result = await login(formData.emailOrUsername, formData.password);
 
             if (result.success) {
+                // Save or clear rememberMe data
+                if (formData.rememberMe) {
+                    localStorage.setItem('savedEmailOrUsername', formData.emailOrUsername);
+                } else {
+                    localStorage.removeItem('savedEmailOrUsername');
+                }
+
                 setSuccess('Login successful! Redirecting...');
 
                 if (result.requiresVerification) {

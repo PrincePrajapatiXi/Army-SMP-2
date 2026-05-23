@@ -8,6 +8,7 @@ import RippleButton from '../components/RippleButton';
 import AnimatedSection from '../components/AnimatedSection';
 import SEO from '../components/SEO';
 import { Link } from 'react-router-dom';
+import { API_BASE_URL } from '../services/api';
 
 const Home = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,7 +26,6 @@ const Home = () => {
 
     // Fetch live server status
     useEffect(() => {
-        const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
 
         const fetchServerStatus = async () => {
             try {

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ShoppingBag, Check, Loader2, MessageCircle, Tag, X, CreditCard, AlertCircle, Plus, Minus, Trash2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { ordersApi, paymentApi, API_BASE_URL } from '../services/api';
 import { validateCoupon as validateCouponLocal } from '../data/coupons';
 import Confetti from '../components/Confetti';
@@ -28,6 +29,15 @@ const Checkout = () => {
     const [couponLoading, setCouponLoading] = useState(false);
     const [activeCoupons, setActiveCoupons] = useState([]);
     const [loadingCoupons, setLoadingCoupons] = useState(false);
+    const { user } = useAuth();
+
+    // Auto-fill form from logged-in user's profile
+    useEffect(() => {
+        if (user) {
+            if (user.email && !email) setEmail(user.email);
+            if (user.minecraftUsername && !minecraftUsername) setMinecraftUsername(user.minecraftUsername);
+        }
+    }, [user]);
 
     // Handle Cashfree return URL (after payment redirect)
     useEffect(() => {
@@ -45,8 +55,8 @@ const Checkout = () => {
             const verifyRes = await paymentApi.verifyPayment(cashfreeOrderId);
             
             if (verifyRes.success && verifyRes.verified) {
-                // Payment verified — retrieve stored order data from sessionStorage
-                const pendingOrder = JSON.parse(sessionStorage.getItem('pendingOrderData') || '{}');
+                // Payment verified — retrieve stored order data from localStorage
+                const pendingOrder = JSON.parse(localStorage.getItem('pendingOrderData') || '{}');
                 
                 if (pendingOrder.minecraftUsername) {
                     await handleCompleteOrder({
@@ -94,69 +104,8 @@ const Checkout = () => {
     const discountAmount = appliedCoupon?.discountAmount || 0;
     const finalTotal = subtotal - discountAmount;
 
-    // Re-evaluate coupon when subtotal changes
-    useEffect(() => {
-        if (appliedCoupon && appliedCoupon.coupon?.code) {
-            if (subtotal <= 0) {
-                setAppliedCoupon(null);
-                setCouponError('');
-                return;
-            }
-
-            // Optimistic update for instant price change
-            const activeCoupon = activeCoupons.find(c => c.code === appliedCoupon.coupon.code);
-            if (activeCoupon) {
-                if (subtotal < (activeCoupon.minOrderAmount || 0)) {
-                    setAppliedCoupon(null);
-                    setCouponError(`Minimum order of ₹${activeCoupon.minOrderAmount} required for ${activeCoupon.code}`);
-                    return; // Fail fast locally
-                } else {
-                    let newDiscount = 0;
-                    if (activeCoupon.discountType === 'percentage') {
-                        newDiscount = (subtotal * activeCoupon.discountValue) / 100;
-                        if (activeCoupon.maxDiscount && newDiscount > activeCoupon.maxDiscount) {
-                            newDiscount = activeCoupon.maxDiscount;
-                        }
-                    } else {
-                        newDiscount = activeCoupon.discountValue;
-                    }
-                    
-                    if (newDiscount > subtotal) newDiscount = subtotal;
-
-                    setAppliedCoupon(prev => prev ? ({
-                        ...prev,
-                        discountAmount: newDiscount,
-                        message: `Coupon applied! You save ₹${newDiscount.toFixed(2)}!`
-                    }) : null);
-                }
-            }
-
-            // Verify with backend
-            processCouponApplication(appliedCoupon.coupon.code, subtotal);
-        }
-    }, [subtotal]);
-
     // Apply coupon - try API first (MongoDB), fallback to local
-    const handleApplyCoupon = async () => {
-        if (!couponCode.trim()) {
-            setCouponError('Please enter a coupon code');
-            return;
-        }
-
-        setCouponLoading(true);
-        setCouponError('');
-
-        await processCouponApplication(couponCode.trim());
-    };
-
-    const handleApplySpecificCoupon = async (code) => {
-        setCouponCode(code);
-        setCouponLoading(true);
-        setCouponError('');
-        await processCouponApplication(code);
-    };
-
-    const processCouponApplication = async (codeToApply, amountToUse = subtotal) => {
+    const processCouponApplication = useCallback(async (codeToApply, amountToUse = subtotal) => {
         try {
             // Try API first (coupons from Admin Panel / MongoDB)
             const response = await fetch(`${API_BASE_URL}/coupons/apply`, {
@@ -206,6 +155,69 @@ const Checkout = () => {
         } finally {
             setCouponLoading(false);
         }
+    }, [subtotal, activeCoupons]);
+
+    // Re-evaluate coupon when subtotal changes
+    useEffect(() => {
+        if (appliedCoupon && appliedCoupon.coupon?.code) {
+            if (subtotal <= 0) {
+                setAppliedCoupon(null);
+                setCouponError('');
+                return;
+            }
+
+            // Optimistic update for instant price change
+            const activeCoupon = activeCoupons.find(c => c.code === appliedCoupon.coupon.code);
+            if (activeCoupon) {
+                if (subtotal < (activeCoupon.minOrderAmount || 0)) {
+                    setAppliedCoupon(null);
+                    setCouponError(`Minimum order of ₹${activeCoupon.minOrderAmount} required for ${activeCoupon.code}`);
+                    return; // Fail fast locally
+                } else {
+                    let newDiscount = 0;
+                    if (activeCoupon.discountType === 'percentage') {
+                        newDiscount = (subtotal * activeCoupon.discountValue) / 100;
+                        if (activeCoupon.maxDiscount && newDiscount > activeCoupon.maxDiscount) {
+                            newDiscount = activeCoupon.maxDiscount;
+                        }
+                    } else {
+                        newDiscount = activeCoupon.discountValue;
+                    }
+                    
+                    if (newDiscount > subtotal) newDiscount = subtotal;
+
+                    setAppliedCoupon(prev => prev ? ({
+                        ...prev,
+                        discountAmount: newDiscount,
+                        message: `Coupon applied! You save ₹${newDiscount.toFixed(2)}!`
+                    }) : null);
+                }
+            }
+
+            // Verify with backend
+            processCouponApplication(appliedCoupon.coupon.code, subtotal);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [subtotal, processCouponApplication]);
+
+    // Apply coupon - try API first (MongoDB), fallback to local
+    const handleApplyCoupon = async () => {
+        if (!couponCode.trim()) {
+            setCouponError('Please enter a coupon code');
+            return;
+        }
+
+        setCouponLoading(true);
+        setCouponError('');
+
+        await processCouponApplication(couponCode.trim());
+    };
+
+    const handleApplySpecificCoupon = async (code) => {
+        setCouponCode(code);
+        setCouponLoading(true);
+        setCouponError('');
+        await processCouponApplication(code);
     };
 
     // Remove coupon
@@ -294,7 +306,7 @@ const Checkout = () => {
                 },
                 cashfreeOrderId: paymentRes.orderId
             };
-            sessionStorage.setItem('pendingOrderData', JSON.stringify(pendingOrderData));
+            localStorage.setItem('pendingOrderData', JSON.stringify(pendingOrderData));
 
             // Initialize Cashfree checkout
             const cashfreeMode = import.meta.env.VITE_CASHFREE_ENV || 'production';
@@ -389,7 +401,7 @@ const Checkout = () => {
             });
             await clearCart();
             // Clean up pending order data
-            sessionStorage.removeItem('pendingOrderData');
+            localStorage.removeItem('pendingOrderData');
 
         } catch (err) {
             console.error('Order failed:', err);
