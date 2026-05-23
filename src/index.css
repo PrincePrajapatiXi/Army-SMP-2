@@ -831,6 +831,21 @@ html {
   background: rgba(255, 255, 255, 0.8);
 }
 
+.server-status-pill {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.server-status-pill:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 107, 53, 0.3);
+  box-shadow: 0 4px 25px rgba(255, 107, 53, 0.15);
+}
+
 [data-theme="light"] .server-status-pill {
   background: rgba(255, 255, 255, 0.8);
   border: 1px solid rgba(15, 23, 42, 0.15);
