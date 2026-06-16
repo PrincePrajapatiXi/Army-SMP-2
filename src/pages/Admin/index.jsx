@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     LogOut, Package, TrendingUp, Box, Ticket, Megaphone,
-    RefreshCw, BarChart3, Users, Star, Award
+    RefreshCw, BarChart3, Users, Star, Award, ShieldAlert
 } from 'lucide-react';
 import './Admin.css';
 
@@ -22,6 +22,7 @@ import PromotionsTab from './components/PromotionsTab';
 import UsersTab from './components/UsersTab';
 import FeaturedRanksTab from './components/FeaturedRanksTab';
 import BadgesTab from './components/BadgesTab';
+import FirewallPanel from './components/FirewallPanel';
 
 const Admin = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -134,6 +135,13 @@ const Admin = () => {
                     <Award size={20} />
                     <span>Badges</span>
                 </button>
+                <button
+                    className={`mobile-nav-item ${activeTab === 'firewall' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('firewall')}
+                >
+                    <ShieldAlert size={20} />
+                    <span>Firewall</span>
+                </button>
                 <button className="mobile-nav-item logout" onClick={handleLogout}>
                     <LogOut size={20} />
                     <span>Logout</span>
@@ -202,6 +210,13 @@ const Admin = () => {
                         <Award size={20} />
                         <span>Badges</span>
                     </button>
+                    <button
+                        className={`sidebar-item ${activeTab === 'firewall' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('firewall')}
+                    >
+                        <ShieldAlert size={20} />
+                        <span>Firewall</span>
+                    </button>
                 </nav>
                 <button className="logout-btn" onClick={handleLogout}>
                     <LogOut size={20} />
@@ -222,6 +237,7 @@ const Admin = () => {
                         {activeTab === 'promotions' && '📣 Promotion Banners'}
                         {activeTab === 'users' && '👥 User Management'}
                         {activeTab === 'badges' && '🎖️ Badge Management'}
+                        {activeTab === 'firewall' && '🛡️ WAF & IPS Firewall'}
                     </h1>
                     <button
                         className="refresh-btn"
@@ -353,6 +369,11 @@ const Admin = () => {
                 {/* Badges Tab */}
                 {activeTab === 'badges' && (
                     <BadgesTab />
+                )}
+
+                {/* Firewall Tab */}
+                {activeTab === 'firewall' && (
+                    <FirewallPanel />
                 )}
             </main>
         </div>

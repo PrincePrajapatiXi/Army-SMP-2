@@ -12,6 +12,8 @@ const helmet = require('helmet');
 
 // Import security middleware
 const { sanitizeInputs } = require('./middleware/sanitize');
+const { wafMiddleware, checkIPBan } = require('./middleware/waf');
+const { ipsMiddleware } = require('./middleware/ips');
 
 // Import routes
 const productsRouter = require('./routes/products');
@@ -67,6 +69,13 @@ const paymentLimiter = rateLimit({
     message: { error: 'Too many payment requests, please try again.' }
 });
 
+// ===== WAF (Web Application Firewall) — First line of defense =====
+// Runs BEFORE body parsing to catch malicious URLs/headers immediately
+app.use('/api/', wafMiddleware);
+
+// ===== IPS (Intrusion Prevention System) =====
+app.use('/api/', ipsMiddleware);
+
 // Apply rate limiting to all API routes basic protection
 app.use('/api/', limiter);
 
@@ -74,6 +83,10 @@ app.use('/api/', limiter);
 app.use('/api/auth', authLimiter);
 app.use('/api/payment', paymentLimiter);
 app.use('/api/orders/checkout', paymentLimiter);
+
+// IP Ban check specifically for admin routes
+app.use('/api/admin', checkIPBan);
+
 // Middleware
 app.use(cors({
     origin: [
@@ -217,6 +230,8 @@ app.listen(PORT, async () => {
     console.log(`🛒 Cart API: http://localhost:${PORT}/api/cart`);
     console.log(`📋 Orders API: http://localhost:${PORT}/api/orders`);
     console.log(`🔐 Admin API: http://localhost:${PORT}/api/admin`);
+    console.log(`🛡️ WAF + IPS Security: ACTIVE`);
+    console.log(`🚫 Admin IP Ban: 2 failed attempts = 1 week ban`);
 
     // Verify email configuration
     await verifyEmailConfig();

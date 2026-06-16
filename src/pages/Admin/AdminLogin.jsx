@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, ShieldAlert, Clock, ShieldCheck, Mail, RefreshCw } from 'lucide-react';
+import { Lock, ShieldAlert, Clock, ShieldCheck, Mail, RefreshCw, Ban, ShieldOff } from 'lucide-react';
 
 const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
 
@@ -8,21 +8,27 @@ const AdminLogin = ({ onLoginSuccess }) => {
     const [otp, setOtp] = useState('');
     const [loginError, setLoginError] = useState('');
     const [loginLoading, setLoginLoading] = useState(false);
-    const [isLocked, setIsLocked] = useState(false);
-    const [lockoutRemaining, setLockoutRemaining] = useState(0);
+
+    // IP Ban State
+    const [isBanned, setIsBanned] = useState(false);
+    const [banExpiresAt, setBanExpiresAt] = useState(null);
+    const [banRemainingMs, setBanRemainingMs] = useState(0);
+    const [banReason, setBanReason] = useState('');
 
     // 2FA State
     const [step, setStep] = useState(1); // 1 = password, 2 = OTP
     const [maskedEmail, setMaskedEmail] = useState('');
     const [resendCooldown, setResendCooldown] = useState(0);
 
-    // Countdown timer for lockout
+    // Ban countdown timer
     useEffect(() => {
-        if (lockoutRemaining > 0) {
+        if (banRemainingMs > 0 && isBanned) {
             const timer = setInterval(() => {
-                setLockoutRemaining(prev => {
+                setBanRemainingMs(prev => {
                     if (prev <= 1000) {
-                        setIsLocked(false);
+                        setIsBanned(false);
+                        setBanExpiresAt(null);
+                        setBanReason('');
                         setLoginError('');
                         return 0;
                     }
@@ -31,7 +37,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
             }, 1000);
             return () => clearInterval(timer);
         }
-    }, [lockoutRemaining]);
+    }, [banRemainingMs, isBanned]);
 
     // Resend cooldown timer
     useEffect(() => {
@@ -43,20 +49,37 @@ const AdminLogin = ({ onLoginSuccess }) => {
         }
     }, [resendCooldown]);
 
-    const formatTime = (ms) => {
+    const formatBanTime = (ms) => {
         const totalSecs = Math.ceil(ms / 1000);
-        const mins = Math.floor(totalSecs / 60);
+        const days = Math.floor(totalSecs / 86400);
+        const hours = Math.floor((totalSecs % 86400) / 3600);
+        const mins = Math.floor((totalSecs % 3600) / 60);
         const secs = totalSecs % 60;
+
+        if (days > 0) {
+            return `${days}d ${hours}h ${mins}m`;
+        }
+        if (hours > 0) {
+            return `${hours}h ${mins}m ${secs}s`;
+        }
         if (mins > 0) {
             return `${mins}m ${secs}s`;
         }
         return `${secs}s`;
     };
 
+    const handleBanResponse = (data) => {
+        setIsBanned(true);
+        setBanExpiresAt(data.expiresAt);
+        setBanRemainingMs(data.remainingMs || 7 * 24 * 60 * 60 * 1000);
+        setBanReason(data.reason || 'suspicious_activity');
+        setLoginError(data.error);
+    };
+
     // Step 1: Submit password
     const handlePasswordSubmit = async (e) => {
         e.preventDefault();
-        if (isLocked) return;
+        if (isBanned) return;
 
         setLoginLoading(true);
         setLoginError('');
@@ -74,12 +97,11 @@ const AdminLogin = ({ onLoginSuccess }) => {
                 // Password correct, move to OTP step
                 setStep(2);
                 setMaskedEmail(data.email);
-                setResendCooldown(60); // 60 second cooldown for resend
+                setResendCooldown(60);
                 setLoginError('');
-            } else if (data.locked) {
-                setIsLocked(true);
-                setLockoutRemaining(data.remainingMs || 60000);
-                setLoginError(data.error);
+            } else if (data.banned) {
+                // IP has been banned
+                handleBanResponse(data);
             } else {
                 setLoginError(data.error || 'Invalid password');
             }
@@ -108,7 +130,6 @@ const AdminLogin = ({ onLoginSuccess }) => {
 
             if (data.success) {
                 sessionStorage.setItem('adminAuth_v2', 'true');
-                // Save the JWT token for API calls
                 if (data.token) {
                     sessionStorage.setItem('adminToken', data.token);
                 }
@@ -161,41 +182,141 @@ const AdminLogin = ({ onLoginSuccess }) => {
         setLoginError('');
     };
 
+    // ==================== IP BANNED STATE ====================
+    if (isBanned) {
+        return (
+            <div className="admin-login-page">
+                <div className="admin-login-box" style={{ maxWidth: '480px' }}>
+                    <div className="login-icon" style={{
+                        background: 'linear-gradient(135deg, #dc2626, #991b1b)',
+                        width: '90px',
+                        height: '90px',
+                        animation: 'pulse 2s ease-in-out infinite'
+                    }}>
+                        <Ban size={48} />
+                    </div>
+
+                    <h1 style={{
+                        color: '#ef4444',
+                        fontSize: '1.8rem',
+                        marginBottom: '8px'
+                    }}>
+                        IP Banned
+                    </h1>
+
+                    <p style={{
+                        color: 'var(--text-secondary)',
+                        fontSize: '0.95rem',
+                        marginBottom: '24px',
+                        lineHeight: '1.6'
+                    }}>
+                        Your IP address has been banned due to suspicious activity.
+                        You cannot access the admin panel from this device.
+                    </p>
+
+                    {/* Ban Timer */}
+                    <div style={{
+                        padding: '20px 24px',
+                        background: 'rgba(239, 68, 68, 0.08)',
+                        border: '1px solid rgba(239, 68, 68, 0.25)',
+                        borderRadius: '16px',
+                        marginBottom: '20px'
+                    }}>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '10px',
+                            marginBottom: '12px'
+                        }}>
+                            <Clock size={22} style={{ color: '#ef4444' }} />
+                            <span style={{
+                                fontWeight: '700',
+                                fontSize: '1.4rem',
+                                color: '#ef4444',
+                                fontFamily: 'monospace',
+                                letterSpacing: '1px'
+                            }}>
+                                {formatBanTime(banRemainingMs)}
+                            </span>
+                        </div>
+                        <p style={{
+                            color: 'var(--text-secondary)',
+                            fontSize: '0.85rem',
+                            textAlign: 'center',
+                            margin: 0
+                        }}>
+                            Time remaining until ban expires
+                        </p>
+                    </div>
+
+                    {/* Reason */}
+                    <div style={{
+                        padding: '14px 18px',
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid var(--card-border)',
+                        borderRadius: '12px',
+                        marginBottom: '16px'
+                    }}>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            marginBottom: '6px'
+                        }}>
+                            <ShieldOff size={16} style={{ color: '#f59e0b' }} />
+                            <span style={{
+                                fontWeight: '600',
+                                fontSize: '0.85rem',
+                                color: 'var(--text-primary)'
+                            }}>Reason</span>
+                        </div>
+                        <p style={{
+                            color: 'var(--text-secondary)',
+                            fontSize: '0.85rem',
+                            margin: 0
+                        }}>
+                            {banReason === 'admin_login_failed'
+                                ? 'Too many failed login attempts (2 incorrect passwords)'
+                                : banReason === 'waf_blocked'
+                                ? 'Malicious request detected by Web Application Firewall'
+                                : banReason === 'ips_blocked'
+                                ? 'Intrusion attempt detected by IPS'
+                                : 'Suspicious activity detected'}
+                        </p>
+                    </div>
+
+                    {banExpiresAt && (
+                        <p style={{
+                            color: 'var(--text-secondary)',
+                            fontSize: '0.8rem',
+                            textAlign: 'center',
+                            opacity: 0.7,
+                            margin: 0
+                        }}>
+                            Ban expires: {new Date(banExpiresAt).toLocaleString('en-IN', {
+                                dateStyle: 'medium',
+                                timeStyle: 'short'
+                            })}
+                        </p>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    // ==================== NORMAL LOGIN FLOW ====================
     return (
         <div className="admin-login-page">
             <div className="admin-login-box">
                 {/* Step 1: Password */}
                 {step === 1 && (
                     <>
-                        <div className="login-icon" style={isLocked ? { background: 'linear-gradient(135deg, #ef4444, #dc2626)' } : {}}>
-                            {isLocked ? <ShieldAlert size={48} /> : <Lock size={48} />}
+                        <div className="login-icon">
+                            <Lock size={48} />
                         </div>
-                        <h1>{isLocked ? 'Account Locked' : 'Admin Panel'}</h1>
-                        <p>
-                            {isLocked
-                                ? 'Too many failed login attempts'
-                                : 'Enter password to access admin dashboard'}
-                        </p>
-
-                        {isLocked && lockoutRemaining > 0 && (
-                            <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                padding: '16px 20px',
-                                background: 'rgba(239, 68, 68, 0.15)',
-                                border: '1px solid rgba(239, 68, 68, 0.4)',
-                                borderRadius: '12px',
-                                marginBottom: '20px',
-                                color: '#ef4444'
-                            }}>
-                                <Clock size={20} />
-                                <span style={{ fontWeight: '600', fontSize: '1.1rem' }}>
-                                    Try again in: {formatTime(lockoutRemaining)}
-                                </span>
-                            </div>
-                        )}
+                        <h1>Admin Panel</h1>
+                        <p>Enter password to access admin dashboard</p>
 
                         <form onSubmit={handlePasswordSubmit}>
                             <input
@@ -204,19 +325,38 @@ const AdminLogin = ({ onLoginSuccess }) => {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="admin-input"
-                                disabled={loginLoading || isLocked}
-                                style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                                disabled={loginLoading}
                             />
-                            {loginError && !isLocked && <p className="login-error">{loginError}</p>}
+                            {loginError && <p className="login-error">{loginError}</p>}
                             <button
                                 type="submit"
                                 className="btn btn-primary admin-login-btn"
-                                disabled={loginLoading || isLocked || !password}
-                                style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                                disabled={loginLoading || !password}
                             >
-                                {loginLoading ? 'Verifying...' : isLocked ? 'Locked' : 'Continue'}
+                                {loginLoading ? 'Verifying...' : 'Continue'}
                             </button>
                         </form>
+
+                        {/* Security Notice */}
+                        <div style={{
+                            marginTop: '20px',
+                            padding: '12px 16px',
+                            background: 'rgba(239, 68, 68, 0.06)',
+                            border: '1px solid rgba(239, 68, 68, 0.15)',
+                            borderRadius: '10px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                        }}>
+                            <ShieldAlert size={16} style={{ color: '#ef4444', flexShrink: 0 }} />
+                            <span style={{
+                                color: 'var(--text-secondary)',
+                                fontSize: '0.78rem',
+                                lineHeight: '1.4'
+                            }}>
+                                <strong style={{ color: '#ef4444' }}>Warning:</strong> 2 incorrect attempts will result in a 1-week IP ban.
+                            </span>
+                        </div>
                     </>
                 )}
 
@@ -309,4 +449,5 @@ const AdminLogin = ({ onLoginSuccess }) => {
 };
 
 export default AdminLogin;
+
 

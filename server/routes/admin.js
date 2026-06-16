@@ -8,44 +8,37 @@ const Promotion = require('../models/Promotion');
 const User = require('../models/User');
 const OTP = require('../models/OTP');
 const Badge = require('../models/Badge');
+const BannedIP = require('../models/BannedIP');
 const { generateAdminToken, requireAdminAuth } = require('../middleware/authMiddleware');
+const { getClientIP, wafStats } = require('../middleware/waf');
+const { ipsStats } = require('../middleware/ips');
 
 // Admin credentials from environment variable (REQUIRED - no default for security)
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 
-// Login attempt tracking (in-memory for simplicity)
-const loginAttempts = {
-    failedAttempts: 0,
-    lockoutUntil: null,
-    MAX_ATTEMPTS: 3,
-    LOCKOUT_DURATION: 24 * 60 * 60 * 1000  // 24 hours in ms
-};
 
 // POST /api/admin/login - Step 1: Verify password and send OTP
 router.post('/login', async (req, res) => {
     try {
         const { password } = req.body;
-        const now = Date.now();
+        const ip = getClientIP(req);
+        const userAgent = req.headers['user-agent'] || '';
 
-        // Check if currently locked out
-        if (loginAttempts.lockoutUntil && now < loginAttempts.lockoutUntil) {
-            const remainingMs = loginAttempts.lockoutUntil - now;
-            const remainingMins = Math.ceil(remainingMs / 60000);
-            const remainingSecs = Math.ceil(remainingMs / 1000);
-            return res.status(429).json({
+        // ===== CHECK IF IP IS BANNED =====
+        const existingBan = await BannedIP.isBanned(ip);
+        if (existingBan) {
+            const remainingMs = Math.max(0, new Date(existingBan.expiresAt).getTime() - Date.now());
+            const remainingDays = Math.ceil(remainingMs / (24 * 60 * 60 * 1000));
+            console.log(`🚫 Banned IP attempted admin login: ${ip}`);
+            return res.status(403).json({
                 success: false,
-                error: `Too many failed attempts. Try again in ${remainingMins > 1 ? remainingMins + ' minutes' : remainingSecs + ' seconds'}`,
-                locked: true,
-                lockoutUntil: loginAttempts.lockoutUntil,
-                remainingMs
+                error: `Your IP has been banned for suspicious activity. Ban expires in ${remainingDays} day(s).`,
+                banned: true,
+                expiresAt: existingBan.expiresAt,
+                remainingMs,
+                reason: existingBan.reason
             });
-        }
-
-        // Reset lockout if time has passed
-        if (loginAttempts.lockoutUntil && now >= loginAttempts.lockoutUntil) {
-            loginAttempts.failedAttempts = 0;
-            loginAttempts.lockoutUntil = null;
         }
 
         if (!password) {
@@ -63,9 +56,6 @@ router.post('/login', async (req, res) => {
 
         if (password === ADMIN_PASSWORD) {
             // Password correct - Generate and send OTP for 2FA
-            loginAttempts.failedAttempts = 0;
-            loginAttempts.lockoutUntil = null;
-
             // Generate OTP
             const otp = await OTP.createOTP(ADMIN_EMAIL, 'admin2FA');
 
@@ -91,27 +81,26 @@ router.post('/login', async (req, res) => {
                 });
             }
         } else {
-            // Failed login - increment attempts
-            loginAttempts.failedAttempts++;
-            const remainingAttempts = loginAttempts.MAX_ATTEMPTS - loginAttempts.failedAttempts;
+            // ===== FAILED LOGIN — TRACK AND POTENTIALLY BAN =====
+            const result = await BannedIP.trackAdminLoginFailure(ip, userAgent);
 
-            // Check if should lockout
-            if (loginAttempts.failedAttempts >= loginAttempts.MAX_ATTEMPTS) {
-                loginAttempts.lockoutUntil = now + loginAttempts.LOCKOUT_DURATION;
-                const lockoutMins = Math.ceil(loginAttempts.LOCKOUT_DURATION / 60000);
-                return res.status(429).json({
+            if (result.banned) {
+                const remainingMs = Math.max(0, new Date(result.ban.expiresAt).getTime() - Date.now());
+                const remainingDays = Math.ceil(remainingMs / (24 * 60 * 60 * 1000));
+                return res.status(403).json({
                     success: false,
-                    error: `Account locked. Too many failed attempts. Try again in ${lockoutMins} minute(s).`,
-                    locked: true,
-                    lockoutUntil: loginAttempts.lockoutUntil,
-                    remainingMs: loginAttempts.LOCKOUT_DURATION
+                    error: `Too many failed attempts. Your IP has been banned for ${remainingDays} day(s).`,
+                    banned: true,
+                    expiresAt: result.ban.expiresAt,
+                    remainingMs,
+                    reason: 'admin_login_failed'
                 });
             }
 
             return res.status(401).json({
                 success: false,
-                error: `Invalid password. ${remainingAttempts} attempt(s) remaining.`,
-                attemptsRemaining: remainingAttempts
+                error: `Invalid password. ${result.attemptsRemaining} attempt(s) remaining before IP ban.`,
+                attemptsRemaining: result.attemptsRemaining
             });
         }
     } catch (error) {
@@ -119,6 +108,7 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ success: false, error: 'Login failed' });
     }
 });
+
 
 // POST /api/admin/verify-2fa - Step 2: Verify OTP to complete login
 router.post('/verify-2fa', async (req, res) => {
@@ -1103,6 +1093,138 @@ router.get('/users/:userId/badges', requireAdminAuth, async (req, res) => {
     } catch (error) {
         console.error('Error fetching user badges:', error);
         res.status(500).json({ error: 'Failed to fetch user badges' });
+    }
+});
+
+// ==================== SECURITY MANAGEMENT ====================
+
+// GET /api/admin/security/banned-ips - Get all active banned IPs
+router.get('/security/banned-ips', requireAdminAuth, async (req, res) => {
+    try {
+        const bans = await BannedIP.getActiveBans();
+        res.json({
+            success: true,
+            bans: bans.map(ban => ({
+                id: ban._id,
+                ip: ban.ip,
+                reason: ban.reason,
+                description: ban.description,
+                failedAttempts: ban.failedAttempts,
+                bannedAt: ban.bannedAt,
+                expiresAt: ban.expiresAt,
+                bannedBy: ban.bannedBy,
+                metadata: ban.metadata,
+                remainingMs: Math.max(0, new Date(ban.expiresAt).getTime() - Date.now())
+            }))
+        });
+    } catch (error) {
+        console.error('Error fetching banned IPs:', error);
+        res.status(500).json({ error: 'Failed to fetch banned IPs' });
+    }
+});
+
+// DELETE /api/admin/security/banned-ips/:id - Unban an IP
+router.delete('/security/banned-ips/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const success = await BannedIP.unbanIP(id);
+
+        if (!success) {
+            return res.status(404).json({ error: 'Ban record not found' });
+        }
+
+        res.json({
+            success: true,
+            message: 'IP unbanned successfully'
+        });
+    } catch (error) {
+        console.error('Error unbanning IP:', error);
+        res.status(500).json({ error: 'Failed to unban IP' });
+    }
+});
+
+// POST /api/admin/security/ban-ip - Manually ban an IP
+router.post('/security/ban-ip', requireAdminAuth, async (req, res) => {
+    try {
+        const { ip, reason, durationDays } = req.body;
+
+        if (!ip) {
+            return res.status(400).json({ error: 'IP address is required' });
+        }
+
+        const duration = (durationDays || 7) * 24 * 60 * 60 * 1000; // Default 7 days
+
+        const ban = await BannedIP.banIP(ip, 'manual_ban', duration, {
+            description: reason || 'Manually banned by admin',
+            bannedBy: 'admin'
+        });
+
+        res.json({
+            success: true,
+            message: `IP ${ip} banned for ${durationDays || 7} days`,
+            ban: {
+                id: ban._id,
+                ip: ban.ip,
+                expiresAt: ban.expiresAt
+            }
+        });
+    } catch (error) {
+        console.error('Error banning IP:', error);
+        res.status(500).json({ error: 'Failed to ban IP' });
+    }
+});
+
+// GET /api/admin/security/stats - Get security statistics
+router.get('/security/stats', requireAdminAuth, async (req, res) => {
+    try {
+        const banStats = await BannedIP.getStats();
+
+        res.json({
+            success: true,
+            stats: {
+                bans: banStats,
+                waf: {
+                    totalBlocked: wafStats.totalBlocked,
+                    sqlInjection: wafStats.sqlInjection,
+                    xss: wafStats.xss,
+                    pathTraversal: wafStats.pathTraversal,
+                    commandInjection: wafStats.commandInjection,
+                    maliciousBot: wafStats.maliciousBot,
+                    invalidMethod: wafStats.invalidMethod,
+                    bannedIP: wafStats.bannedIP
+                },
+                ips: {
+                    totalBlocked: ipsStats.totalBlocked,
+                    rateLimitBlocks: ipsStats.rateLimitBlocks,
+                    scanDetectionBlocks: ipsStats.scanDetectionBlocks,
+                    honeypotBlocks: ipsStats.honeypotBlocks,
+                    bruteForceBlocks: ipsStats.bruteForceBlocks
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching security stats:', error);
+        res.status(500).json({ error: 'Failed to fetch security stats' });
+    }
+});
+
+// GET /api/admin/security/logs - Get recent security logs
+router.get('/security/logs', requireAdminAuth, async (req, res) => {
+    try {
+        // Combine WAF and IPS recent blocks
+        const allLogs = [
+            ...wafStats.recentBlocks.map(b => ({ ...b, source: 'WAF' })),
+            ...ipsStats.recentBlocks.map(b => ({ ...b, source: 'IPS' }))
+        ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+         .slice(0, 100);
+
+        res.json({
+            success: true,
+            logs: allLogs
+        });
+    } catch (error) {
+        console.error('Error fetching security logs:', error);
+        res.status(500).json({ error: 'Failed to fetch security logs' });
     }
 });
 
