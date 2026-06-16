@@ -99,8 +99,8 @@ router.post('/login', async (req, res) => {
 
             return res.status(401).json({
                 success: false,
-                error: `Invalid password. ${result.attemptsRemaining} attempt(s) remaining before IP ban.`,
-                attemptsRemaining: result.attemptsRemaining
+                error: `Invalid password. ${result.attemptsRemaining + 3} attempt(s) remaining.`,
+                attemptsRemaining: result.attemptsRemaining + 3
             });
         }
     } catch (error) {

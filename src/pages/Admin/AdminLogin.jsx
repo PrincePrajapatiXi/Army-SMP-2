@@ -337,27 +337,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
                             </button>
                         </form>
 
-                        {/* Security Notice */}
-                        <div style={{
-                            marginTop: '20px',
-                            padding: '12px 16px',
-                            background: 'rgba(239, 68, 68, 0.06)',
-                            border: '1px solid rgba(239, 68, 68, 0.15)',
-                            borderRadius: '10px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px'
-                        }}>
-                            <ShieldAlert size={16} style={{ color: '#ef4444', flexShrink: 0 }} />
-                            <span style={{
-                                color: 'var(--text-secondary)',
-                                fontSize: '0.78rem',
-                                lineHeight: '1.4'
-                            }}>
-                                <strong style={{ color: '#ef4444' }}>Warning:</strong> 2 incorrect attempts will result in a 1-week IP ban.
-                            </span>
-                        </div>
-                    </>
+                        </>
                 )}
 
                 {/* Step 2: OTP Verification */}
