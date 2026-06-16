@@ -1,5 +1,78 @@
-# Logs
-logs
+# ============================================================
+# 🔒 SECURITY-CRITICAL: Never track these files
+# ============================================================
+
+# Environment variables (ALL variants)
+.env
+.env.*
+.env.local
+.env.development
+.env.staging
+.env.production
+.env.test
+!.env.example
+
+# Credentials & secrets
+credentials.json
+secrets.json
+serviceAccountKey.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+private-key.*
+google-credentials.json
+firebase-adminsdk*.json
+
+# ============================================================
+# 📦 Dependencies
+# ============================================================
+node_modules/
+*/node_modules/
+.pnp
+.pnp.js
+package-lock.json
+
+# ============================================================
+# 🏗️ Build outputs
+# ============================================================
+dist/
+build/
+.next/
+out/
+.nuxt/
+.output/
+.cache/
+*.tsbuildinfo
+
+# ============================================================
+# 🧪 Testing & Coverage
+# ============================================================
+coverage/
+*.lcov
+.nyc_output/
+test-results/
+playwright-report/
+
+# ============================================================
+# 🗄️ Database
+# ============================================================
+*.sqlite
+*.sqlite3
+*.db
+*.sql.gz
+*.sql.bak
+data/*.json
+mongodump/
+mongorestore/
+dump/
+
+# ============================================================
+# 📝 Logs
+# ============================================================
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,30 +80,45 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Dependencies
-node_modules
-dist
-dist-ssr
-*.local
-
-# Environment
-.env
-.env.local
-server/.env
-server/.env.local
-
-# Output/Temporary files
-*.txt
-!public/robots.txt
-eslint_out.json
-
-# Editor directories and files
-.vscode/*
+# ============================================================
+# 💻 IDE & OS
+# ============================================================
+.vscode/
 !.vscode/extensions.json
-.idea
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
+Desktop.ini
+*.lnk
+
+# ============================================================
+# ☁️ Cloud & Deployment
+# ============================================================
+.vercel
+.netlify
+.serverless/
+.firebase/
+firebase-debug.log
+.amplify/
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# ============================================================
+# 🛠️ Miscellaneous
+# ============================================================
+.turbo
+*.tgz
+.eslintcache
+.stylelintcache
+.parcel-cache
+uploads/
+temp/
+tmp/
+*.bak
+*.orig
+*.backup
