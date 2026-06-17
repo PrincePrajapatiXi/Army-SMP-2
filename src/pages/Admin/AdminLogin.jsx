@@ -20,24 +20,50 @@ const AdminLogin = ({ onLoginSuccess }) => {
     const [maskedEmail, setMaskedEmail] = useState('');
     const [resendCooldown, setResendCooldown] = useState(0);
 
-    // Ban countdown timer
+    // Restore ban state from sessionStorage on mount (survives page refresh)
     useEffect(() => {
-        if (banRemainingMs > 0 && isBanned) {
-            const timer = setInterval(() => {
-                setBanRemainingMs(prev => {
-                    if (prev <= 1000) {
-                        setIsBanned(false);
-                        setBanExpiresAt(null);
-                        setBanReason('');
-                        setLoginError('');
-                        return 0;
-                    }
-                    return prev - 1000;
-                });
-            }, 1000);
-            return () => clearInterval(timer);
+        const savedBan = sessionStorage.getItem('adminBanState');
+        if (savedBan) {
+            try {
+                const ban = JSON.parse(savedBan);
+                const remaining = new Date(ban.expiresAt).getTime() - Date.now();
+                if (remaining > 0) {
+                    setIsBanned(true);
+                    setBanExpiresAt(ban.expiresAt);
+                    setBanRemainingMs(remaining);
+                    setBanReason(ban.reason || '');
+                } else {
+                    // Ban expired, clean up
+                    sessionStorage.removeItem('adminBanState');
+                }
+            } catch (e) {
+                sessionStorage.removeItem('adminBanState');
+            }
         }
-    }, [banRemainingMs, isBanned]);
+    }, []);
+
+    // Ban countdown timer — uses exact expiresAt timestamp to prevent drift
+    useEffect(() => {
+        if (!isBanned || !banExpiresAt) return;
+
+        const tick = () => {
+            const remaining = new Date(banExpiresAt).getTime() - Date.now();
+            if (remaining <= 0) {
+                setIsBanned(false);
+                setBanExpiresAt(null);
+                setBanReason('');
+                setBanRemainingMs(0);
+                setLoginError('');
+                sessionStorage.removeItem('adminBanState');
+            } else {
+                setBanRemainingMs(remaining);
+            }
+        };
+
+        tick(); // Run immediately
+        const timer = setInterval(tick, 1000);
+        return () => clearInterval(timer);
+    }, [isBanned, banExpiresAt]);
 
     // Resend cooldown timer
     useEffect(() => {
@@ -50,14 +76,15 @@ const AdminLogin = ({ onLoginSuccess }) => {
     }, [resendCooldown]);
 
     const formatBanTime = (ms) => {
-        const totalSecs = Math.ceil(ms / 1000);
+        const totalSecs = Math.max(0, Math.floor(ms / 1000));
         const days = Math.floor(totalSecs / 86400);
         const hours = Math.floor((totalSecs % 86400) / 3600);
         const mins = Math.floor((totalSecs % 3600) / 60);
         const secs = totalSecs % 60;
 
+        // Always show full breakdown: Xd Xh Xm Xs
         if (days > 0) {
-            return `${days}d ${hours}h ${mins}m`;
+            return `${days}d ${hours}h ${mins}m ${secs}s`;
         }
         if (hours > 0) {
             return `${hours}h ${mins}m ${secs}s`;
@@ -68,12 +95,39 @@ const AdminLogin = ({ onLoginSuccess }) => {
         return `${secs}s`;
     };
 
+    // Format exact unban date/time in user's local timezone with seconds
+    const formatExactUnbanTime = (expiresAt) => {
+        if (!expiresAt) return '';
+        const date = new Date(expiresAt);
+        // Use user's browser locale and timezone automatically
+        return date.toLocaleString(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        });
+    };
+
     const handleBanResponse = (data) => {
+        const expiresAt = data.expiresAt;
+        const remaining = expiresAt 
+            ? Math.max(0, new Date(expiresAt).getTime() - Date.now())
+            : (data.remainingMs || 7 * 24 * 60 * 60 * 1000);
+
         setIsBanned(true);
-        setBanExpiresAt(data.expiresAt);
-        setBanRemainingMs(data.remainingMs || 7 * 24 * 60 * 60 * 1000);
+        setBanExpiresAt(expiresAt);
+        setBanRemainingMs(remaining);
         setBanReason(data.reason || 'suspicious_activity');
         setLoginError(data.error);
+
+        // Persist ban state so it survives page refresh
+        sessionStorage.setItem('adminBanState', JSON.stringify({
+            expiresAt,
+            reason: data.reason || 'suspicious_activity'
+        }));
     };
 
     // Step 1: Submit password
@@ -287,18 +341,33 @@ const AdminLogin = ({ onLoginSuccess }) => {
                     </div>
 
                     {banExpiresAt && (
-                        <p style={{
-                            color: 'var(--text-secondary)',
-                            fontSize: '0.8rem',
-                            textAlign: 'center',
-                            opacity: 0.7,
-                            margin: 0
+                        <div style={{
+                            padding: '12px 16px',
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            border: '1px solid var(--card-border)',
+                            borderRadius: '12px'
                         }}>
-                            Ban expires: {new Date(banExpiresAt).toLocaleString('en-IN', {
-                                dateStyle: 'medium',
-                                timeStyle: 'short'
-                            })}
-                        </p>
+                            <p style={{
+                                color: 'var(--text-secondary)',
+                                fontSize: '0.8rem',
+                                textAlign: 'center',
+                                margin: '0 0 6px 0',
+                                opacity: 0.7
+                            }}>
+                                Exact unban time:
+                            </p>
+                            <p style={{
+                                color: '#f59e0b',
+                                fontSize: '0.95rem',
+                                fontWeight: '600',
+                                textAlign: 'center',
+                                margin: 0,
+                                fontFamily: 'monospace',
+                                letterSpacing: '0.5px'
+                            }}>
+                                {formatExactUnbanTime(banExpiresAt)}
+                            </p>
+                        </div>
                     )}
                 </div>
             </div>

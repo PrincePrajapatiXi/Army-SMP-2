@@ -87,7 +87,9 @@ bannedIPSchema.statics.banIP = async function(ip, reason, durationMs, metadata =
     const now = new Date();
     const expiresAt = new Date(now.getTime() + durationMs);
 
-    // Deactivate any existing bans for this IP first
+    // Deactivate any existing ACTIVE bans for this IP first
+    // Note: This only touches isActive:true records (actual bans), 
+    // NOT tracking records (isActive:false) which are needed for attempt counting
     await this.updateMany(
         { ip: ip, isActive: true },
         { $set: { isActive: false } }
@@ -178,6 +180,7 @@ bannedIPSchema.statics.getStats = async function() {
 bannedIPSchema.statics.trackAdminLoginFailure = async function(ip, userAgent = '') {
     const MAX_ATTEMPTS = 2;
     const BAN_DURATION = 7 * 24 * 60 * 60 * 1000; // 1 week in ms
+    const TRACKING_WINDOW = 7 * 24 * 60 * 60 * 1000; // 1 week — same as ban duration
 
     // Check if already banned
     const existingBan = await this.isBanned(ip);
@@ -189,16 +192,15 @@ bannedIPSchema.statics.trackAdminLoginFailure = async function(ip, userAgent = '
         };
     }
 
-    // Find or create tracking record for this IP (admin login failures)
-    // Use a recent window (1 hour) to count attempts
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    // Count failed attempts within the tracking window (1 week)
+    const windowStart = new Date(Date.now() - TRACKING_WINDOW);
 
     // Count recent failed attempts from inactive/expired records
     const recentFailures = await this.countDocuments({
         ip: ip,
         reason: 'admin_login_failed',
         isActive: false,
-        createdAt: { $gte: oneHourAgo }
+        createdAt: { $gte: windowStart }
     });
 
     const totalAttempts = recentFailures + 1; // +1 for current attempt
@@ -221,13 +223,14 @@ bannedIPSchema.statics.trackAdminLoginFailure = async function(ip, userAgent = '
         };
     } else {
         // Record the failed attempt (inactive record for counting)
+        // Set expiresAt to 1 week so TTL index doesn't delete it before the tracking window ends
         await this.create({
             ip,
             reason: 'admin_login_failed',
             description: `Failed admin login attempt #${totalAttempts}`,
             failedAttempts: totalAttempts,
             bannedAt: new Date(),
-            expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour tracking window
+            expiresAt: new Date(Date.now() + TRACKING_WINDOW), // 1 week — survives the full tracking window
             isActive: false, // Not a ban, just tracking
             bannedBy: 'system',
             metadata: { userAgent }

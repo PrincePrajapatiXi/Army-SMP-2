@@ -97,10 +97,13 @@ router.post('/login', async (req, res) => {
                 });
             }
 
+            // Show a DECEPTIVE attempts remaining count to confuse attackers
+            // Real ban happens after 2 failed attempts, but we show a fake higher number
+            const FAKE_REMAINING = 4;
             return res.status(401).json({
                 success: false,
-                error: `Invalid password. ${result.attemptsRemaining + 3} attempt(s) remaining.`,
-                attemptsRemaining: result.attemptsRemaining + 3
+                error: `Invalid password. ${FAKE_REMAINING} attempt(s) remaining.`,
+                attemptsRemaining: FAKE_REMAINING
             });
         }
     } catch (error) {
