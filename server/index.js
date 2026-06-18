@@ -69,6 +69,25 @@ const paymentLimiter = rateLimit({
     message: { error: 'Too many payment requests, please try again.' }
 });
 
+// ===== CORS — Must be BEFORE WAF/IPS so blocked responses still have CORS headers =====
+// Without this order, WAF 403 responses lack CORS headers, causing the browser
+// to report a CORS error instead of the actual error, silently breaking all API calls.
+app.use(cors({
+    origin: [
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://localhost:3000',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:5174',
+        'https://army-smp-2.onrender.com',
+        'https://armysmp.onrender.com',
+        'https://army-smp-2.vercel.app',
+        'https://armysmp2.vercel.app',
+        'https://store.armysmp.fun'
+    ],
+    credentials: true
+}));
+
 // ===== WAF (Web Application Firewall) — First line of defense =====
 // Runs BEFORE body parsing to catch malicious URLs/headers immediately
 app.use('/api/', wafMiddleware);
@@ -86,23 +105,6 @@ app.use('/api/orders/checkout', paymentLimiter);
 
 // IP Ban check specifically for admin routes
 app.use('/api/admin', checkIPBan);
-
-// Middleware
-app.use(cors({
-    origin: [
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'http://localhost:3000',
-        'http://127.0.0.1:5173',
-        'http://127.0.0.1:5174',
-        'https://army-smp-2.onrender.com',
-        'https://armysmp.onrender.com',
-        'https://army-smp-2.vercel.app',
-        'https://armysmp2.vercel.app',
-        'https://store.armysmp.fun'
-    ],
-    credentials: true
-}));
 
 app.use(express.json({ 
     limit: '10mb',
