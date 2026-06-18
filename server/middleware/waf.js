@@ -299,7 +299,7 @@ const wafMiddleware = async (req, res, next) => {
 
         // ===== 4. SQL INJECTION CHECK =====
         if (scanTargets.some(target => matchesPatterns(target, SQL_INJECTION_PATTERNS)) ||
-            deepScanObject(req.body, SQL_INJECTION_PATTERNS)) {
+            deepScanObject(bodyToScan, SQL_INJECTION_PATTERNS)) {
             recordBlock('sqlInjection', ip, path);
             return res.status(403).json({
                 success: false,
@@ -309,7 +309,7 @@ const wafMiddleware = async (req, res, next) => {
 
         // ===== 5. XSS CHECK =====
         if (scanTargets.some(target => matchesPatterns(target, XSS_PATTERNS)) ||
-            deepScanObject(req.body, XSS_PATTERNS)) {
+            deepScanObject(bodyToScan, XSS_PATTERNS)) {
             recordBlock('xss', ip, path);
             return res.status(403).json({
                 success: false,
@@ -328,7 +328,7 @@ const wafMiddleware = async (req, res, next) => {
 
         // ===== 7. COMMAND INJECTION CHECK =====
         if (scanTargets.some(target => matchesPatterns(target, COMMAND_INJECTION_PATTERNS)) ||
-            deepScanObject(req.body, COMMAND_INJECTION_PATTERNS)) {
+            deepScanObject(bodyToScan, COMMAND_INJECTION_PATTERNS)) {
             recordBlock('commandInjection', ip, path);
             return res.status(403).json({
                 success: false,
