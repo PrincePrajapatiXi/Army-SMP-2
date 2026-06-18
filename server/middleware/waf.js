@@ -226,15 +226,23 @@ const wafMiddleware = async (req, res, next) => {
         // ===== 1. CHECK BANNED IP (from MongoDB) =====
         const ban = await BannedIP.isBanned(ip);
         if (ban) {
-            recordBlock('bannedIP', ip, path, `Reason: ${ban.reason}`);
-            return res.status(403).json({
-                success: false,
-                error: 'Access denied.',
-                banned: true,
-                reason: ban.reason,
-                expiresAt: ban.expiresAt,
-                remainingMs: Math.max(0, new Date(ban.expiresAt).getTime() - Date.now())
-            });
+            // admin_login_failed bans should ONLY block admin routes, not the entire store
+            // WAF/IPS bans (actual attacks) still block everything
+            const isAdminRoute = path.startsWith('/api/admin');
+            const isAdminLoginBan = ban.reason === 'admin_login_failed';
+
+            if (!isAdminLoginBan || isAdminRoute) {
+                recordBlock('bannedIP', ip, path, `Reason: ${ban.reason}`);
+                return res.status(403).json({
+                    success: false,
+                    error: 'Access denied.',
+                    banned: true,
+                    reason: ban.reason,
+                    expiresAt: ban.expiresAt,
+                    remainingMs: Math.max(0, new Date(ban.expiresAt).getTime() - Date.now())
+                });
+            }
+            // admin_login_failed on non-admin route → allow through
         }
 
         // ===== 2. HTTP METHOD VALIDATION =====
