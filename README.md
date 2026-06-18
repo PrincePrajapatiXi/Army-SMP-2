@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/images/logo.png" alt="Army SMP Logo" width="120" />
+  <img src="public/images/Army%20logo.png" alt="Army SMP Logo" width="120" />
 </p>
 
 <h1 align="center">Army SMP Store ⚔️</h1>
