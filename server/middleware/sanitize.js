@@ -90,11 +90,48 @@ const deepClean = (obj) => {
     return obj;
 };
 
+// Fields that should NEVER be sanitized (credentials, secrets, etc.)
+// Sanitizing passwords corrupts them — special chars like / ' = & get stripped,
+// causing password comparison to fail silently.
+const SENSITIVE_FIELDS = ['password', 'otp', 'currentPassword', 'newPassword', 'confirmPassword'];
+
+// Routes where sensitive fields exist in the body
+const SENSITIVE_ROUTES = [
+    '/api/admin/login',
+    '/api/admin/verify-2fa',
+    '/api/auth/login',
+    '/api/auth/register',
+    '/api/auth/change-password',
+    '/api/auth/reset-password',
+    '/api/user/change-password'
+];
+
 // Middleware function
 const sanitizeInputs = (req, res, next) => {
-    // Sanitize body
+    // Sanitize body — but preserve sensitive fields on auth/login routes
     if (req.body) {
-        req.body = deepClean(req.body);
+        const routePath = req.originalUrl || req.url || '';
+        const isSensitiveRoute = SENSITIVE_ROUTES.some(r => routePath.startsWith(r));
+
+        if (isSensitiveRoute) {
+            // Save raw values of sensitive fields BEFORE sanitization
+            const preserved = {};
+            for (const field of SENSITIVE_FIELDS) {
+                if (req.body[field] !== undefined) {
+                    preserved[field] = req.body[field];
+                }
+            }
+
+            // Sanitize the rest of the body
+            req.body = deepClean(req.body);
+
+            // Restore original (unsanitized) sensitive fields
+            for (const [field, value] of Object.entries(preserved)) {
+                req.body[field] = value;
+            }
+        } else {
+            req.body = deepClean(req.body);
+        }
     }
 
     // Sanitize query params

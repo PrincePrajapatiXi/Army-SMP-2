@@ -278,6 +278,17 @@ const wafMiddleware = async (req, res, next) => {
             });
         }
 
+        // For body scanning, exclude sensitive fields (password, otp) on auth routes
+        // to prevent false positives (e.g., password containing '=' or backticks)
+        const AUTH_ROUTES = ['/api/admin/login', '/api/admin/verify-2fa', '/api/auth/login', '/api/auth/register', '/api/auth/change-password', '/api/user/change-password'];
+        const isAuthRoute = AUTH_ROUTES.some(r => path.startsWith(r));
+        let bodyToScan = req.body;
+
+        if (isAuthRoute && req.body && typeof req.body === 'object') {
+            const { password, otp, currentPassword, newPassword, confirmPassword, ...safeBody } = req.body;
+            bodyToScan = safeBody;
+        }
+
         // ===== 4. SQL INJECTION CHECK =====
         if (scanTargets.some(target => matchesPatterns(target, SQL_INJECTION_PATTERNS)) ||
             deepScanObject(req.body, SQL_INJECTION_PATTERNS)) {
