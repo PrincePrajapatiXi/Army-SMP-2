@@ -85,7 +85,19 @@ bannedIPSchema.statics.isBanned = async function(ip) {
  */
 bannedIPSchema.statics.banIP = async function(ip, reason, durationMs, metadata = {}) {
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + durationMs);
+    let expiresAt = new Date(now.getTime() + durationMs);
+
+    // Find if there's an existing active ban with a longer expiration
+    // This prevents shorter bans (e.g. 24h WAF) from overwriting longer bans (e.g. 1 week admin login)
+    const existingLongerBan = await this.findOne({
+        ip: ip,
+        isActive: true,
+        expiresAt: { $gt: expiresAt }
+    });
+
+    if (existingLongerBan) {
+        expiresAt = existingLongerBan.expiresAt;
+    }
 
     // Deactivate any existing ACTIVE bans for this IP first
     // Note: This only touches isActive:true records (actual bans), 
