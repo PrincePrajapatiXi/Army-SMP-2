@@ -22,7 +22,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
 
     // Restore ban state from sessionStorage on mount (survives page refresh)
     useEffect(() => {
-        const savedBan = sessionStorage.getItem('adminBanState');
+        const savedBan = localStorage.getItem('adminBanState');
         if (savedBan) {
             try {
                 const ban = JSON.parse(savedBan);
@@ -34,10 +34,10 @@ const AdminLogin = ({ onLoginSuccess }) => {
                     setBanReason(ban.reason || '');
                 } else {
                     // Ban expired, clean up
-                    sessionStorage.removeItem('adminBanState');
+                    localStorage.removeItem('adminBanState');
                 }
             } catch (e) {
-                sessionStorage.removeItem('adminBanState');
+                localStorage.removeItem('adminBanState');
             }
         }
     }, []);
@@ -54,7 +54,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
                 setBanReason('');
                 setBanRemainingMs(0);
                 setLoginError('');
-                sessionStorage.removeItem('adminBanState');
+                localStorage.removeItem('adminBanState');
             } else {
                 setBanRemainingMs(remaining);
             }
@@ -123,8 +123,8 @@ const AdminLogin = ({ onLoginSuccess }) => {
         setBanReason(data.reason || 'suspicious_activity');
         setLoginError(data.error);
 
-        // Persist ban state so it survives page refresh
-        sessionStorage.setItem('adminBanState', JSON.stringify({
+        // Persist ban state so it survives page refresh and browser restart
+        localStorage.setItem('adminBanState', JSON.stringify({
             expiresAt,
             reason: data.reason || 'suspicious_activity'
         }));
