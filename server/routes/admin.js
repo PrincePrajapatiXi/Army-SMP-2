@@ -10,7 +10,7 @@ router.post('/api/admin/login', async (req, res) => {
     try {
         const now = new Date();
 
-        // 1. Strict Programmatic Ban Check
+        // 1. Database-Driven Absolute Ban Validation
         const bannedRecord = await BannedIP.findOne({ ip });
         if (bannedRecord) {
             if (now < bannedRecord.bannedUntil) {
@@ -18,12 +18,12 @@ router.post('/api/admin/login', async (req, res) => {
                     message: "Access denied. Your IP has been flagged for security reasons." 
                 });
             } else {
-                // Lifespan over, clean up the database document programmatically
+                // Lifespan expired, delete document programmatically
                 await BannedIP.deleteOne({ ip });
             }
         }
 
-        // 2. Verify Admin Password
+        // 2. Verify Password
         const isPasswordCorrect = (password === process.env.ADMIN_PASSWORD); 
 
         if (isPasswordCorrect) {
@@ -31,25 +31,25 @@ router.post('/api/admin/login', async (req, res) => {
             return res.status(200).json({ success: true, token: "authenticated_session_token" });
         }
 
-        // --- PASSWORD WRONG: EXECUTE THE DECEPTION TRAP ---
+        // --- PASSWORD WRONG: TRIGGER DECEPTION TRAP ---
         await LoginAttempt.create({ ip });
 
-        // Fetch failures inside a rolling 7-day window
+        // Fetch failures inside a strict rolling 7-day window
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
         const failedCount = await LoginAttempt.countDocuments({ 
             ip, 
             createdAt: { $gte: sevenDaysAgo } 
         });
 
-        // 2nd Failed Attempt -> Commit a hard lock 1-week Ban directly to MongoDB Cloud
+        // 2nd Failed Attempt -> Commit hard lock 1-week Ban directly to MongoDB Cloud
         if (failedCount >= 2) {
             const oneWeekFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
             await BannedIP.create({ ip, bannedUntil: oneWeekFromNow });
-            await LoginAttempt.deleteMany({ ip }); // Clear raw logging rows
+            await LoginAttempt.deleteMany({ ip }); // Wipe tracking space
 
             return res.status(403).json({ 
                 message: "Access denied. Your IP has been flagged for security reasons." 
-            });
+                });
         }
 
         // 1st Failed Attempt -> DECEPTION: Lie and output 4 attempts left
