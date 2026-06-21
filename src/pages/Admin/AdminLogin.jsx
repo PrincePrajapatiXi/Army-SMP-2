@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
-import { Lock, ShieldAlert, Clock, ShieldCheck } from 'lucide-react';
-import './Admin.css'; // Restored the stylesheet import
+import '../../pages/Admin/Admin.css';
 
-const API_BASE_URL = '/api'; // Fixed: Changed from Render domain to relative path for Vercel routing
+const API_BASE_URL = '/api'; 
 
 const AdminLogin = ({ onLoginSuccess }) => {
     const [password, setPassword] = useState('');
@@ -21,6 +20,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
                 onLoginSuccess(res.data.token);
             }
         } catch (err) {
+            // Read backend deception strings or direct absolute blocks cleanly
             const backendMessage = err.response?.data?.message || "An error occurred";
             setError(backendMessage); 
             sessionStorage.setItem('admin_login_error', backendMessage);
@@ -30,27 +30,28 @@ const AdminLogin = ({ onLoginSuccess }) => {
     };
 
     return (
-        <div className="admin-login-page">
+        <div className="admin-login-container">
             <div className="admin-login-box">
-                <div className="login-icon">
-                    <Lock size={48} />
+                <div className="admin-icon-wrapper">
+                    <span className="admin-lock-icon">🔒</span>
                 </div>
                 <h2>Admin Panel</h2>
+                <p className="admin-subtitle">Enter password to access admin dashboard</p>
+                
                 <form onSubmit={handleSubmit}>
                     <input 
                         type="password" 
                         value={password} 
                         onChange={(e) => setPassword(e.target.value)} 
-                        placeholder="Enter admin password"
-                        className="admin-input"
-                        disabled={loginLoading}
+                        placeholder="••••••••••••"
+                        className="admin-password-input"
                         required 
                     />
-                    <button type="submit" className="btn btn-primary admin-login-btn" disabled={loginLoading}>
-                        {loginLoading ? 'Verifying...' : 'Continue'}
+                    <button type="submit" className="admin-continue-btn" disabled={loginLoading}>
+                        {loginLoading ? "Loading..." : "Continue"}
                     </button>
                 </form>
-                {error && <p className="login-error">{error}</p>}
+                {error && <p className="error-message">{error}</p>}
             </div>
         </div>
     );
