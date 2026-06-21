@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import '../../pages/Admin/Admin.css';
+import { Lock } from 'lucide-react';
+import './Admin.css';
 
 const API_BASE_URL = '/api'; 
 
@@ -20,7 +21,6 @@ const AdminLogin = ({ onLoginSuccess }) => {
                 onLoginSuccess(res.data.token);
             }
         } catch (err) {
-            // Read backend deception strings or direct absolute blocks cleanly
             const backendMessage = err.response?.data?.message || "An error occurred";
             setError(backendMessage); 
             sessionStorage.setItem('admin_login_error', backendMessage);
@@ -30,13 +30,13 @@ const AdminLogin = ({ onLoginSuccess }) => {
     };
 
     return (
-        <div className="admin-login-container">
+        <div className="admin-login-page">
             <div className="admin-login-box">
-                <div className="admin-icon-wrapper">
-                    <span className="admin-lock-icon">🔒</span>
+                <div className="login-icon">
+                    <Lock size={48} />
                 </div>
                 <h2>Admin Panel</h2>
-                <p className="admin-subtitle">Enter password to access admin dashboard</p>
+                <p>Enter password to access admin dashboard</p>
                 
                 <form onSubmit={handleSubmit}>
                     <input 
@@ -44,14 +44,14 @@ const AdminLogin = ({ onLoginSuccess }) => {
                         value={password} 
                         onChange={(e) => setPassword(e.target.value)} 
                         placeholder="••••••••••••"
-                        className="admin-password-input"
+                        className="admin-input"
                         required 
                     />
-                    <button type="submit" className="admin-continue-btn" disabled={loginLoading}>
+                    <button type="submit" className="admin-login-btn" disabled={loginLoading}>
                         {loginLoading ? "Loading..." : "Continue"}
                     </button>
                 </form>
-                {error && <p className="error-message">{error}</p>}
+                {error && <p className="login-error">{error}</p>}
             </div>
         </div>
     );
