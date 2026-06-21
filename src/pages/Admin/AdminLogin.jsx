@@ -47,7 +47,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
                         className="admin-input"
                         required 
                     />
-                    <button type="submit" className="admin-login-btn" disabled={loginLoading}>
+                    <button type="submit" className="btn btn-primary admin-login-btn" disabled={loginLoading}>
                         {loginLoading ? "Loading..." : "Continue"}
                     </button>
                 </form>
