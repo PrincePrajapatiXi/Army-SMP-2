@@ -20,50 +20,36 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 
 // POST /api/admin/login - Step 1: Verify password and send OTP
 router.post('/login', async (req, res) => {
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const { password } = req.body;
+    const LoginAttempt = require('../models/LoginAttempt');
+    const BannedIP = require('../models/BannedIP');
+
     try {
-        const { password } = req.body;
-        const ip = getClientIP(req);
-        const userAgent = req.headers['user-agent'] || '';
+        const now = new Date();
 
-        // ===== CHECK IF IP IS BANNED =====
-        const existingBan = await BannedIP.isBanned(ip);
-        if (existingBan) {
-            const remainingMs = Math.max(0, new Date(existingBan.expiresAt).getTime() - Date.now());
-            const remainingDays = Math.ceil(remainingMs / (24 * 60 * 60 * 1000));
-            console.log(`🚫 Banned IP attempted admin login: ${ip}`);
-            return res.status(403).json({
-                success: false,
-                error: `Your IP has been banned for suspicious activity. Ban expires in ${remainingDays} day(s).`,
-                banned: true,
-                expiresAt: existingBan.expiresAt,
-                remainingMs,
-                reason: existingBan.reason
-            });
+        // Check absolute ban table
+        const bannedRecord = await BannedIP.findOne({ ip });
+        if (bannedRecord) {
+            if (now < bannedRecord.bannedUntil) {
+                return res.status(403).json({ 
+                    message: "Access denied. Your IP has been flagged for security reasons." 
+                });
+            } else {
+                // Ban expired, clean up database programmatically
+                await BannedIP.deleteOne({ ip });
+            }
         }
 
-        if (!password) {
-            return res.status(400).json({ success: false, error: 'Password required' });
-        }
+        // Verify Admin Password
+        const isPasswordCorrect = (password === process.env.ADMIN_PASSWORD); 
 
-        // Check if admin credentials are configured
-        if (!ADMIN_PASSWORD || !ADMIN_EMAIL) {
-            console.error('ADMIN_PASSWORD or ADMIN_EMAIL not configured in environment variables');
-            return res.status(500).json({
-                success: false,
-                error: 'Admin login not configured. Please set ADMIN_PASSWORD and ADMIN_EMAIL environment variables.'
-            });
-        }
-
-        if (password === ADMIN_PASSWORD) {
-            // Password correct - Generate and send OTP for 2FA
-            // Generate OTP
+        if (isPasswordCorrect) {
+            await LoginAttempt.deleteMany({ ip });
+            // Existing flow requires 2FA step, preserving it as token isn't generated here
             const otp = await OTP.createOTP(ADMIN_EMAIL, 'admin2FA');
-
-            // Send OTP email
             try {
                 await sendOTPEmail(ADMIN_EMAIL, otp, 'admin2FA', 'Admin');
-
-                // Mask email for display
                 const emailParts = ADMIN_EMAIL.split('@');
                 const maskedEmail = emailParts[0].substring(0, 3) + '***@' + emailParts[1];
 
@@ -74,41 +60,41 @@ router.post('/login', async (req, res) => {
                     email: maskedEmail
                 });
             } catch (emailError) {
-                console.error('Failed to send 2FA OTP:', emailError);
-                return res.status(500).json({
-                    success: false,
-                    error: 'Failed to send verification code. Please try again.'
-                });
+                return res.status(500).json({ success: false, message: 'Failed to send verification code' });
             }
-        } else {
-            // ===== FAILED LOGIN — TRACK AND POTENTIALLY BAN =====
-            const result = await BannedIP.trackAdminLoginFailure(ip, userAgent);
+        }
 
-            if (result.banned) {
-                const remainingMs = Math.max(0, new Date(result.ban.expiresAt).getTime() - Date.now());
-                const remainingDays = Math.ceil(remainingMs / (24 * 60 * 60 * 1000));
-                return res.status(403).json({
-                    success: false,
-                    error: `Too many failed attempts. Your IP has been banned for ${remainingDays} day(s).`,
-                    banned: true,
-                    expiresAt: result.ban.expiresAt,
-                    remainingMs,
-                    reason: 'admin_login_failed'
-                });
-            }
+        // --- PASSWORD INCORRECT: TRIGGER DECEPTION FLOW ---
+        await LoginAttempt.create({ ip });
 
-            // Show a DECEPTIVE attempts remaining count to confuse attackers
-            // Real ban happens after 2 failed attempts, but we show a fake higher number
-            const FAKE_REMAINING = 4;
-            return res.status(401).json({
-                success: false,
-                error: `Invalid password. ${FAKE_REMAINING} attempt(s) remaining.`,
-                attemptsRemaining: FAKE_REMAINING
+        // Fetch failed attempts within a strict rolling 7-day window
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const failedCount = await LoginAttempt.countDocuments({ 
+            ip, 
+            createdAt: { $gte: sevenDaysAgo } 
+        });
+
+        // 2nd Failed Attempt -> Hard Lock IP globally for 1 week in MongoDB
+        if (failedCount >= 2) {
+            const oneWeekFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+            await BannedIP.create({ ip, bannedUntil: oneWeekFromNow });
+            await LoginAttempt.deleteMany({ ip }); // Wipe tracking space
+
+            return res.status(403).json({ 
+                message: "Access denied. Your IP has been flagged for security reasons." 
             });
         }
+
+        // 1st Failed Attempt -> DECEPTION: Lie and tell them they have 4 attempts left
+        if (failedCount === 1) {
+            return res.status(401).json({ 
+                message: "Invalid password. 4 attempt(s) remaining." 
+            });
+        }
+
     } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({ success: false, error: 'Login failed' });
+        console.error("Auth System Error:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
     }
 });
 

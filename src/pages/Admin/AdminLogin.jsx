@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Lock, ShieldAlert, Clock, ShieldCheck, Mail, RefreshCw, Ban, ShieldOff } from 'lucide-react';
 
 const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
@@ -6,7 +7,7 @@ const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
 const AdminLogin = ({ onLoginSuccess }) => {
     const [password, setPassword] = useState('');
     const [otp, setOtp] = useState('');
-    const [loginError, setLoginError] = useState('');
+    const [error, setError] = useState('');
     const [loginLoading, setLoginLoading] = useState(false);
 
     // IP Ban State
@@ -22,7 +23,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
 
     // Restore ban state from sessionStorage on mount (survives page refresh)
     useEffect(() => {
-        const savedBan = localStorage.getItem('adminBanState');
+        const savedBan = sessionStorage.getItem('adminBanState');
         if (savedBan) {
             try {
                 const ban = JSON.parse(savedBan);
@@ -34,10 +35,10 @@ const AdminLogin = ({ onLoginSuccess }) => {
                     setBanReason(ban.reason || '');
                 } else {
                     // Ban expired, clean up
-                    localStorage.removeItem('adminBanState');
+                    sessionStorage.removeItem('adminBanState');
                 }
             } catch (e) {
-                localStorage.removeItem('adminBanState');
+                sessionStorage.removeItem('adminBanState');
             }
         }
     }, []);
@@ -53,8 +54,8 @@ const AdminLogin = ({ onLoginSuccess }) => {
                 setBanExpiresAt(null);
                 setBanReason('');
                 setBanRemainingMs(0);
-                setLoginError('');
-                localStorage.removeItem('adminBanState');
+                setError('');
+                sessionStorage.removeItem('adminBanState');
             } else {
                 setBanRemainingMs(remaining);
             }
@@ -121,10 +122,10 @@ const AdminLogin = ({ onLoginSuccess }) => {
         setBanExpiresAt(expiresAt);
         setBanRemainingMs(remaining);
         setBanReason(data.reason || 'suspicious_activity');
-        setLoginError(data.error);
+        setError(data.message || data.error);
 
         // Persist ban state so it survives page refresh and browser restart
-        localStorage.setItem('adminBanState', JSON.stringify({
+        sessionStorage.setItem('adminBanState', JSON.stringify({
             expiresAt,
             reason: data.reason || 'suspicious_activity'
         }));
@@ -136,32 +137,28 @@ const AdminLogin = ({ onLoginSuccess }) => {
         if (isBanned) return;
 
         setLoginLoading(true);
-        setLoginError('');
+        setError('');
 
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password })
-            });
-
-            const data = await response.json();
+            const response = await axios.post(`${API_BASE_URL}/admin/login`, { password });
+            const data = response.data;
 
             if (data.success && data.requires2FA) {
                 // Password correct, move to OTP step
                 setStep(2);
                 setMaskedEmail(data.email);
                 setResendCooldown(60);
-                setLoginError('');
+                setError('');
             } else if (data.banned) {
                 // IP has been banned
                 handleBanResponse(data);
             } else {
-                setLoginError(data.error || 'Invalid password');
+                setError(data.message || 'Invalid password');
             }
-        } catch (error) {
-            console.error('Login error:', error);
-            setLoginError('Login failed. Please try again.');
+        } catch (err) {
+            const backendMessage = err.response?.data?.message || "An error occurred";
+            setError(backendMessage); 
+            sessionStorage.setItem('admin_login_error', backendMessage);
         } finally {
             setLoginLoading(false);
         }
@@ -171,7 +168,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
     const handleOTPSubmit = async (e) => {
         e.preventDefault();
         setLoginLoading(true);
-        setLoginError('');
+        setError('');
 
         try {
             const response = await fetch(`${API_BASE_URL}/admin/verify-2fa`, {
@@ -189,11 +186,11 @@ const AdminLogin = ({ onLoginSuccess }) => {
                 }
                 onLoginSuccess();
             } else {
-                setLoginError(data.error || 'Invalid verification code');
+                setError(data.error || 'Invalid verification code');
             }
-        } catch (error) {
-            console.error('OTP verification error:', error);
-            setLoginError('Verification failed. Please try again.');
+        } catch (err) {
+            console.error('OTP verification error:', err);
+            setError('Verification failed. Please try again.');
         } finally {
             setLoginLoading(false);
         }
@@ -204,7 +201,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
         if (resendCooldown > 0) return;
 
         setLoginLoading(true);
-        setLoginError('');
+        setError('');
 
         try {
             const response = await fetch(`${API_BASE_URL}/admin/resend-2fa`, {
@@ -216,13 +213,13 @@ const AdminLogin = ({ onLoginSuccess }) => {
 
             if (data.success) {
                 setResendCooldown(60);
-                setLoginError('');
+                setError('');
             } else {
-                setLoginError(data.error || 'Failed to resend code');
+                setError(data.error || 'Failed to resend code');
             }
-        } catch (error) {
-            console.error('Resend error:', error);
-            setLoginError('Failed to resend code');
+        } catch (err) {
+            console.error('Resend error:', err);
+            setError('Failed to resend code');
         } finally {
             setLoginLoading(false);
         }
@@ -233,7 +230,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
         setStep(1);
         setOtp('');
         setPassword('');
-        setLoginError('');
+        setError('');
     };
 
     // ==================== IP BANNED STATE ====================
@@ -396,7 +393,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
                                 className="admin-input"
                                 disabled={loginLoading}
                             />
-                            {loginError && <p className="login-error">{loginError}</p>}
+                            {error && <p className="login-error">{error}</p>}
                             <button
                                 type="submit"
                                 className="btn btn-primary admin-login-btn"
@@ -438,7 +435,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
                                 maxLength={6}
                                 autoFocus
                             />
-                            {loginError && <p className="login-error">{loginError}</p>}
+                            {error && <p className="login-error">{error}</p>}
                             <button
                                 type="submit"
                                 className="btn btn-primary admin-login-btn"
