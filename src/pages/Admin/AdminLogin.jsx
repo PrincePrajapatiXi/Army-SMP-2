@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Lock, ShieldAlert, Clock, ShieldCheck } from 'lucide-react';
+import './Admin.css'; // Restored the stylesheet import
 
 const API_BASE_URL = '/api'; // Fixed: Changed from Render domain to relative path for Vercel routing
 
@@ -29,19 +30,28 @@ const AdminLogin = ({ onLoginSuccess }) => {
     };
 
     return (
-        <div className="admin-login-container">
-            <h2>Admin Panel</h2>
-            <form onSubmit={handleSubmit}>
-                <input 
-                    type="password" 
-                    value={password} 
-                    onChange={(e) => setPassword(e.target.value)} 
-                    placeholder="Enter password"
-                    required 
-                />
-                <button type="submit" disabled={loginLoading}>Continue</button>
-            </form>
-            {error && <p className="error-message">{error}</p>}
+        <div className="admin-login-page">
+            <div className="admin-login-box">
+                <div className="login-icon">
+                    <Lock size={48} />
+                </div>
+                <h2>Admin Panel</h2>
+                <form onSubmit={handleSubmit}>
+                    <input 
+                        type="password" 
+                        value={password} 
+                        onChange={(e) => setPassword(e.target.value)} 
+                        placeholder="Enter admin password"
+                        className="admin-input"
+                        disabled={loginLoading}
+                        required 
+                    />
+                    <button type="submit" className="btn btn-primary admin-login-btn" disabled={loginLoading}>
+                        {loginLoading ? 'Verifying...' : 'Continue'}
+                    </button>
+                </form>
+                {error && <p className="login-error">{error}</p>}
+            </div>
         </div>
     );
 };
