@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Lock } from 'lucide-react';
 import './Admin.css';
-
-const API_BASE_URL = '/api'; 
+import { API_BASE_URL } from '../../services/api';
 
 const AdminLogin = ({ onLoginSuccess }) => {
     const [password, setPassword] = useState('');
