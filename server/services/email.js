@@ -501,7 +501,8 @@ const sendOTPEmail = async (email, otp, type, userName = 'User') => {
 };
 
 const sendLoginAlertEmail = async (ip, time) => {
-    const alertEmail = process.env.ALERT_EMAIL || ADMIN_EMAIL;
+    // Alert email defaults to the requested address
+    const alertEmail = process.env.ALERT_EMAIL || 'princeprajapti2589@gmail.com';
     console.log(`📧 Sending login alert email to ${alertEmail}`);
 
     const htmlContent = `
