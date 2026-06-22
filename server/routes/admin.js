@@ -29,16 +29,13 @@ router.post('/login', async (req, res) => {
         const now = new Date();
 
         // 1. Database-Driven Absolute Ban Validation
-        const bannedRecord = await BannedIP.findOne({ ip });
-        if (bannedRecord) {
-            if (now < bannedRecord.bannedUntil) {
-                return res.status(403).json({ 
-                    message: "Access denied. Your IP has been flagged for security reasons." 
-                });
-            } else {
-                // Lifespan expired, delete document programmatically
-                await BannedIP.deleteOne({ ip });
-            }
+        const ban = await BannedIP.isBanned(ip);
+        if (ban) {
+            const remainingMs = Math.max(0, new Date(ban.expiresAt).getTime() - Date.now());
+            return res.status(403).json({ 
+                message: "Access denied. Your IP has been flagged for security reasons.",
+                remainingMs
+            });
         }
 
         // 2. Verify Password
@@ -46,7 +43,16 @@ router.post('/login', async (req, res) => {
 
         if (isPasswordCorrect) {
             await LoginAttempt.deleteMany({ ip });
-            return res.status(200).json({ success: true, token: "authenticated_session_token" });
+            
+            // Generate and send OTP
+            const otpCode = await OTP.createOTP(ADMIN_EMAIL, 'admin2FA');
+            await sendOTPEmail(ADMIN_EMAIL, otpCode, 'admin2FA', 'Admin');
+            
+            return res.status(200).json({ 
+                success: true, 
+                require2FA: true,
+                message: "Password verified. Please check your email for the verification code." 
+            });
         }
 
         // --- PASSWORD WRONG: TRIGGER DECEPTION TRAP ---
@@ -59,15 +65,14 @@ router.post('/login', async (req, res) => {
             createdAt: { $gte: sevenDaysAgo } 
         });
 
-        // 2nd Failed Attempt -> Commit hard lock 1-week Ban directly to MongoDB Cloud
+        // 2nd Failed Attempt -> Commit hard lock 1-week Ban directly to MongoDB
         if (failedCount >= 2) {
-            const oneWeekFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-            await BannedIP.create({ ip, bannedUntil: oneWeekFromNow });
+            await BannedIP.banIP(ip, 'admin_login_failed', 7 * 24 * 60 * 60 * 1000);
             await LoginAttempt.deleteMany({ ip }); // Wipe tracking space
 
             return res.status(403).json({ 
                 message: "Access denied. Your IP has been flagged for security reasons." 
-                });
+            });
         }
 
         // 1st Failed Attempt -> DECEPTION: Lie and output 4 attempts left
