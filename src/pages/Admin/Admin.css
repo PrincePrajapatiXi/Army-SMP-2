@@ -4347,4 +4347,100 @@
         flex-direction: column;
         gap: 4px;
     }
+}
+
+/* Banned Mode Styles */
+.admin-login-page.banned-mode {
+    background: radial-gradient(circle at center, #2a0808 0%, #000000 100%);
+}
+
+.banned-box {
+    background: rgba(10, 0, 0, 0.8);
+    border: 2px solid #ef4444;
+    border-radius: 12px;
+    padding: 40px;
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(239, 68, 68, 0.2), inset 0 0 20px rgba(239, 68, 68, 0.1);
+}
+
+.banned-icon-container {
+    margin-bottom: 20px;
+}
+
+.banned-icon {
+    color: #ef4444;
+    filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.8));
+}
+
+.pulse-animation {
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.8)); }
+    50% { transform: scale(1.1); filter: drop-shadow(0 0 25px rgba(239, 68, 68, 1)); }
+    100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.8)); }
+}
+
+.banned-title {
+    color: #ef4444;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+.banned-subtitle {
+    color: #fca5a5;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    letter-spacing: 5px;
+}
+
+.banned-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #ef4444, transparent);
+    margin: 20px 0;
+}
+
+.banned-message {
+    color: #e5e5e5;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+.banned-timer-container {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 30px;
+}
+
+.banned-timer-label {
+    display: block;
+    color: #fca5a5;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.banned-timer-value {
+    color: white;
+    font-size: 2rem;
+    font-family: monospace;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.banned-footer-text {
+    color: #666;
+    font-size: 0.8rem;
 }

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Lock, Mail } from 'lucide-react';
+import { Lock, Mail, ShieldAlert } from 'lucide-react';
 import './Admin.css';
 import { API_BASE_URL } from '../../services/api';
 
@@ -11,12 +11,42 @@ const AdminLogin = ({ onLoginSuccess }) => {
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [loginLoading, setLoginLoading] = useState(false);
+    
+    // Ban state
+    const [bannedRemaining, setBannedRemaining] = useState(null);
+
+    // Format remaining time
+    const formatTimeRemaining = (ms) => {
+        if (!ms || ms <= 0) return '0s';
+        const totalSecs = Math.ceil(ms / 1000);
+        const days = Math.floor(totalSecs / 86400);
+        const hours = Math.floor((totalSecs % 86400) / 3600);
+        const mins = Math.floor((totalSecs % 3600) / 60);
+        const secs = totalSecs % 60;
+        
+        if (days > 0) return `${days}d ${hours}h`;
+        if (hours > 0) return `${hours}h ${mins}m`;
+        if (mins > 0) return `${mins}m ${secs}s`;
+        return `${secs}s`;
+    };
+
+    // Auto countdown
+    useEffect(() => {
+        let interval;
+        if (bannedRemaining !== null && bannedRemaining > 0) {
+            interval = setInterval(() => {
+                setBannedRemaining(prev => Math.max(0, prev - 1000));
+            }, 1000);
+        }
+        return () => clearInterval(interval);
+    }, [bannedRemaining]);
 
     const handlePasswordSubmit = async (e) => {
         e.preventDefault();
         setLoginLoading(true);
         setError('');
         setSuccessMessage('');
+        setBannedRemaining(null);
 
         try {
             const res = await axios.post(`${API_BASE_URL}/admin/login`, { password });
@@ -27,6 +57,9 @@ const AdminLogin = ({ onLoginSuccess }) => {
                 onLoginSuccess(res.data.token);
             }
         } catch (err) {
+            if (err.response?.status === 403 && err.response?.data?.remainingMs !== undefined) {
+                setBannedRemaining(err.response.data.remainingMs);
+            }
             const backendMessage = err.response?.data?.message || "An error occurred";
             setError(backendMessage); 
             sessionStorage.setItem('admin_login_error', backendMessage);
@@ -52,6 +85,37 @@ const AdminLogin = ({ onLoginSuccess }) => {
             setLoginLoading(false);
         }
     };
+
+    if (bannedRemaining !== null) {
+        return (
+            <div className="admin-login-page banned-mode">
+                <div className="banned-box">
+                    <div className="banned-icon-container">
+                        <ShieldAlert size={64} className="banned-icon pulse-animation" />
+                    </div>
+                    <h1 className="banned-title">SYSTEM LOCKDOWN</h1>
+                    <p className="banned-subtitle">ACCESS DENIED</p>
+                    
+                    <div className="banned-divider"></div>
+                    
+                    <p className="banned-message">
+                        Your IP address has been flagged for security reasons and temporarily locked out of the Admin Network.
+                    </p>
+                    
+                    <div className="banned-timer-container">
+                        <span className="banned-timer-label">TIME REMAINING</span>
+                        <div className="banned-timer-value">
+                            {formatTimeRemaining(bannedRemaining)}
+                        </div>
+                    </div>
+                    
+                    <p className="banned-footer-text">
+                        If you believe this is a mistake, contact the network administrator.
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="admin-login-page">
