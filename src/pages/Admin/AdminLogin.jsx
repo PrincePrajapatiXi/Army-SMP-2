@@ -143,7 +143,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
                     </div>
                     
                     <p className="banned-footer-text">
-                        If you believe this is a mistake, contact the network administrator.
+                        Get the hell out of here!
                     </p>
                 </div>
             </div>
