@@ -20,7 +20,7 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 
 // POST /login - Step 1: Verify password
 router.post('/login', async (req, res) => {
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const ip = getClientIP(req);
     const { password } = req.body;
     const LoginAttempt = require('../models/LoginAttempt');
     const BannedIP = require('../models/BannedIP');
