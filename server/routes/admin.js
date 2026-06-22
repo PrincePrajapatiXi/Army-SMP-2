@@ -97,11 +97,13 @@ router.post('/login', async (req, res) => {
 
         // 2nd Failed Attempt -> Commit hard lock 1-week Ban directly to MongoDB
         if (failedCount >= 2) {
-            await BannedIP.banIP(ip, 'admin_login_failed', 7 * 24 * 60 * 60 * 1000);
+            const banDuration = 7 * 24 * 60 * 60 * 1000;
+            await BannedIP.banIP(ip, 'admin_login_failed', banDuration);
             await LoginAttempt.deleteMany({ ip }); // Wipe tracking space
 
             return res.status(403).json({ 
-                message: "Access denied. Your IP has been flagged for security reasons." 
+                message: "Access denied. Your IP has been flagged for security reasons.",
+                remainingMs: banDuration
             });
         }
 

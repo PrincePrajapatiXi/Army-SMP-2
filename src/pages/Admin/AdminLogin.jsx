@@ -28,8 +28,8 @@ const AdminLogin = ({ onLoginSuccess }) => {
         const mins = Math.floor((totalSecs % 3600) / 60);
         const secs = totalSecs % 60;
         
-        if (days > 0) return `${days}d ${hours}h`;
-        if (hours > 0) return `${hours}h ${mins}m`;
+        if (days > 0) return `${days}d ${hours}h ${mins}m ${secs}s`;
+        if (hours > 0) return `${hours}h ${mins}m ${secs}s`;
         if (mins > 0) return `${mins}m ${secs}s`;
         return `${secs}s`;
     };
