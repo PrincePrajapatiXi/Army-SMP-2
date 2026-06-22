@@ -12,7 +12,7 @@ const BannedIP = require('../models/BannedIP');
 const SystemConfig = require('../models/SystemConfig');
 const { generateAdminToken, requireAdminAuth } = require('../middleware/authMiddleware');
 const { getClientIP, wafStats } = require('../middleware/waf');
-const { authenticator } = require('otplib');
+const speakeasy = require('speakeasy');
 const qrcode = require('qrcode');
 const { sendLoginAlertEmail } = require('../services/email');
 const { ipsStats } = require('../middleware/ips');
@@ -57,17 +57,16 @@ router.post('/login', async (req, res) => {
             
             if (!totpConfig || !totpConfig.value) {
                 // Generate secret and QR code here
-                const secret = authenticator.generateSecret();
+                const secret = speakeasy.generateSecret({ name: 'Army SMP 2 Store' });
                 
                 // Save it temporarily
                 await SystemConfig.findOneAndUpdate(
                     { key: 'admin_totp_secret_pending' },
-                    { value: secret },
+                    { value: secret.base32 },
                     { upsert: true, new: true }
                 );
                 
-                const otpauthUrl = authenticator.keyuri(ADMIN_EMAIL, 'Army SMP 2 Store', secret);
-                const qrCodeDataUrl = await qrcode.toDataURL(otpauthUrl);
+                const qrCodeDataUrl = await qrcode.toDataURL(secret.otpauth_url);
                 
                 return res.status(200).json({ 
                     success: true, 
@@ -134,14 +133,14 @@ router.post('/verify-2fa', async (req, res) => {
         // Check active TOTP
         const totpConfig = await SystemConfig.findOne({ key: 'admin_totp_secret' });
         if (totpConfig && totpConfig.value) {
-            totpValid = authenticator.verify({ token: otp, secret: totpConfig.value });
+            totpValid = speakeasy.totp.verify({ secret: totpConfig.value, encoding: 'base32', token: otp });
         }
         
         // Check pending TOTP (if just setting up)
         if (!totpValid) {
             const pendingTotp = await SystemConfig.findOne({ key: 'admin_totp_secret_pending' });
             if (pendingTotp && pendingTotp.value) {
-                const isValidPending = authenticator.verify({ token: otp, secret: pendingTotp.value });
+                const isValidPending = speakeasy.totp.verify({ secret: pendingTotp.value, encoding: 'base32', token: otp });
                 if (isValidPending) {
                     // Promote to active
                     await SystemConfig.findOneAndUpdate(
