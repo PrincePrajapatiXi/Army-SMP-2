@@ -355,9 +355,21 @@ const sendOTPEmail = async (email, otp, type, userName = 'User') => {
     console.log(`📧 Sending OTP email to ${email} for ${type}`);
 
     const isVerification = type === 'emailVerification';
-    const subject = isVerification
-        ? `🔐 Verify Your Email - Army SMP 2`
-        : `🔐 Password Reset OTP - Army SMP 2`;
+    const isAdmin2FA = type === 'admin2FA';
+    
+    let subject = `🔐 Password Reset OTP - Army SMP 2`;
+    let heading = `Reset Your Password`;
+    let messageLine = `Use the code below to reset your password:`;
+    
+    if (isVerification) {
+        subject = `🔐 Verify Your Email - Army SMP 2`;
+        heading = `Verify Your Email`;
+        messageLine = `Use the code below to verify your email address:`;
+    } else if (isAdmin2FA) {
+        subject = `🛡️ Admin Login OTP - Army SMP 2`;
+        heading = `Admin Login Verification`;
+        messageLine = `Use the code below to securely log into the Admin Dashboard:`;
+    }
 
     const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 10px;">
@@ -367,11 +379,9 @@ const sendOTPEmail = async (email, otp, type, userName = 'User') => {
             </div>
             
             <div style="background: rgba(255,255,255,0.05); padding: 30px; border-radius: 10px; text-align: center;">
-                <h2 style="color: #ffffff; margin-top: 0;">${isVerification ? 'Verify Your Email' : 'Reset Your Password'}</h2>
+                <h2 style="color: #ffffff; margin-top: 0;">${heading}</h2>
                 <p style="color: #d1d5db;">Hello <strong>${userName}</strong>!</p>
-                <p style="color: #d1d5db;">${isVerification
-            ? 'Use the code below to verify your email address:'
-            : 'Use the code below to reset your password:'}</p>
+                <p style="color: #d1d5db;">${messageLine}</p>
                 
                 <div style="background: linear-gradient(135deg, #f97316, #ea580c); padding: 20px; border-radius: 10px; margin: 20px 0;">
                     <span style="font-size: 36px; font-weight: bold; color: white; letter-spacing: 8px;">${otp}</span>

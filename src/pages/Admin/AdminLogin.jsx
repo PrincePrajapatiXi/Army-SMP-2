@@ -145,9 +145,10 @@ const AdminLogin = ({ onLoginSuccess }) => {
                         <input 
                             type="text" 
                             value={otp} 
-                            onChange={(e) => setOtp(e.target.value)} 
-                            placeholder="Enter OTP"
-                            className="admin-input"
+                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))} 
+                            placeholder="• • • • • •"
+                            className="admin-input otp-input"
+                            autoComplete="off"
                             required 
                         />
                         <button type="submit" className="btn btn-primary admin-login-btn" disabled={loginLoading}>

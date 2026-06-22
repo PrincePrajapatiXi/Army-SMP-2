@@ -4443,4 +4443,23 @@
 .banned-footer-text {
     color: #666;
     font-size: 0.8rem;
+}
+
+/* OTP UI Enhancements */
+.otp-input {
+    text-align: center;
+    font-size: 1.8rem;
+    letter-spacing: 12px;
+    font-weight: 700;
+    padding: 16px;
+    font-family: monospace;
+    color: var(--primary);
+}
+
+.otp-input::placeholder {
+    font-size: 1.5rem;
+    letter-spacing: 8px;
+    font-weight: 400;
+    opacity: 0.4;
+    color: var(--text-secondary);
 }
