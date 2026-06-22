@@ -9,8 +9,12 @@ const User = require('../models/User');
 const OTP = require('../models/OTP');
 const Badge = require('../models/Badge');
 const BannedIP = require('../models/BannedIP');
+const SystemConfig = require('../models/SystemConfig');
 const { generateAdminToken, requireAdminAuth } = require('../middleware/authMiddleware');
 const { getClientIP, wafStats } = require('../middleware/waf');
+const { authenticator } = require('otplib');
+const qrcode = require('qrcode');
+const { sendLoginAlertEmail } = require('../services/email');
 const { ipsStats } = require('../middleware/ips');
 
 // Admin credentials from environment variable (REQUIRED - no default for security)
@@ -44,14 +48,41 @@ router.post('/login', async (req, res) => {
         if (isPasswordCorrect) {
             await LoginAttempt.deleteMany({ ip });
             
-            // Generate and send OTP
+            // Check if TOTP is setup
+            const totpConfig = await SystemConfig.findOne({ key: 'admin_totp_secret' });
+
+            // Generate and send OTP (Fallback/Primary via Email)
             const otpCode = await OTP.createOTP(ADMIN_EMAIL, 'admin2FA');
             await sendOTPEmail(ADMIN_EMAIL, otpCode, 'admin2FA', 'Admin');
             
+            if (!totpConfig || !totpConfig.value) {
+                // Generate secret and QR code here
+                const secret = authenticator.generateSecret();
+                
+                // Save it temporarily
+                await SystemConfig.findOneAndUpdate(
+                    { key: 'admin_totp_secret_pending' },
+                    { value: secret },
+                    { upsert: true, new: true }
+                );
+                
+                const otpauthUrl = authenticator.keyuri(ADMIN_EMAIL, 'Army SMP 2 Store', secret);
+                const qrCodeDataUrl = await qrcode.toDataURL(otpauthUrl);
+                
+                return res.status(200).json({ 
+                    success: true, 
+                    require2FA: true,
+                    requireTotpSetup: true,
+                    qrCode: qrCodeDataUrl,
+                    secret: secret,
+                    message: "Password verified. Please set up Google Authenticator by scanning the QR code." 
+                });
+            }
+
             return res.status(200).json({ 
                 success: true, 
                 require2FA: true,
-                message: "Password verified. Please check your email for the verification code." 
+                message: "Password verified. Enter your Authenticator code or the code sent to your email." 
             });
         }
 
@@ -98,10 +129,41 @@ router.post('/verify-2fa', async (req, res) => {
             return res.status(400).json({ success: false, error: 'Verification code required' });
         }
 
-        // Verify OTP
+        let totpValid = false;
+        
+        // Check active TOTP
+        const totpConfig = await SystemConfig.findOne({ key: 'admin_totp_secret' });
+        if (totpConfig && totpConfig.value) {
+            totpValid = authenticator.verify({ token: otp, secret: totpConfig.value });
+        }
+        
+        // Check pending TOTP (if just setting up)
+        if (!totpValid) {
+            const pendingTotp = await SystemConfig.findOne({ key: 'admin_totp_secret_pending' });
+            if (pendingTotp && pendingTotp.value) {
+                const isValidPending = authenticator.verify({ token: otp, secret: pendingTotp.value });
+                if (isValidPending) {
+                    // Promote to active
+                    await SystemConfig.findOneAndUpdate(
+                        { key: 'admin_totp_secret' },
+                        { value: pendingTotp.value },
+                        { upsert: true }
+                    );
+                    await SystemConfig.deleteOne({ key: 'admin_totp_secret_pending' });
+                    totpValid = true;
+                }
+            }
+        }
+
+        // Verify Email OTP
         const result = await OTP.verifyOTP(ADMIN_EMAIL, otp, 'admin2FA');
 
-        if (result.valid) {
+        if (result.valid || totpValid) {
+            // Send login alert
+            const ip = getClientIP(req);
+            const time = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+            sendLoginAlertEmail(ip, time).catch(e => console.error("Alert failed:", e));
+
             // Generate admin JWT token
             const token = generateAdminToken(ADMIN_EMAIL);
             return res.json({
@@ -112,7 +174,7 @@ router.post('/verify-2fa', async (req, res) => {
         } else {
             return res.status(401).json({
                 success: false,
-                error: result.message || 'Invalid or expired verification code'
+                error: 'Invalid or expired verification code'
             });
         }
     } catch (error) {

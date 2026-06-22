@@ -500,10 +500,85 @@ const sendOTPEmail = async (email, otp, type, userName = 'User') => {
     return { success: true, method: 'console' };
 };
 
+const sendLoginAlertEmail = async (ip, time) => {
+    const alertEmail = process.env.ALERT_EMAIL || ADMIN_EMAIL;
+    console.log(`📧 Sending login alert email to ${alertEmail}`);
+
+    const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 10px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #ef4444; margin: 0;">⚠️ Security Alert</h1>
+                <p style="color: #9ca3af; margin-top: 5px;">Army SMP 2 Admin Panel</p>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.05); padding: 30px; border-radius: 10px; text-align: center;">
+                <h2 style="color: #ffffff; margin-top: 0;">Successful Admin Login</h2>
+                <p style="color: #d1d5db;">A successful login was just detected on your Admin Dashboard.</p>
+                
+                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); padding: 20px; border-radius: 10px; margin: 20px 0; text-align: left;">
+                    <p style="color: #e5e5e5; margin: 5px 0;"><strong>IP Address:</strong> ${ip}</p>
+                    <p style="color: #e5e5e5; margin: 5px 0;"><strong>Time:</strong> ${time}</p>
+                </div>
+                
+                <p style="color: #9ca3af; font-size: 14px;">If this was you, you can safely ignore this email.</p>
+                <p style="color: #ef4444; font-size: 14px; font-weight: bold;">If you did NOT log in, someone may have compromised your credentials. Change your password immediately.</p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <p style="color: #6b7280; font-size: 12px;">© 2024 Army SMP 2. All rights reserved.</p>
+            </div>
+        </div>
+    `;
+
+    // Try Brevo first
+    const BREVO_API_KEY = process.env.BREVO_API_KEY;
+    if (BREVO_API_KEY) {
+        try {
+            await fetch('https://api.brevo.com/v3/smtp/email', {
+                method: 'POST',
+                headers: {
+                    'accept': 'application/json',
+                    'api-key': BREVO_API_KEY,
+                    'content-type': 'application/json'
+                },
+                body: JSON.stringify({
+                    sender: { name: 'Army SMP 2 Security', email: 'armysmp2@gmail.com' },
+                    to: [{ email: alertEmail, name: 'Admin' }],
+                    subject: `⚠️ Admin Login Alert - Army SMP 2`,
+                    htmlContent: htmlContent
+                })
+            });
+        } catch (e) {
+            console.error('Brevo alert failed', e);
+        }
+    } else {
+        // Fallback Gmail
+        try {
+            const nodemailer = require('nodemailer');
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: { 
+                    user: process.env.EMAIL_USER || 'your_email@gmail.com', 
+                    pass: process.env.EMAIL_PASS || 'your_app_password_here' 
+                }
+            });
+            await transporter.sendMail({
+                from: process.env.EMAIL_USER || 'armysmp2@gmail.com',
+                to: alertEmail,
+                subject: `⚠️ Admin Login Alert - Army SMP 2`,
+                html: htmlContent
+            });
+        } catch (e) {
+            console.error('Gmail alert failed', e);
+        }
+    }
+};
+
 module.exports = {
     sendOrderNotification,
     sendStatusUpdateNotification,
     sendOTPEmail,
+    sendLoginAlertEmail,
     verifyEmailConfig
 };
 

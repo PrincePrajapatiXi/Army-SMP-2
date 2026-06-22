@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Lock, Mail, ShieldAlert } from 'lucide-react';
+import { Lock, ShieldCheck, ShieldAlert } from 'lucide-react';
 import './Admin.css';
 import { API_BASE_URL } from '../../services/api';
 
@@ -14,6 +14,10 @@ const AdminLogin = ({ onLoginSuccess }) => {
     
     // Ban state
     const [bannedRemaining, setBannedRemaining] = useState(null);
+
+    // TOTP and Resend States
+    const [qrCode, setQrCode] = useState(null);
+    const [resendCountdown, setResendCountdown] = useState(0);
 
     // Format remaining time
     const formatTimeRemaining = (ms) => {
@@ -30,16 +34,24 @@ const AdminLogin = ({ onLoginSuccess }) => {
         return `${secs}s`;
     };
 
-    // Auto countdown
+    // Auto countdowns
     useEffect(() => {
-        let interval;
+        let banInterval;
         if (bannedRemaining !== null && bannedRemaining > 0) {
-            interval = setInterval(() => {
+            banInterval = setInterval(() => {
                 setBannedRemaining(prev => Math.max(0, prev - 1000));
             }, 1000);
         }
-        return () => clearInterval(interval);
+        return () => clearInterval(banInterval);
     }, [bannedRemaining]);
+
+    useEffect(() => {
+        let resendTimer;
+        if (resendCountdown > 0) {
+            resendTimer = setInterval(() => setResendCountdown(c => c - 1), 1000);
+        }
+        return () => clearInterval(resendTimer);
+    }, [resendCountdown]);
 
     const handlePasswordSubmit = async (e) => {
         e.preventDefault();
@@ -53,6 +65,11 @@ const AdminLogin = ({ onLoginSuccess }) => {
             if (res.data.require2FA) {
                 setStep(2);
                 setSuccessMessage(res.data.message || 'OTP sent to your email.');
+                setResendCountdown(30); // Start 30s cooldown
+                
+                if (res.data.requireTotpSetup) {
+                    setQrCode(res.data.qrCode);
+                }
             } else if (res.data.success) {
                 onLoginSuccess(res.data.token);
             }
@@ -65,6 +82,22 @@ const AdminLogin = ({ onLoginSuccess }) => {
             sessionStorage.setItem('admin_login_error', backendMessage);
         } finally {
             setLoginLoading(false);
+        }
+    };
+
+    const handleResendOTP = async () => {
+        if (resendCountdown > 0) return;
+        
+        try {
+            setSuccessMessage('');
+            setError('');
+            const res = await axios.post(`${API_BASE_URL}/admin/resend-2fa`);
+            if (res.data.success) {
+                setSuccessMessage(res.data.message);
+                setResendCountdown(30); // Restart cooldown
+            }
+        } catch (err) {
+            setError(err.response?.data?.error || "Failed to resend OTP");
         }
     };
 
@@ -121,10 +154,10 @@ const AdminLogin = ({ onLoginSuccess }) => {
         <div className="admin-login-page">
             <div className="admin-login-box">
                 <div className="login-icon">
-                    {step === 1 ? <Lock size={48} /> : <Mail size={48} />}
+                    {step === 1 ? <Lock size={48} /> : <ShieldCheck size={48} />}
                 </div>
                 <h2>Admin Panel</h2>
-                <p>{step === 1 ? 'Enter password to access admin dashboard' : 'Enter the OTP sent to your email'}</p>
+                <p>{step === 1 ? 'Enter password to access admin dashboard' : (qrCode ? 'Google Authenticator Setup' : 'Enter Authenticator code or Email OTP')}</p>
                 
                 {step === 1 ? (
                     <form onSubmit={handlePasswordSubmit}>
@@ -142,6 +175,14 @@ const AdminLogin = ({ onLoginSuccess }) => {
                     </form>
                 ) : (
                     <form onSubmit={handleOtpSubmit}>
+                        {qrCode && (
+                            <div className="totp-setup-container" style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '10px', marginBottom: '20px' }}>
+                                <p style={{ color: '#ef4444', fontWeight: 'bold', margin: '0 0 10px 0' }}>Action Required: Set up 2FA</p>
+                                <img src={qrCode} alt="TOTP QR Code" style={{ borderRadius: '8px', margin: '10px auto', display: 'block', border: '2px solid white' }} />
+                                <p style={{ fontSize: '0.85rem', color: '#d1d5db', margin: '10px 0 0 0' }}>Scan this code using Google Authenticator, Authy, or a similar app. Then enter the 6-digit code below to confirm.</p>
+                            </div>
+                        )}
+                        
                         <input 
                             type="text" 
                             value={otp} 
@@ -152,12 +193,31 @@ const AdminLogin = ({ onLoginSuccess }) => {
                             required 
                         />
                         <button type="submit" className="btn btn-primary admin-login-btn" disabled={loginLoading}>
-                            {loginLoading ? "Verifying..." : "Verify OTP"}
+                            {loginLoading ? "Verifying..." : "Verify Code"}
                         </button>
+                        
+                        {!qrCode && (
+                            <button 
+                                type="button" 
+                                onClick={handleResendOTP} 
+                                disabled={resendCountdown > 0 || loginLoading}
+                                style={{
+                                    marginTop: '15px',
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: resendCountdown > 0 ? '#6b7280' : '#f97316',
+                                    cursor: resendCountdown > 0 ? 'not-allowed' : 'pointer',
+                                    fontSize: '0.9rem',
+                                    textDecoration: resendCountdown > 0 ? 'none' : 'underline'
+                                }}
+                            >
+                                {resendCountdown > 0 ? `Didn't receive email? Resend in ${resendCountdown}s` : "Didn't receive email? Resend OTP"}
+                            </button>
+                        )}
                     </form>
                 )}
                 {successMessage && <p className="login-success" style={{color: '#4ade80', marginTop: '10px', fontSize: '0.9rem'}}>{successMessage}</p>}
-                {error && <p className="login-error">{error}</p>}
+                {error && <p className="login-error" style={{ marginTop: '10px' }}>{error}</p>}
             </div>
         </div>
     );
