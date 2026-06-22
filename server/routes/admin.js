@@ -75,10 +75,10 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        // 1st Failed Attempt -> DECEPTION: Lie and output 4 attempts left
+        // 1st Failed Attempt
         if (failedCount === 1) {
             return res.status(401).json({ 
-                message: "Invalid password. 4 attempt(s) remaining." 
+                message: "Incorrect password. Please try again." 
             });
         }
 
