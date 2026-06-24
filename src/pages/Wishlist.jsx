@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { Heart, ShoppingCart, Trash2, ArrowLeft } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
-import { useToast } from '../components/Toast';
-import SEO from '../components/SEO';
+import { useToast } from '../components/ui/Toast';
+import SEO from '../components/utils/SEO';
 import './Wishlist.css';
 
 const Wishlist = () => {

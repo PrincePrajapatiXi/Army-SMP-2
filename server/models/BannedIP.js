@@ -24,10 +24,20 @@ BannedIPSchema.statics.isBanned = async function(ip) {
 };
 
 BannedIPSchema.statics.banIP = async function(ip, reason, durationMs, details = {}) {
-    const expiresAt = new Date(Date.now() + durationMs);
+    const newExpiresAt = new Date(Date.now() + durationMs);
+    
+    const existingBan = await this.findOne({ ip });
+    if (existingBan) {
+        const currentExpiry = existingBan.expiresAt || existingBan.bannedUntil;
+        // Don't shorten an existing ban unless it's a manual override by an admin
+        if (reason !== 'manual_ban' && currentExpiry && currentExpiry > newExpiresAt) {
+            return existingBan;
+        }
+    }
+    
     return this.findOneAndUpdate(
         { ip },
-        { ip, reason, expiresAt, bannedUntil: expiresAt, details },
+        { ip, reason, expiresAt: newExpiresAt, bannedUntil: newExpiresAt, details },
         { upsert: true, new: true }
     );
 };

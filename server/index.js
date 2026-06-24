@@ -216,14 +216,10 @@ app.use((err, req, res, next) => {
     });
 });
 
+const connectDB = require('./config/db');
+
 // Connect to MongoDB
-if (process.env.MONGODB_URI) {
-    mongoose.connect(process.env.MONGODB_URI, { dbName: 'army-smp' })
-        .then(() => console.log('✅ Connected to MongoDB'))
-        .catch(err => console.error('❌ MongoDB Connection Error:', err));
-} else {
-    console.warn('⚠️ MONGODB_URI not found in environment variables. Database features will fail.');
-}
+connectDB();
 
 // Start server
 app.listen(PORT, async () => {

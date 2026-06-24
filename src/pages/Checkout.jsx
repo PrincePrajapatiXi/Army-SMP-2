@@ -5,7 +5,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { ordersApi, paymentApi, API_BASE_URL } from '../services/api';
 import { validateCoupon as validateCouponLocal } from '../data/coupons';
-import Confetti from '../components/Confetti';
+import Confetti from '../components/features/Confetti';
 import './Checkout.css';
 
 const Checkout = () => {

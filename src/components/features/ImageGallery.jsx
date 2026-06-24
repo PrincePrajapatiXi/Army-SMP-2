@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { triggerHaptic } from '../hooks/useHaptics';
+import { triggerHaptic } from '../../hooks/useHaptics';
 import './ImageGallery.css';
 
 /**

@@ -1,6 +1,6 @@
 import { ShoppingCart, Heart } from 'lucide-react';
-import { useWishlist } from '../context/WishlistContext';
-import { triggerHaptic } from '../hooks/useHaptics';
+import { useWishlist } from '../../context/WishlistContext';
+import { triggerHaptic } from '../../hooks/useHaptics';
 import './ProductCard.css';
 
 const getCategoryColor = (category, explicitColor) => {

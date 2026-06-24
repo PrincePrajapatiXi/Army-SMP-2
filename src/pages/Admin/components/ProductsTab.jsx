@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Box, Plus, Edit, Trash2, X, Star, Filter } from 'lucide-react';
-import ImageUploader from '../../../components/ImageUploader';
+import ImageUploader from '../../../components/features/ImageUploader';
 
 const categories = [
     { id: 'all', label: 'All Products' },

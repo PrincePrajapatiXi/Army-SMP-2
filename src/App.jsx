@@ -3,19 +3,19 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { AuthProvider } from './context/AuthContext';
-import { ThemeProvider } from './components/ThemeToggle';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import PageTransition from './components/PageTransition';
-import PageLoader from './components/PageLoader';
-import { ToastProvider } from './components/Toast';
-import ErrorBoundary from './components/ErrorBoundary';
-import NetworkStatus from './components/NetworkStatus';
-import BackToTop from './components/BackToTop';
-import MobileNav from './components/MobileNav';
-import StructuredData from './components/StructuredData';
-import CookieConsent from './components/CookieConsent';
-import PWAInstallPrompt from './components/PWAInstallPrompt';
+import { ThemeProvider } from './components/ui/ThemeToggle';
+import Navbar from './components/layout/Navbar';
+import Footer from './components/layout/Footer';
+import PageTransition from './components/ui/PageTransition';
+import PageLoader from './components/ui/PageLoader';
+import { ToastProvider } from './components/ui/Toast';
+import ErrorBoundary from './components/ui/ErrorBoundary';
+import NetworkStatus from './components/features/NetworkStatus';
+import BackToTop from './components/ui/BackToTop';
+import MobileNav from './components/layout/MobileNav';
+import StructuredData from './components/utils/StructuredData';
+import CookieConsent from './components/features/CookieConsent';
+import PWAInstallPrompt from './components/features/PWAInstallPrompt';
 import useGestureNavigation from './hooks/useGestureNavigation';
 
 // Lazy load pages for code splitting

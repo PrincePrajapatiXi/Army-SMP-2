@@ -1,6 +1,6 @@
 import React from 'react';
 import { Megaphone, Plus, Edit, Trash2, ToggleLeft, ToggleRight, X } from 'lucide-react';
-import ImageUploader from '../../../components/ImageUploader';
+import ImageUploader from '../../../components/features/ImageUploader';
 
 const PromotionsTab = ({
     promotions,

@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ShoppingCart, User, LogIn, LogOut, Settings, ChevronDown } from 'lucide-react';
-import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext';
-import CartDrawer from './CartDrawer';
-import ThemeToggle from './ThemeToggle';
+import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
+import CartDrawer from '../features/CartDrawer';
+import ThemeToggle from '../ui/ThemeToggle';
 import './Navbar.css';
 
 const Navbar = () => {

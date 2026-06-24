@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback, useContext } from 'react';
 import { Search, TrendingUp, Clock, Tag, SlidersHorizontal } from 'lucide-react';
 import { products as staticProducts } from '../data/products';
-import ProductCard from '../components/ProductCard';
-import ProductModal from '../components/ProductModal';
-import { SkeletonGrid } from '../components/SkeletonCard';
-import FilterDrawer from '../components/FilterDrawer';
+import ProductCard from '../components/features/ProductCard';
+import ProductModal from '../components/features/ProductModal';
+import { SkeletonGrid } from '../components/ui/SkeletonCard';
+import FilterDrawer from '../components/features/FilterDrawer';
 import { useAuth } from '../context/AuthContext';
-import SEO from '../components/SEO';
+import SEO from '../components/utils/SEO';
 import './Store.css';
 
 const API_BASE_URL = 'https://army-smp-2.onrender.com/api';

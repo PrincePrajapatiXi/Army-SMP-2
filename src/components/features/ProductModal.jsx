@@ -1,8 +1,8 @@
 import { X, ShoppingCart, Check } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useCart } from '../context/CartContext';
-import { useToast } from './Toast';
-import { triggerHaptic } from '../hooks/useHaptics';
+import { useCart } from '../../context/CartContext';
+import { useToast } from '../ui/Toast';
+import { triggerHaptic } from '../../hooks/useHaptics';
 import ImageGallery from './ImageGallery';
 import './ProductModal.css';
 

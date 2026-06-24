@@ -1,5 +1,5 @@
 import React from 'react';
-import useScrollReveal from '../hooks/useScrollReveal';
+import useScrollReveal from '../../hooks/useScrollReveal';
 import './AnimatedSection.css';
 
 /**

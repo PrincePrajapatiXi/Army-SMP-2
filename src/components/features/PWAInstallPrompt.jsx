@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Download, X, Smartphone, Share } from 'lucide-react';
-import { triggerHaptic } from '../hooks/useHaptics';
+import { triggerHaptic } from '../../hooks/useHaptics';
 import './PWAInstallPrompt.css';
 
 /**

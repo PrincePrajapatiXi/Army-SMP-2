@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Filter, Check, RotateCcw } from 'lucide-react';
-import { triggerHaptic } from '../hooks/useHaptics';
+import { triggerHaptic } from '../../hooks/useHaptics';
 import './FilterDrawer.css';
 
 /**

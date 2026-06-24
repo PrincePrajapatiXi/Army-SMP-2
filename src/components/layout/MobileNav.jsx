@@ -1,8 +1,8 @@
 import { useLocation, Link } from 'react-router-dom';
 import { Home, ShoppingBag, ShoppingCart, User } from 'lucide-react';
-import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext';
-import { triggerHaptic } from '../hooks/useHaptics';
+import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
+import { triggerHaptic } from '../../hooks/useHaptics';
 import './MobileNav.css';
 
 /**

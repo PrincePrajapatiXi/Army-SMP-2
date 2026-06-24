@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import Features from '../components/Features';
-import FeaturedRanks from '../components/FeaturedRanks';
-import Leaderboard from '../components/Leaderboard';
-import PromoSlider from '../components/PromoSlider';
-import Modal from '../components/Modal';
-import RippleButton from '../components/RippleButton';
-import AnimatedSection from '../components/AnimatedSection';
-import SEO from '../components/SEO';
+import Features from '../components/features/Features';
+import FeaturedRanks from '../components/features/FeaturedRanks';
+import Leaderboard from '../components/features/Leaderboard';
+import PromoSlider from '../components/features/PromoSlider';
+import Modal from '../components/ui/Modal';
+import RippleButton from '../components/ui/RippleButton';
+import AnimatedSection from '../components/ui/AnimatedSection';
+import SEO from '../components/utils/SEO';
 import { Link } from 'react-router-dom';
 import { API_BASE_URL } from '../services/api';
 
