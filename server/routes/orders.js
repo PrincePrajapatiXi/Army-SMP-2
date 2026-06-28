@@ -285,5 +285,27 @@ router.get('/email/:email', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch orders' });
     }
 });
+// GET /api/orders/recent - Get recent purchases for FOMO notifications
+router.get('/recent/purchases', async (req, res) => {
+    try {
+        const recentOrders = await Order.find({ paymentStatus: 'paid' })
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .select('minecraftUsername items createdAt');
+
+        // Sanitize for public display
+        const publicOrders = recentOrders.map(order => ({
+            id: order._id,
+            username: order.minecraftUsername,
+            items: order.items.map(item => item.name),
+            timestamp: order.createdAt
+        }));
+
+        res.json(publicOrders);
+    } catch (error) {
+        console.error('Error fetching recent orders:', error);
+        res.status(500).json({ error: 'Failed to fetch recent orders' });
+    }
+});
 
 module.exports = router;

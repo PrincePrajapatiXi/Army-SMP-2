@@ -148,5 +148,30 @@ router.get('/quick', async (req, res) => {
         });
     }
 });
+/**
+ * GET /api/server-status/goal
+ * Returns the server funding goal
+ */
+router.get('/goal', async (req, res) => {
+    try {
+        const SystemConfig = require('../models/SystemConfig');
+        
+        let targetConfig = await SystemConfig.findOne({ key: 'server_goal_target' });
+        let currentConfig = await SystemConfig.findOne({ key: 'server_goal_current' });
+
+        // Default values if not set in DB
+        const target = targetConfig ? parseFloat(targetConfig.value) : 5000; // 5000 INR
+        const current = currentConfig ? parseFloat(currentConfig.value) : 2350; // Example value
+
+        res.json({
+            target: target,
+            current: current,
+            percentage: Math.min(100, Math.round((current / target) * 100)),
+            currency: '₹'
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch server goal' });
+    }
+});
 
 module.exports = router;

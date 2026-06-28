@@ -17,6 +17,7 @@ import StructuredData from './components/utils/StructuredData';
 import CookieConsent from './components/features/CookieConsent';
 import PWAInstallPrompt from './components/features/PWAInstallPrompt';
 import useGestureNavigation from './hooks/useGestureNavigation';
+import RecentPurchaseNotification from './components/features/RecentPurchaseNotification';
 
 // Lazy load pages for code splitting
 // This reduces initial bundle size by loading pages only when needed
@@ -89,6 +90,9 @@ function Layout({ children }) {
 
       {/* Cookie Consent Banner */}
       <CookieConsent />
+
+      {/* FOMO Notifications */}
+      {!isAdminPage && !isAuthPage && <RecentPurchaseNotification />}
     </div>
   );
 }
