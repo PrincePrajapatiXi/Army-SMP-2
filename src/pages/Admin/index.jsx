@@ -52,11 +52,33 @@ const Admin = () => {
     // Fetch data when authenticated
     useEffect(() => {
         if (isAuthenticated) {
-            ordersHook.fetchOrders();
-            productsHook.fetchProducts();
-            couponsHook.fetchCoupons();
-            promotionsHook.fetchPromotions();
-            usersHook.fetchUsers();
+            // Verify session is not banned
+            const verifySession = async () => {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/admin/users`, {
+                        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('adminToken')}` }
+                    });
+                    if (response.status === 403) {
+                        const data = await response.json();
+                        if (data.banned) {
+                            sessionStorage.removeItem('adminAuth_v2');
+                            sessionStorage.removeItem('adminToken');
+                            window.location.reload();
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Ban check failed', e);
+                }
+                
+                // If not banned, fetch all data
+                ordersHook.fetchOrders();
+                productsHook.fetchProducts();
+                couponsHook.fetchCoupons();
+                promotionsHook.fetchPromotions();
+                usersHook.fetchUsers();
+            };
+            verifySession();
         }
     }, [isAuthenticated]);
 
