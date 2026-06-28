@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
-
-const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
+import { API_BASE_URL } from '../../../services/api';
 
 // Helper to get auth headers
 const getAuthHeaders = () => {

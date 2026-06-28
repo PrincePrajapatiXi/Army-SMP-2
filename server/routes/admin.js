@@ -800,7 +800,7 @@ router.get('/users', requireAdminAuth, async (req, res) => {
         const usersWithStats = users.map(user => {
             // Match orders by email or minecraftUsername
             const userOrders = orders.filter(order =>
-                (order.email && order.email.toLowerCase() === user.email.toLowerCase()) ||
+                (order.email && user.email && order.email.toLowerCase() === user.email.toLowerCase()) ||
                 (order.minecraftUsername && user.minecraftUsername &&
                     order.minecraftUsername.toLowerCase() === user.minecraftUsername.toLowerCase())
             );
