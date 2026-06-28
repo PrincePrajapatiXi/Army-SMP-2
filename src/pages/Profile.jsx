@@ -15,8 +15,6 @@ const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [formData, setFormData] = useState({
-        name: '',
-        username: '',
         minecraftUsername: '',
         phone: ''
     });
@@ -49,8 +47,6 @@ const Profile = () => {
     useEffect(() => {
         if (user) {
             setFormData({
-                name: user.name || '',
-                username: user.username || '',
                 minecraftUsername: user.minecraftUsername || '',
                 phone: user.phone || ''
             });
@@ -105,13 +101,8 @@ const Profile = () => {
         setError('');
         setSuccess('');
 
-        if (!formData.name.trim()) {
-            setError('Name cannot be empty');
-            return;
-        }
-
-        if (formData.username.length < 3) {
-            setError('Username must be at least 3 characters');
+        if (formData.minecraftUsername && formData.minecraftUsername.length < 3) {
+            setError('Minecraft Username must be at least 3 characters');
             return;
         }
 
@@ -181,8 +172,6 @@ const Profile = () => {
     const cancelEdit = () => {
         setIsEditing(false);
         setFormData({
-            name: user?.name || '',
-            username: user?.username || '',
             minecraftUsername: user?.minecraftUsername || '',
             phone: user?.phone || ''
         });
@@ -297,7 +286,7 @@ const Profile = () => {
                     </div>
                     <div className="profile-info">
                         <div className="name-row">
-                            <h1>{user.name}</h1>
+                            <h1>{user.minecraftUsername || user.username || 'Set Username'}</h1>
                             <div className="status-badges">
                                 {user.isEmailVerified ? (
                                     <span className="badge verified" title="Email Verified">
@@ -317,7 +306,6 @@ const Profile = () => {
                                 </span>
                             </div>
                         </div>
-                        <p className="username">@{user.username}</p>
 
                         {/* Custom Rank Badges Section */}
                         {user.badges && user.badges.length > 0 && (() => {
@@ -427,42 +415,6 @@ const Profile = () => {
                     </div>
 
                     <div className="profile-fields">
-                        <div className="field">
-                            <label>
-                                <User size={16} />
-                                Full Name
-                            </label>
-                            {isEditing ? (
-                                <input
-                                    type="text"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                    disabled={isLoading}
-                                />
-                            ) : (
-                                <span>{user.name}</span>
-                            )}
-                        </div>
-
-                        <div className="field">
-                            <label>
-                                <AtSign size={16} />
-                                Username
-                            </label>
-                            {isEditing ? (
-                                <input
-                                    type="text"
-                                    name="username"
-                                    value={formData.username}
-                                    onChange={handleChange}
-                                    disabled={isLoading}
-                                />
-                            ) : (
-                                <span>@{user.username}</span>
-                            )}
-                        </div>
-
                         <div className="field">
                             <label>
                                 <Mail size={16} />
