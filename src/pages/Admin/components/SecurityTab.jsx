@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import './SecurityTab.css';
 
-const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
+import { API_BASE_URL } from '../../../services/api';
 
 const SecurityTab = ({ authFetch }) => {
     const [fraudAlerts, setFraudAlerts] = useState([]);

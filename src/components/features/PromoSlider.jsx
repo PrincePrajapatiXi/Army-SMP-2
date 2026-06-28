@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import './PromoSlider.css';
 
-const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
+import { API_BASE_URL } from '../../services/api';
 
 // Fallback promos if API is empty
 const defaultPromos = [

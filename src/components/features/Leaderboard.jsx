@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { API_BASE_URL } from '../../services/api';
 import { X, ChevronDown } from 'lucide-react';
 import './Leaderboard.css';
 
@@ -9,7 +11,7 @@ const Leaderboard = () => {
     const [activePeriod, setActivePeriod] = useState('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
+    // API_BASE_URL is imported from services/api.js
 
     const periods = [
         { id: 'all', label: 'All Time' },

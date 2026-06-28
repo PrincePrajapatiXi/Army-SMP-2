@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './FeaturedRanks.css';
 
-const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
+import { API_BASE_URL } from '../../services/api';
 
 // Fallback ranks if API fails
 const fallbackRanks = [

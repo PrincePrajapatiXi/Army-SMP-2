@@ -4,7 +4,7 @@ import { adminApi } from '../../../services/api';
 import './BadgesTab.css';
 
 // Use production API URL
-const API_BASE_URL = 'https://army-smp-2.onrender.com/api';
+import { API_BASE_URL } from '../../../services/api';
 
 const RARITY_COLORS = {
     common: '#9ca3af',
