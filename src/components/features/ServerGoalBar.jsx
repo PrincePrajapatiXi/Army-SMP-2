@@ -26,7 +26,7 @@ const ServerGoalBar = () => {
         fetchGoal();
         const interval = setInterval(fetchGoal, 10 * 60 * 1000); // 10 minutes
         return () => clearInterval(interval);
-    }, [API_URL]);
+    }, [API_BASE_URL]);
 
     if (loading) {
         return <div className="h-24 w-full bg-gray-800/50 animate-pulse rounded-xl mb-8 border border-gray-700/50"></div>;
