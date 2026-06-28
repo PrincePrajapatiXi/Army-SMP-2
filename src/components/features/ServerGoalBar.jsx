@@ -2,19 +2,19 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { Target, TrendingUp } from 'lucide-react';
+import { API_BASE_URL } from '../../services/api';
 
 const ServerGoalBar = () => {
     const [goalData, setGoalData] = useState({ target: 5000, current: 0, percentage: 0, currency: '₹' });
     const [loading, setLoading] = useState(true);
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
     useEffect(() => {
         const fetchGoal = async () => {
             try {
-                const response = await axios.get(`${API_URL}/server-status/goal`);
-                if (response.data) {
-                    setGoalData(response.data);
+                const response = await fetch(`${API_BASE_URL}/server-status/goal`);
+                const data = await response.json();
+                if (data) {
+                    setGoalData(data);
                 }
             } catch (error) {
                 console.error('Failed to fetch server goal:', error);

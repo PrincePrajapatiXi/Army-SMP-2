@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
     User, Mail, AtSign, Lock, Save, X, Edit2, LogOut,
@@ -18,6 +19,8 @@ const Profile = () => {
         minecraftUsername: '',
         phone: ''
     });
+    const [userBadges, setUserBadges] = useState([]);
+    const [draggedItemIndex, setDraggedItemIndex] = useState(null);
     const [passwordData, setPasswordData] = useState({
         currentPassword: '',
         newPassword: '',
@@ -50,8 +53,45 @@ const Profile = () => {
                 minecraftUsername: user.minecraftUsername || '',
                 phone: user.phone || ''
             });
+            if (user.badges) {
+                const validBadges = user.badges
+                    .filter(b => b.badge && b.badge.name && b.badge.isActive !== false)
+                    .map(b => ({
+                        badge: b.badge,
+                        assignedAt: b.assignedAt,
+                        id: b.badge._id || b.badge
+                    }));
+                setUserBadges(validBadges);
+            }
         }
     }, [user]);
+
+    const handleDragStart = (index) => {
+        setDraggedItemIndex(index);
+    };
+
+    const handleDragEnter = (index) => {
+        if (draggedItemIndex === null || draggedItemIndex === index) return;
+        
+        const newBadges = [...userBadges];
+        const draggedItem = newBadges[draggedItemIndex];
+        newBadges.splice(draggedItemIndex, 1);
+        newBadges.splice(index, 0, draggedItem);
+        
+        setDraggedItemIndex(index);
+        setUserBadges(newBadges);
+    };
+
+    const handleDragEnd = async () => {
+        setDraggedItemIndex(null);
+        try {
+            const badgeIds = userBadges.map(b => b.id);
+            await userApi.reorderBadges(badgeIds);
+        } catch (error) {
+            console.error("Failed to save badge order", error);
+            setError("Failed to save new badge layout.");
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -308,71 +348,64 @@ const Profile = () => {
                         </div>
 
                         {/* Custom Rank Badges Section */}
-                        {user.badges && user.badges.length > 0 && (() => {
-                            const RARITY_ORDER = { legendary: 0, epic: 1, rare: 2, common: 3 };
+                        {userBadges && userBadges.length > 0 && (
+                            <div className="rank-badges-section">
+                                <div className="badges-section-header">
+                                    <span className="badges-count-label">🎖️ {userBadges.length} Badge{userBadges.length !== 1 ? 's' : ''} Earned</span>
+                                    <span className="badges-hint-label" style={{marginLeft: 'auto', fontSize: '0.7rem', color: '#6b7280'}}>Drag to reorder</span>
+                                </div>
+                                <div className="badges-grid-display">
+                                    {userBadges.map(({ badge, assignedAt, id }, index) => (
+                                        <motion.div 
+                                            layout
+                                            key={id || index} 
+                                            className={`badge-wrapper-container ${draggedItemIndex === index ? 'dragging' : ''}`}
+                                            draggable
+                                            onDragStart={() => handleDragStart(index)}
+                                            onDragEnter={() => handleDragEnter(index)}
+                                            onDragEnd={handleDragEnd}
+                                            onDragOver={(e) => e.preventDefault()}
+                                            style={{ cursor: 'grab' }}
+                                        >
+                                            <div
+                                                className={`rank-badge-item rarity-${badge.rarity || 'common'}`}
+                                                style={{
+                                                    '--badge-color': badge.color || '#f97316'
+                                                }}
+                                            >
+                                                {badge.image && <img src={badge.image} alt="" />}
+                                                <span>{badge.name}</span>
+                                            </div>
 
-                            const processedBadges = user.badges
-                                .map(userBadge => ({
-                                    badge: userBadge.badge || userBadge,
-                                    assignedAt: userBadge.assignedAt
-                                }))
-                                .filter(({ badge }) => badge && badge.name && badge.isActive !== false)
-                                .sort((a, b) => {
-                                    const rarityA = RARITY_ORDER[a.badge.rarity] ?? 3;
-                                    const rarityB = RARITY_ORDER[b.badge.rarity] ?? 3;
-                                    return rarityA - rarityB;
-                                });
-
-                            if (processedBadges.length === 0) return null;
-
-                            return (
-                                <div className="rank-badges-section">
-                                    <div className="badges-section-header">
-                                        <span className="badges-count-label">🎖️ {processedBadges.length} Badge{processedBadges.length !== 1 ? 's' : ''} Earned</span>
-                                    </div>
-                                    <div className="badges-grid-display">
-                                        {processedBadges.map(({ badge, assignedAt }, index) => (
-                                            <div key={badge._id || index} className="badge-wrapper-container">
-                                                <div
-                                                    className={`rank-badge-item rarity-${badge.rarity || 'common'}`}
-                                                    style={{
-                                                        '--badge-color': badge.color || '#f97316'
-                                                    }}
-                                                >
-                                                    {badge.image && <img src={badge.image} alt="" />}
-                                                    <span>{badge.name}</span>
-                                                </div>
-
-                                                {/* Styled Tooltip */}
-                                                <div className="badge-tooltip">
-                                                    <div className="badge-tooltip-header">
-                                                        {badge.image && <img src={badge.image} alt="" className="tooltip-badge-img" />}
-                                                        <div>
-                                                            <div className="tooltip-name">{badge.name}</div>
-                                                            <div className={`tooltip-rarity rarity-text-${badge.rarity || 'common'}`}>
-                                                                {(badge.rarity || 'common').toUpperCase()}
-                                                            </div>
+                                            {/* Styled Tooltip */}
+                                            <div className="badge-tooltip">
+                                                <div className="badge-tooltip-header">
+                                                    {badge.image && <img src={badge.image} alt="" className="tooltip-badge-img" />}
+                                                    <div>
+                                                        <div className="tooltip-name">{badge.name}</div>
+                                                        <div className={`tooltip-rarity rarity-text-${badge.rarity || 'common'}`}>
+                                                            {(badge.rarity || 'common').toUpperCase()}
                                                         </div>
                                                     </div>
-                                                    {badge.description && (
-                                                        <div className="tooltip-description">{badge.description}</div>
-                                                    )}
-                                                    {assignedAt && (
-                                                        <div className="tooltip-date">
-                                                            Earned {new Date(assignedAt).toLocaleDateString('en-IN', {
-                                                                day: 'numeric',
-                                                                month: 'short',
-                                                                year: 'numeric'
-                                                            })}
-                                                        </div>
-                                                    )}
                                                 </div>
+                                                {badge.description && (
+                                                    <div className="tooltip-description">{badge.description}</div>
+                                                )}
+                                                {assignedAt && (
+                                                    <div className="tooltip-date">
+                                                        Earned {new Date(assignedAt).toLocaleDateString('en-IN', {
+                                                            day: 'numeric',
+                                                            month: 'short',
+                                                            year: 'numeric'
+                                                        })}
+                                                    </div>
+                                                )}
                                             </div>
-                                        ))}
-                                    </div>
+                                        </motion.div>
+                                    ))}
                                 </div>
-                            );
-                        })()}
+                            </div>
+                        )}
                     </div>
                 </div>
 

@@ -276,6 +276,17 @@ export const userApi = {
         }
 
         return response.json();
+    },
+
+    reorderBadges: async (badgeIds) => {
+        const token = localStorage.getItem('authToken');
+        return fetchWithCredentials(`${API_BASE_URL}/user/badges/reorder`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ badgeIds }),
+        });
     }
 };
 

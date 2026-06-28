@@ -385,4 +385,54 @@ router.put('/avatar', requireAuth, avatarUpload.single('avatar'), async (req, re
     }
 });
 
+// ==================== REORDER BADGES ====================
+router.put('/badges/reorder', requireAuth, async (req, res) => {
+    try {
+        const { badgeIds } = req.body;
+
+        if (!Array.isArray(badgeIds)) {
+            return res.status(400).json({
+                success: false,
+                message: 'badgeIds must be an array'
+            });
+        }
+
+        // Validate that all badgeIds exist in the user's current badges
+        const currentBadgeIds = req.user.badges.map(b => 
+            b.badge._id ? b.badge._id.toString() : b.badge.toString()
+        );
+
+        const isValid = badgeIds.every(id => currentBadgeIds.includes(id));
+        if (!isValid || badgeIds.length !== currentBadgeIds.length) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid badge layout provided'
+            });
+        }
+
+        // Reorder the badges array
+        const newBadgesArray = badgeIds.map(id => {
+            return req.user.badges.find(b => {
+                const badgeId = b.badge._id ? b.badge._id.toString() : b.badge.toString();
+                return badgeId === id;
+            });
+        });
+
+        req.user.badges = newBadgesArray;
+        await req.user.save();
+
+        res.json({
+            success: true,
+            message: 'Badges reordered successfully',
+            badges: req.user.badges
+        });
+    } catch (error) {
+        console.error('Reorder badges error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'An error occurred while reordering badges'
+        });
+    }
+});
+
 module.exports = router;

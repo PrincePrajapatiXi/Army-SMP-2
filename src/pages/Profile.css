@@ -372,6 +372,15 @@
     transform: translateX(-50%) translateY(0);
 }
 
+.badge-wrapper-container.dragging {
+    opacity: 0.4;
+    transform: scale(0.95);
+    z-index: 10;
+}
+.badge-wrapper-container:active {
+    cursor: grabbing !important;
+}
+
 .badge-tooltip-header {
     display: flex;
     align-items: center;
