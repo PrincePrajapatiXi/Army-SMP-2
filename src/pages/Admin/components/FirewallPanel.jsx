@@ -396,7 +396,7 @@ const FirewallPanel = () => {
         <div className="fw-logs-section">
             <div className="fw-section-header">
                 <h3><Eye size={18} /> Security Logs ({securityLogs.length})</h3>
-                <span className="fw-logs-note">Last 100 events (in-memory, resets on server restart)</span>
+                <span className="fw-logs-note" style={{ color: '#22c55e' }}>Recent events (Persisted in Database)</span>
             </div>
 
             {securityLogs.length === 0 ? (
