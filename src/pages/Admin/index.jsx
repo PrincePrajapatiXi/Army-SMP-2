@@ -79,7 +79,11 @@ const Admin = () => {
 
     // Login Screen
     if (!isAuthenticated) {
-        return <AdminLogin onLoginSuccess={() => setIsAuthenticated(true)} />;
+        return <AdminLogin onLoginSuccess={(token) => {
+            sessionStorage.setItem('adminToken', token);
+            sessionStorage.setItem('adminAuth_v2', 'true');
+            setIsAuthenticated(true);
+        }} />;
     }
 
     return (
