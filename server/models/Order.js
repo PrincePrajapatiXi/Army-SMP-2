@@ -35,8 +35,7 @@ const orderSchema = new mongoose.Schema({
         default: 'pending'
     },
     transactionId: {
-        type: String,
-        sparse: true // Allow null but enforce uniqueness when present
+        type: String
     },
     cashfreeOrderId: { type: String }, // Cashfree order reference ID
     paymentMethod: { type: String, default: 'UPI' },

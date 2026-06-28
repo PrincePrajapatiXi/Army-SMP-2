@@ -192,9 +192,7 @@ userSchema.statics.findByEmailOrUsername = async function (identifier) {
     }).select('+password');
 };
 
-// Index for faster queries
-userSchema.index({ email: 1 });
-userSchema.index({ username: 1 });
+// Removed duplicate index declarations
 
 const User = mongoose.model('User', userSchema);
 
