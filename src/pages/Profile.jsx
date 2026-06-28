@@ -332,15 +332,16 @@ const Profile = () => {
                                     </div>
                                     <div className="badges-grid-display">
                                         {processedBadges.map(({ badge, assignedAt }, index) => (
-                                            <div
-                                                key={badge._id || index}
-                                                className={`rank-badge-item rarity-${badge.rarity || 'common'}`}
-                                                style={{
-                                                    '--badge-color': badge.color || '#f97316'
-                                                }}
-                                            >
-                                                {badge.image && <img src={badge.image} alt="" />}
-                                                <span>{badge.name}</span>
+                                            <div key={badge._id || index} className="badge-wrapper-container">
+                                                <div
+                                                    className={`rank-badge-item rarity-${badge.rarity || 'common'}`}
+                                                    style={{
+                                                        '--badge-color': badge.color || '#f97316'
+                                                    }}
+                                                >
+                                                    {badge.image && <img src={badge.image} alt="" />}
+                                                    <span>{badge.name}</span>
+                                                </div>
 
                                                 {/* Styled Tooltip */}
                                                 <div className="badge-tooltip">

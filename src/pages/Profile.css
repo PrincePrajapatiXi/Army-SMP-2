@@ -361,7 +361,12 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.rank-badge-item:hover .badge-tooltip {
+.badge-wrapper-container {
+    position: relative;
+    display: inline-flex;
+}
+
+.badge-wrapper-container:hover .badge-tooltip {
     opacity: 1;
     visibility: visible;
     transform: translateX(-50%) translateY(0);
