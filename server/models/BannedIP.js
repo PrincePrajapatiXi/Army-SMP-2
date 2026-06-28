@@ -41,5 +41,34 @@ BannedIPSchema.statics.banIP = async function(ip, reason, durationMs, details = 
         { upsert: true, new: true }
     );
 };
+BannedIPSchema.statics.getStats = async function() {
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    const [
+        totalActiveBans,
+        adminLoginBans,
+        wafBans,
+        ipsBans,
+        last24hBans,
+        totalBansEver
+    ] = await Promise.all([
+        this.countDocuments({ expiresAt: { $gt: now } }),
+        this.countDocuments({ reason: 'admin_login_failed', expiresAt: { $gt: now } }),
+        this.countDocuments({ reason: 'waf_blocked', expiresAt: { $gt: now } }),
+        this.countDocuments({ reason: 'ips_blocked', expiresAt: { $gt: now } }),
+        this.countDocuments({ $or: [{ expiresAt: { $gt: oneDayAgo } }, { bannedUntil: { $gt: oneDayAgo } }] }),
+        this.countDocuments({})
+    ]);
+
+    return {
+        totalActiveBans,
+        adminLoginBans,
+        wafBans,
+        ipsBans,
+        last24hBans,
+        totalBansEver
+    };
+};
 
 module.exports = mongoose.model('BannedIP', BannedIPSchema);
