@@ -1220,28 +1220,37 @@ router.post('/security/ban-ip', requireAdminAuth, async (req, res) => {
 router.get('/security/stats', requireAdminAuth, async (req, res) => {
     try {
         const banStats = await BannedIP.getStats();
+        const SecurityLog = require('../models/SecurityLog');
+        
+        // Aggregate WAF stats
+        const wafLogs = await SecurityLog.find({ source: 'WAF' });
+        const wafStatsDb = {
+            totalBlocked: wafLogs.length,
+            sqlInjection: wafLogs.filter(l => l.reason === 'sqlInjection').length,
+            xss: wafLogs.filter(l => l.reason === 'xss').length,
+            pathTraversal: wafLogs.filter(l => l.reason === 'pathTraversal').length,
+            commandInjection: wafLogs.filter(l => l.reason === 'commandInjection').length,
+            maliciousBot: wafLogs.filter(l => l.reason === 'maliciousBot').length,
+            invalidMethod: wafLogs.filter(l => l.reason === 'invalidMethod').length,
+            bannedIP: wafLogs.filter(l => l.reason === 'bannedIP').length
+        };
+        
+        // Aggregate IPS stats
+        const ipsLogs = await SecurityLog.find({ source: 'IPS' });
+        const ipsStatsDb = {
+            totalBlocked: ipsLogs.length,
+            rateLimitBlocks: ipsLogs.filter(l => l.reason === 'rateLimit').length,
+            scanDetectionBlocks: ipsLogs.filter(l => l.reason === 'scanDetection').length,
+            honeypotBlocks: ipsLogs.filter(l => l.reason === 'honeypot').length,
+            bruteForceBlocks: ipsLogs.filter(l => l.reason === 'bruteForce').length
+        };
 
         res.json({
             success: true,
             stats: {
                 bans: banStats,
-                waf: {
-                    totalBlocked: wafStats.totalBlocked,
-                    sqlInjection: wafStats.sqlInjection,
-                    xss: wafStats.xss,
-                    pathTraversal: wafStats.pathTraversal,
-                    commandInjection: wafStats.commandInjection,
-                    maliciousBot: wafStats.maliciousBot,
-                    invalidMethod: wafStats.invalidMethod,
-                    bannedIP: wafStats.bannedIP
-                },
-                ips: {
-                    totalBlocked: ipsStats.totalBlocked,
-                    rateLimitBlocks: ipsStats.rateLimitBlocks,
-                    scanDetectionBlocks: ipsStats.scanDetectionBlocks,
-                    honeypotBlocks: ipsStats.honeypotBlocks,
-                    bruteForceBlocks: ipsStats.bruteForceBlocks
-                }
+                waf: wafStatsDb,
+                ips: ipsStatsDb
             }
         });
     } catch (error) {
@@ -1253,12 +1262,19 @@ router.get('/security/stats', requireAdminAuth, async (req, res) => {
 // GET /api/admin/security/logs - Get recent security logs
 router.get('/security/logs', requireAdminAuth, async (req, res) => {
     try {
-        // Combine WAF and IPS recent blocks
-        const allLogs = [
-            ...wafStats.recentBlocks.map(b => ({ ...b, source: 'WAF' })),
-            ...ipsStats.recentBlocks.map(b => ({ ...b, source: 'IPS' }))
-        ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-         .slice(0, 100);
+        const SecurityLog = require('../models/SecurityLog');
+        const dbLogs = await SecurityLog.find().sort({ timestamp: -1 }).limit(100);
+        
+        // Map to format expected by frontend
+        const allLogs = dbLogs.map(log => ({
+            id: log._id,
+            type: log.reason, // e.g., 'rateLimit', 'sqlInjection'
+            ip: log.ip,
+            path: log.path,
+            details: log.details,
+            timestamp: log.timestamp,
+            source: log.source // 'WAF' or 'IPS'
+        }));
 
         res.json({
             success: true,

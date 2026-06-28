@@ -189,7 +189,7 @@ function deepScanObject(obj, patterns) {
 /**
  * Record a WAF block for statistics
  */
-function recordBlock(type, ip, path, details = '') {
+function recordBlock(type, ip, path, details = '', req = null) {
     wafStats.totalBlocked++;
     if (wafStats[type] !== undefined) {
         wafStats[type]++;
@@ -200,15 +200,31 @@ function recordBlock(type, ip, path, details = '') {
         ip,
         path,
         details,
-        timestamp: new Date().toISOString()
+        timestamp: new Date()
     };
 
     wafStats.recentBlocks.unshift(blockRecord);
     if (wafStats.recentBlocks.length > 100) {
-        wafStats.recentBlocks = wafStats.recentBlocks.slice(0, 100);
+        wafStats.recentBlocks.pop();
+    }
+    
+    // Save to DB for persistence
+    try {
+        const SecurityLog = require('../models/SecurityLog');
+        SecurityLog.create({
+            ip,
+            path,
+            method: req ? req.method : 'UNKNOWN',
+            source: 'WAF',
+            reason: type,
+            details: details,
+            timestamp: new Date()
+        }).catch(err => console.error('Error saving WAF SecurityLog:', err));
+    } catch (e) {
+        // Ignore require errors if DB isn't ready
     }
 
-    console.log(`🛡️ WAF BLOCKED [${type.toUpperCase()}]: ${ip} → ${path} ${details ? '| ' + details : ''}`);
+    console.log(`🛡️ WAF BLOCKED [${type.toUpperCase()}]: ${ip} -> ${path} | ${details}`);
 }
 
 // ==================== MAIN WAF MIDDLEWARE ====================

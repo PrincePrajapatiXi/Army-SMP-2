@@ -118,7 +118,7 @@ function getClientIP(req) {
            'unknown';
 }
 
-function recordIPSBlock(type, ip, path, details = '') {
+function recordIPSBlock(type, ip, path, details = '', method = 'UNKNOWN') {
     ipsStats.totalBlocked++;
     const typeKey = type + 'Blocks';
     if (ipsStats[typeKey] !== undefined) {
@@ -130,15 +130,31 @@ function recordIPSBlock(type, ip, path, details = '') {
         ip,
         path,
         details,
-        timestamp: new Date().toISOString()
+        timestamp: new Date()
     };
 
     ipsStats.recentBlocks.unshift(blockRecord);
     if (ipsStats.recentBlocks.length > 100) {
-        ipsStats.recentBlocks = ipsStats.recentBlocks.slice(0, 100);
+        ipsStats.recentBlocks.pop();
+    }
+    
+    // Save to DB for persistence
+    try {
+        const SecurityLog = require('../models/SecurityLog');
+        SecurityLog.create({
+            ip,
+            path,
+            method,
+            source: 'IPS',
+            reason: type,
+            details: details,
+            timestamp: new Date()
+        }).catch(err => console.error('Error saving IPS SecurityLog:', err));
+    } catch (e) {
+        // Ignore require errors if DB isn't ready
     }
 
-    console.log(`🔰 IPS BLOCKED [${type.toUpperCase()}]: ${ip} → ${path} ${details ? '| ' + details : ''}`);
+    console.log(`🔰 IPS BLOCKED [${type.toUpperCase()}]: ${ip} -> ${path} | ${details}`);
 }
 
 // ==================== IPS MIDDLEWARE ====================
