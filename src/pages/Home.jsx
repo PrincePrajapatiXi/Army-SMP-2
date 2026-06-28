@@ -3,7 +3,7 @@ import Features from '../components/features/Features';
 import FeaturedRanks from '../components/features/FeaturedRanks';
 import Leaderboard from '../components/features/Leaderboard';
 import PromoSlider from '../components/features/PromoSlider';
-import ServerGoalBar from '../components/features/ServerGoalBar';
+
 import Modal from '../components/ui/Modal';
 import RippleButton from '../components/ui/RippleButton';
 import AnimatedSection from '../components/ui/AnimatedSection';
@@ -219,12 +219,6 @@ const Home = () => {
                         </div>
                     </div>
                 </section>
-
-                <AnimatedSection animation="fadeUp" delay={0.05}>
-                    <div className="container mt-8 px-4 md:px-0">
-                        <ServerGoalBar />
-                    </div>
-                </AnimatedSection>
 
                 <AnimatedSection animation="fadeUp">
                     <FeaturedRanks />
