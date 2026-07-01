@@ -5,9 +5,9 @@ const OTP = require('../models/OTP');
 const { generateToken, requireAuth } = require('../middleware/authMiddleware');
 const { sendOTPEmail } = require('../services/email');
 
-const frontendURL = process.env.NODE_ENV === 'production'
+const frontendURL = process.env.FRONTEND_URL || (process.env.NODE_ENV === 'production'
     ? 'https://store.armysmp.fun'
-    : 'http://localhost:5173';
+    : 'http://localhost:5173');
 
 // ==================== SIGNUP ====================
 router.post('/signup', async (req, res) => {

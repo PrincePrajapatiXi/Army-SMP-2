@@ -1,6 +1,7 @@
 import { ShoppingCart, Heart } from 'lucide-react';
 import { useWishlist } from '../../context/WishlistContext';
 import { triggerHaptic } from '../../hooks/useHaptics';
+import CountdownTimer from '../ui/CountdownTimer';
 import './ProductCard.css';
 
 const getCategoryColor = (category, explicitColor) => {
@@ -99,6 +100,12 @@ const ProductCard = ({ product, onBuy }) => {
                     color: hasColor ? cardColor : 'var(--text-primary)',
                     textShadow: hasColor ? `0 0 10px ${cardColor}40` : 'none'
                 }}>{product.name}</h3>
+                
+                {product.flashSaleEndsAt && new Date(product.flashSaleEndsAt) > new Date() && (
+                    <div style={{ marginBottom: '10px' }}>
+                        <CountdownTimer targetDate={product.flashSaleEndsAt} />
+                    </div>
+                )}
 
                 <div className="card-footer">
                     <span className="card-price">

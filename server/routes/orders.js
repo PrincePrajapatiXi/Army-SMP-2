@@ -15,7 +15,7 @@ const { analyzeOrder, createFraudAlert, updateUserFraudStats } = require('../ser
 // optionalAuth: links order to user if logged in, but doesn't require login
 router.post('/create', optionalAuth, async (req, res) => {
     try {
-        const { minecraftUsername, email, items, platform, couponInfo, transactionId, paymentScreenshot, cashfreePaymentId, cashfreeOrderId, paymentStatus: cfPaymentStatus, paymentMethod: cfPaymentMethod } = req.body;
+        const { minecraftUsername, email, items, platform, isGift, giftUsername, couponInfo, transactionId, paymentScreenshot, cashfreePaymentId, cashfreeOrderId, paymentStatus: cfPaymentStatus, paymentMethod: cfPaymentMethod } = req.body;
 
         if (!minecraftUsername) {
             return res.status(400).json({ error: 'Minecraft username is required' });
@@ -109,6 +109,8 @@ router.post('/create', optionalAuth, async (req, res) => {
             minecraftUsername: sanitizedUsername, // Use sanitized username
             email: email || null,
             platform: platform || 'Java', // Java or Bedrock
+            isGift: Boolean(isGift),
+            giftUsername: isGift ? (giftUsername?.trim() || null) : null,
             items: verifiedCart.map(item => ({
                 id: item.id,
                 name: item.name, // Already sanitized by global middleware
@@ -172,11 +174,24 @@ router.post('/create', optionalAuth, async (req, res) => {
             console.log(`🚨 Order ${orderData.orderNumber} flagged - Risk: ${fraudAnalysis.riskLevel} (${fraudAnalysis.riskScore})`);
         }
 
-        // Update user fraud stats (async, don't block)
+        // Update user fraud stats and loyalty points (async, don't block)
         if (user) {
             updateUserFraudStats(user._id, finalTotal, clientIP).catch(err =>
                 console.error('Failed to update user fraud stats:', err)
             );
+            
+            // Simple Loyalty Program: Give 5% of order value back as store credit
+            try {
+                const cashback = Math.floor(finalTotal * 0.05);
+                if (cashback > 0) {
+                    await User.findByIdAndUpdate(user._id, {
+                        $inc: { referralBalance: cashback }
+                    });
+                    console.log(`🎁 Loyalty Reward: Added ₹${cashback} store credit to ${user.username}`);
+                }
+            } catch (err) {
+                console.error('Failed to update loyalty points:', err);
+            }
         }
 
         // Increment coupon usage count if coupon was used
@@ -216,6 +231,8 @@ router.post('/create', optionalAuth, async (req, res) => {
                 id: orderData.id,
                 orderNumber: orderData.orderNumber,
                 minecraftUsername: orderData.minecraftUsername,
+                isGift: orderData.isGift,
+                giftUsername: orderData.giftUsername,
                 items: orderData.items,
                 subtotal: orderData.subtotal,
                 discount: discount,

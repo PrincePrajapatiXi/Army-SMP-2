@@ -4,6 +4,8 @@ const dgram = require('dgram');
  * Minecraft Server Query Service
  * Queries Minecraft servers using the Query protocol
  */
+const { Rcon } = require('rcon-client');
+const CommandQueue = require('../models/CommandQueue');
 
 const HANDSHAKE_TYPE = 0x09;
 const STAT_TYPE = 0x00;
@@ -209,8 +211,47 @@ async function getServerStatus(host, port = 25565) {
     };
 }
 
+/**
+ * Execute command via RCON or Queue it if offline
+ */
+async function executeCommand(orderId, username, command) {
+    try {
+        const host = process.env.RCON_HOST || 'localhost';
+        const port = parseInt(process.env.RCON_PORT || 25575);
+        const password = process.env.RCON_PASSWORD;
+
+        if (!password) {
+            console.warn('RCON password not set, queueing command.');
+            throw new Error('RCON disabled');
+        }
+
+        const rcon = await Rcon.connect({
+            host, port, password
+        });
+
+        console.log(`Executing RCON command for ${username}: ${command}`);
+        const response = await rcon.send(command);
+        console.log(`RCON Response: ${response}`);
+        await rcon.end();
+        return true;
+    } catch (error) {
+        console.error(`RCON failed, queuing command for ${username}:`, error.message);
+        
+        // Save to offline queue
+        const queuedCommand = new CommandQueue({
+            orderId,
+            username,
+            command,
+            status: 'pending'
+        });
+        await queuedCommand.save();
+        return false;
+    }
+}
+
 module.exports = {
     queryServer,
     pingServer,
-    getServerStatus
+    getServerStatus,
+    executeCommand
 };

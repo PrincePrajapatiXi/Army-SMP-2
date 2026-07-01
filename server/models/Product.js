@@ -12,6 +12,8 @@ const productSchema = new mongoose.Schema({
     features: { type: [String], default: [] },
     isFeatured: { type: Boolean, default: false },
     displayOrder: { type: Number, default: 0 },
+    crossSells: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
+    flashSaleEndsAt: { type: Date, default: null },
     createdAt: { type: Date, default: Date.now }
 });
 

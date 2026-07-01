@@ -3,6 +3,7 @@ import Features from '../components/features/Features';
 import FeaturedRanks from '../components/features/FeaturedRanks';
 import Leaderboard from '../components/features/Leaderboard';
 import PromoSlider from '../components/features/PromoSlider';
+import ServerStatusWidget from '../components/features/ServerStatusWidget';
 
 import Modal from '../components/ui/Modal';
 import RippleButton from '../components/ui/RippleButton';
@@ -182,40 +183,8 @@ const Home = () => {
                             </Link>
                         </div>
 
-                        <div className="server-status-pill" style={{
-                            marginTop: '3rem',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            padding: '12px 24px',
-                            borderRadius: '50px',
-                        }}>
-                            <span style={{
-                                width: '10px',
-                                height: '10px',
-                                background: serverStatus.online ? '#4ade80' : '#ef4444',
-                                borderRadius: '50%',
-                                boxShadow: serverStatus.online ? '0 0 10px #4ade80' : '0 0 10px #ef4444',
-                                animation: 'pulse 2s infinite'
-                            }}></span>
-                            <span style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-                                {serverStatus.loading ? (
-                                    'Checking server...'
-                                ) : serverStatus.online ? (
-                                    serverStatus.max > 0 ? (
-                                        <>
-                                            <span style={{ color: '#4ade80', fontWeight: '600' }}>
-                                                {serverStatus.players}
-                                            </span>
-                                            /{serverStatus.max} Players • Java & Bedrock
-                                        </>
-                                    ) : (
-                                        'Online • Java & Bedrock'
-                                    )
-                                ) : (
-                                    'Server Offline'
-                                )}
-                            </span>
+                        <div style={{ marginTop: '3rem', maxWidth: '400px', margin: '3rem auto 0' }}>
+                            <ServerStatusWidget />
                         </div>
                     </div>
                 </section>

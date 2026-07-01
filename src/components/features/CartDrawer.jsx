@@ -1,18 +1,30 @@
 import { X, Trash2, Plus, Minus, ShoppingBag, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
+import { API_BASE_URL } from '../../services/api';
 import './CartDrawer.css';
 
 const CartDrawer = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
     const { cartItems, removeFromCart, incrementQuantity, decrementQuantity, getCartTotal, clearCart, loading } = useCart();
 
-    // Upsell suggestions (could be fetched from API)
-    const upsellItems = [
-        { id: 'upsell-1', name: 'Golden Key', price: 49, image: '/images/golden-key.png' },
-        { id: 'upsell-2', name: '500 Coins', price: 99, image: '/images/coins.png' },
-        { id: 'upsell-3', name: 'Crate Key', price: 29, image: '/images/crate-key.png' },
-    ];
+    const [upsellItems, setUpsellItems] = useState([]);
+    const { addToCart } = useCart(); // Assuming addToCart exists
+
+    useEffect(() => {
+        if (isOpen && upsellItems.length === 0) {
+            fetch(`${API_BASE_URL}/products`)
+                .then(res => res.json())
+                .then(data => {
+                    // Filter out items already in cart and get 3 random ones
+                    const inCartIds = new Set(cartItems.map(item => item.id));
+                    const available = data.filter(p => !inCartIds.has(p.id));
+                    const randomUpsells = available.sort(() => 0.5 - Math.random()).slice(0, 3);
+                    setUpsellItems(randomUpsells);
+                })
+                .catch(console.error);
+        }
+    }, [isOpen, cartItems]);
 
     const handleCheckout = () => {
         onClose();
@@ -94,10 +106,14 @@ const CartDrawer = ({ isOpen, onClose }) => {
                                     </div>
                                     <div className="upsell-scroll">
                                         {upsellItems.map(item => (
-                                            <div key={item.id} className="upsell-item">
+                                            <div key={item.id} className="upsell-item" onClick={() => {
+                                                if (addToCart) addToCart(item);
+                                                // fallback if addToCart isn't exported directly, usually it's there
+                                            }}>
                                                 <img src={item.image} alt={item.name} className="upsell-image" />
                                                 <span className="upsell-name">{item.name}</span>
                                                 <span className="upsell-price">₹{item.price}</span>
+                                                <button className="btn btn-primary" style={{ padding: '4px 8px', fontSize: '10px', marginTop: '5px' }}>Add</button>
                                             </div>
                                         ))}
                                     </div>

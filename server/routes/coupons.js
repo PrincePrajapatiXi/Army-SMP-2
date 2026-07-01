@@ -1,9 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const Coupon = require('../models/Coupon');
+const { cacheMiddleware } = require('../middleware/cache');
+
+// Cache active coupons for 5 minutes
+const cache300 = cacheMiddleware(300);
 
 // GET /api/coupons/active - Get all active coupons
-router.get('/active', async (req, res) => {
+router.get('/active', cache300, async (req, res) => {
     try {
         const currentDate = new Date();
         const activeCoupons = await Coupon.find({

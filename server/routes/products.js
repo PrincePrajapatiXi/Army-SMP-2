@@ -1,9 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
+const { cacheMiddleware } = require('../middleware/cache');
+
+// Cache products for 5 minutes (300 seconds)
+const cache300 = cacheMiddleware(300);
 
 // GET /api/products - Get all products
-router.get('/', async (req, res) => {
+router.get('/', cache300, async (req, res) => {
     try {
         const products = await Product.find().sort({ id: 1 });
         res.json(products);
@@ -14,7 +18,7 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/products/categories - Get products by category
-router.get('/categories', async (req, res) => {
+router.get('/categories', cache300, async (req, res) => {
     try {
         const { category } = req.query;
         let query = {};
@@ -30,7 +34,7 @@ router.get('/categories', async (req, res) => {
 });
 
 // GET /api/products/featured - Get featured products for Homepage
-router.get('/featured', async (req, res) => {
+router.get('/featured', cache300, async (req, res) => {
     try {
         const featuredProducts = await Product.find({ isFeatured: true })
             .sort({ displayOrder: 1 })
@@ -43,7 +47,7 @@ router.get('/featured', async (req, res) => {
 });
 
 // GET /api/products/:id - Get single product
-router.get('/:id', async (req, res) => {
+router.get('/:id', cache300, async (req, res) => {
     try {
         const product = await Product.findOne({ id: parseInt(req.params.id) });
         if (!product) {

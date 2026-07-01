@@ -7,6 +7,8 @@ const orderSchema = new mongoose.Schema({
     email: { type: String }, // Optional
     discordId: { type: String },
     platform: { type: String, default: 'Java' }, // Java or Bedrock
+    isGift: { type: Boolean, default: false },
+    giftUsername: { type: String },
     items: [{
         id: String,
         name: String,

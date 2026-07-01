@@ -23,6 +23,7 @@ import UsersTab from './components/UsersTab';
 import FeaturedRanksTab from './components/FeaturedRanksTab';
 import BadgesTab from './components/BadgesTab';
 import FirewallPanel from './components/FirewallPanel';
+import AuditLogsTab from './components/AuditLogsTab';
 
 const Admin = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -168,6 +169,13 @@ const Admin = () => {
                     <ShieldAlert size={20} />
                     <span>Firewall</span>
                 </button>
+                <button
+                    className={`mobile-nav-item ${activeTab === 'audit-logs' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('audit-logs')}
+                >
+                    <History size={20} />
+                    <span>Audit Logs</span>
+                </button>
                 <button className="mobile-nav-item logout" onClick={handleLogout}>
                     <LogOut size={20} />
                     <span>Logout</span>
@@ -243,6 +251,13 @@ const Admin = () => {
                         <ShieldAlert size={20} />
                         <span>Firewall</span>
                     </button>
+                    <button
+                        className={`sidebar-item ${activeTab === 'audit-logs' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('audit-logs')}
+                    >
+                        <History size={20} />
+                        <span>Audit Logs</span>
+                    </button>
                 </nav>
                 <button className="logout-btn" onClick={handleLogout}>
                     <LogOut size={20} />
@@ -264,6 +279,7 @@ const Admin = () => {
                         {activeTab === 'users' && '👥 User Management'}
                         {activeTab === 'badges' && '🎖️ Badge Management'}
                         {activeTab === 'firewall' && '🛡️ WAF & IPS Firewall'}
+                        {activeTab === 'audit-logs' && '📜 Audit Logs'}
                     </h1>
                     <button
                         className="refresh-btn"
@@ -400,6 +416,11 @@ const Admin = () => {
                 {/* Firewall Tab */}
                 {activeTab === 'firewall' && (
                     <FirewallPanel />
+                )}
+
+                {/* Audit Logs Tab */}
+                {activeTab === 'audit-logs' && (
+                    <AuditLogsTab />
                 )}
             </main>
         </div>

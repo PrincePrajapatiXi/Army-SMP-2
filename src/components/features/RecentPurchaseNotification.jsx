@@ -2,18 +2,17 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, X } from 'lucide-react';
+import { API_BASE_URL } from '../../services/api';
 
 const RecentPurchaseNotification = () => {
     const [notification, setNotification] = useState(null);
     const [orders, setOrders] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
     useEffect(() => {
         const fetchRecentOrders = async () => {
             try {
-                const response = await axios.get(`${API_URL}/orders/recent/purchases`);
+                const response = await axios.get(`${API_BASE_URL}/orders/recent/purchases`);
                 if (response.data && response.data.length > 0) {
                     setOrders(response.data);
                 }
@@ -26,7 +25,7 @@ const RecentPurchaseNotification = () => {
         // Poll every 5 minutes
         const interval = setInterval(fetchRecentOrders, 5 * 60 * 1000);
         return () => clearInterval(interval);
-    }, [API_URL]);
+    }, []);
 
     useEffect(() => {
         if (orders.length === 0) return;

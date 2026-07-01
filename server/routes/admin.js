@@ -11,7 +11,9 @@ const Badge = require('../models/Badge');
 const BannedIP = require('../models/BannedIP');
 const SystemConfig = require('../models/SystemConfig');
 const { generateAdminToken, requireAdminAuth } = require('../middleware/authMiddleware');
+const auditLogger = require('../middleware/auditLogger');
 const { getClientIP, wafStats } = require('../middleware/waf');
+const { parse } = require('json2csv');
 const speakeasy = require('speakeasy');
 const qrcode = require('qrcode');
 const { sendLoginAlertEmail } = require('../services/email');
@@ -208,7 +210,7 @@ router.post('/resend-2fa', async (req, res) => {
 });
 
 // DELETE /api/admin/orders/bulk - Bulk delete orders
-router.delete('/orders/bulk', requireAdminAuth, async (req, res) => {
+router.delete('/orders/bulk', requireAdminAuth, auditLogger('Bulk deleted orders'), async (req, res) => {
     try {
         const { orderIds } = req.body;
 
@@ -250,6 +252,46 @@ router.get('/orders', requireAdminAuth, async (req, res) => {
     }
 });
 
+// GET /api/admin/orders/export - Export orders to CSV
+router.get('/orders/export', requireAdminAuth, auditLogger('Exported orders to CSV'), async (req, res) => {
+    try {
+        const orders = await Order.find().sort({ createdAt: -1 });
+        
+        // Flatten the data for CSV
+        const csvData = orders.map(order => ({
+            OrderNumber: order.orderNumber,
+            Date: new Date(order.createdAt).toLocaleString(),
+            MinecraftUsername: order.minecraftUsername,
+            Email: order.email || 'N/A',
+            Platform: order.platform,
+            IsGift: order.isGift ? 'Yes' : 'No',
+            GiftUsername: order.giftUsername || 'N/A',
+            Subtotal: order.subtotal,
+            Discount: order.discount,
+            Total: order.total,
+            OrderStatus: order.status,
+            PaymentStatus: order.paymentStatus,
+            PaymentMethod: order.paymentMethod || 'N/A',
+            TransactionId: order.transactionId || 'N/A',
+            Items: order.items.map(i => `${i.name} (x${i.quantity})`).join(', ')
+        }));
+
+        if (csvData.length === 0) {
+            return res.status(404).json({ error: 'No orders to export' });
+        }
+
+        const fields = Object.keys(csvData[0]);
+        const csv = parse(csvData, { fields });
+
+        res.header('Content-Type', 'text/csv');
+        res.attachment('orders_export.csv');
+        return res.send(csv);
+    } catch (error) {
+        console.error('Export error:', error);
+        res.status(500).json({ error: 'Failed to export orders' });
+    }
+});
+
 // GET /api/admin/stats - Get sales analytics
 router.get('/stats', requireAdminAuth, async (req, res) => {
     try {
@@ -278,8 +320,20 @@ router.get('/stats', requireAdminAuth, async (req, res) => {
     }
 });
 
+// GET /api/admin/audit-logs - Get all audit logs
+router.get('/audit-logs', requireAdminAuth, async (req, res) => {
+    try {
+        const AuditLog = require('../models/AuditLog');
+        const logs = await AuditLog.find().sort({ timestamp: -1 }).limit(100);
+        res.json(logs);
+    } catch (error) {
+        console.error('Error fetching audit logs:', error);
+        res.status(500).json({ error: 'Failed to fetch audit logs' });
+    }
+});
+
 // PUT /api/admin/orders/:id/status - Update order status
-router.put('/orders/:id/status', requireAdminAuth, async (req, res) => {
+router.put('/orders/:id/status', requireAdminAuth, auditLogger('Updated order status'), async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
@@ -321,7 +375,7 @@ router.put('/orders/:id/status', requireAdminAuth, async (req, res) => {
 });
 
 // PUT /api/admin/orders/:id/payment - Update payment status
-router.put('/orders/:id/payment', requireAdminAuth, async (req, res) => {
+router.put('/orders/:id/payment', requireAdminAuth, auditLogger('Updated order payment status'), async (req, res) => {
     try {
         const { id } = req.params;
         const { paymentStatus } = req.body;
@@ -391,7 +445,7 @@ router.put('/orders/:id/payment', requireAdminAuth, async (req, res) => {
 });
 
 // DELETE /api/admin/orders/:id - Delete an order
-router.delete('/orders/:id', requireAdminAuth, async (req, res) => {
+router.delete('/orders/:id', requireAdminAuth, auditLogger('Deleted order'), async (req, res) => {
     try {
         const { id } = req.params;
         const result = await Order.deleteOne({ $or: [{ id }, { orderNumber: id }] });
@@ -421,7 +475,7 @@ router.get('/products', requireAdminAuth, async (req, res) => {
 });
 
 // POST /api/admin/products - Add new product
-router.post('/products', requireAdminAuth, async (req, res) => {
+router.post('/products', requireAdminAuth, auditLogger('Added new product'), async (req, res) => {
     try {
         const { name, price, category, image, description, color, features } = req.body;
 
@@ -459,7 +513,7 @@ router.post('/products', requireAdminAuth, async (req, res) => {
 });
 
 // PUT /api/admin/products/:id - Update product
-router.put('/products/:id', requireAdminAuth, async (req, res) => {
+router.put('/products/:id', requireAdminAuth, auditLogger('Updated product'), async (req, res) => {
     try {
         const { id } = req.params;
         const updates = req.body;
@@ -497,7 +551,7 @@ router.put('/products/:id', requireAdminAuth, async (req, res) => {
 });
 
 // DELETE /api/admin/products/:id - Delete product
-router.delete('/products/:id', requireAdminAuth, async (req, res) => {
+router.delete('/products/:id', requireAdminAuth, auditLogger('Deleted product'), async (req, res) => {
     try {
         const { id } = req.params;
         const result = await Product.deleteOne({ id: parseInt(id) });

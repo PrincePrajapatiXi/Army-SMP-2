@@ -13,6 +13,8 @@ const Checkout = () => {
     const [searchParams] = useSearchParams();
     const { cartItems, getCartTotal, clearCart, incrementQuantity, decrementQuantity, removeFromCart } = useCart();
     const [minecraftUsername, setMinecraftUsername] = useState('');
+    const [isGift, setIsGift] = useState(false);
+    const [giftUsername, setGiftUsername] = useState('');
     const [email, setEmail] = useState('');
     const [platform, setPlatform] = useState('');
     const [loading, setLoading] = useState(false);
@@ -249,6 +251,11 @@ const Checkout = () => {
             setError('Please fill all required fields and ensure cart is not empty');
             return;
         }
+        
+        if (isGift && !giftUsername.trim()) {
+            setError('Please enter the Minecraft username of the player receiving the gift');
+            return;
+        }
 
         setError(null);
         setLoading(true);
@@ -291,6 +298,8 @@ const Checkout = () => {
                 minecraftUsername,
                 email,
                 platform,
+                isGift,
+                giftUsername,
                 cartItems: cartItems.map(item => ({
                     id: item.id,
                     name: item.name,
@@ -345,6 +354,8 @@ const Checkout = () => {
                 minecraftUsername,
                 email,
                 platform,
+                isGift,
+                giftUsername,
                 cartItems,
                 couponInfo: {
                     couponCode: appliedCoupon?.coupon?.code || null,
@@ -383,7 +394,9 @@ const Checkout = () => {
                     finalTotal: finalTotal
                 },
                 null,
-                cashfreeDetails
+                cashfreeDetails,
+                orderData.isGift,
+                orderData.giftUsername
             );
 
             const orderFinalTotal = orderData.couponInfo?.finalTotal || finalTotal;
@@ -707,8 +720,41 @@ const Checkout = () => {
                                 disabled={loading}
                                 required
                             />
-                            <small>Items will be delivered to this account</small>
+                            {!isGift && <small>Items will be delivered to this account</small>}
                         </div>
+
+                        <div className="form-group gift-toggle" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '8px' }}>
+                            <input 
+                                type="checkbox" 
+                                id="is-gift" 
+                                checked={isGift} 
+                                onChange={(e) => setIsGift(e.target.checked)} 
+                                style={{ width: 'auto', marginBottom: 0 }}
+                                disabled={loading}
+                            />
+                            <label htmlFor="is-gift" style={{ marginBottom: 0, display: 'inline-block' }}>
+                                This order is a gift for someone else 🎁
+                            </label>
+                        </div>
+
+                        {isGift && (
+                            <div className="form-group" style={{ animation: 'fadeDown 0.3s ease-out' }}>
+                                <label htmlFor="gift-username">
+                                    Recipient's Minecraft Username <span className="required">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    id="gift-username"
+                                    value={giftUsername}
+                                    onChange={(e) => setGiftUsername(e.target.value)}
+                                    placeholder="Who is receiving this gift?"
+                                    disabled={loading}
+                                    required={isGift}
+                                    style={{ border: '1px solid var(--primary-light)' }}
+                                />
+                                <small style={{ color: 'var(--primary-light)' }}>Items will be delivered to THIS account instead.</small>
+                            </div>
+                        )}
 
                         <div className="form-group">
                             <label htmlFor="email">

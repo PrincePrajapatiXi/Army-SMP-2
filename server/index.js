@@ -36,6 +36,9 @@ const paymentRouter = require('./routes/payment');
 // Import email service
 const { verifyEmailConfig } = require('./services/email');
 
+// Import background cron jobs
+const { initCronJobs } = require('./services/cronJobs');
+
 // Import passport for OAuth
 const passport = require('./services/passport');
 
@@ -233,4 +236,7 @@ app.listen(PORT, async () => {
 
     // Verify email configuration
     await verifyEmailConfig();
+
+    // Initialize background cron jobs
+    initCronJobs();
 });

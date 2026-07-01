@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
     Package, Filter, Trash2, Calendar, Search, X,
-    CheckCircle, XCircle, AlertCircle
+    CheckCircle, XCircle, AlertCircle, Download
 } from 'lucide-react';
+import { API_BASE_URL } from '../../../services/api';
 
 const OrdersTab = ({
     orders,
@@ -37,6 +38,13 @@ const OrdersTab = ({
         if (success) {
             setShowDeleteConfirm(false);
         }
+    };
+
+    const handleExportCSV = () => {
+        const token = sessionStorage.getItem('adminToken');
+        window.open(`${API_BASE_URL}/admin/orders/export?token=${token}`, '_blank');
+        // Note: passing token in query string might require backend support, 
+        // alternatively use fetch and blob download if auth is strictly via headers.
     };
 
     const getStatusIcon = (status) => {
@@ -141,6 +149,14 @@ const OrdersTab = ({
                             Delete ({selectedOrders.length})
                         </button>
                     )}
+                    <button
+                        className="btn btn-outline"
+                        onClick={handleExportCSV}
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', fontSize: '12px' }}
+                    >
+                        <Download size={16} />
+                        Export CSV
+                    </button>
                 </div>
             </div>
 
