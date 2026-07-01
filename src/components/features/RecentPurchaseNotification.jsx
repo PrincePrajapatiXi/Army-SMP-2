@@ -13,7 +13,7 @@ const RecentPurchaseNotification = () => {
         const fetchRecentOrders = async () => {
             try {
                 const response = await axios.get(`${API_BASE_URL}/orders/recent/purchases`);
-                if (response.data && response.data.length > 0) {
+                if (response.data && Array.isArray(response.data) && response.data.length > 0) {
                     setOrders(response.data);
                 }
             } catch (error) {

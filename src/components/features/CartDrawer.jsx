@@ -16,11 +16,13 @@ const CartDrawer = ({ isOpen, onClose }) => {
             fetch(`${API_BASE_URL}/products`)
                 .then(res => res.json())
                 .then(data => {
-                    // Filter out items already in cart and get 3 random ones
-                    const inCartIds = new Set(cartItems.map(item => item.id));
-                    const available = data.filter(p => !inCartIds.has(p.id));
-                    const randomUpsells = available.sort(() => 0.5 - Math.random()).slice(0, 3);
-                    setUpsellItems(randomUpsells);
+                    if (Array.isArray(data)) {
+                        // Filter out items already in cart and get 3 random ones
+                        const inCartIds = new Set(cartItems.map(item => item.id));
+                        const available = data.filter(p => !inCartIds.has(p.id));
+                        const randomUpsells = available.sort(() => 0.5 - Math.random()).slice(0, 3);
+                        setUpsellItems(randomUpsells);
+                    }
                 })
                 .catch(console.error);
         }

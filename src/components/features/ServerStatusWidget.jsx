@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Server, Users, Activity } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../services/api';
 
 const ServerStatusWidget = () => {
     const [status, setStatus] = useState({
@@ -15,7 +16,7 @@ const ServerStatusWidget = () => {
         const fetchStatus = async () => {
             try {
                 const startTime = Date.now();
-                const res = await axios.get('/api/server-status');
+                const res = await axios.get(`${API_BASE_URL}/server-status`);
                 const pingTime = Date.now() - startTime;
                 
                 if (res.data && res.data.online) {
