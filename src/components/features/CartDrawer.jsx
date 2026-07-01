@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { X, Trash2, Plus, Minus, ShoppingBag, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
