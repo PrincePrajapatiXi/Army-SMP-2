@@ -45,7 +45,7 @@ const FeaturedRanks = () => {
             const response = await fetch(`${API_BASE_URL}/products/featured`);
             const data = await response.json();
 
-            if (data && data.length > 0) {
+            if (data && Array.isArray(data) && data.length > 0) {
                 // Sort by displayOrder and map to expected format
                 const sortedRanks = data
                     .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))

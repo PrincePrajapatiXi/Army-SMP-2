@@ -63,7 +63,7 @@ const PromoSlider = () => {
             try {
                 const response = await fetch(`${API_BASE_URL}/promotions`);
                 const data = await response.json();
-                if (data && data.length > 0) {
+                if (data && Array.isArray(data) && data.length > 0) {
                     setPromos(data);
                 }
                 // If API returns empty, keep default promos
