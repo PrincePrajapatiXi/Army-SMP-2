@@ -30,7 +30,6 @@ const fraudRouter = require('./routes/fraud');
 const leaderboardRouter = require('./routes/leaderboard');
 const analyticsRouter = require('./routes/analytics');
 const notificationsRouter = require('./routes/notifications');
-const upigatewayRouter = require('./routes/upigateway');
 // Import email service
 const { verifyEmailConfig } = require('./services/email');
 
@@ -180,7 +179,6 @@ app.use('/api/fraud', fraudRouter);
 app.use('/api/leaderboard', leaderboardRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/notifications', notificationsRouter);
-app.use('/api/payment/upigateway', upigatewayRouter);
 
 // Import keep-alive service
 const { startKeepAlive } = require('./services/keepAlive');

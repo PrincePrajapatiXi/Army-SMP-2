@@ -208,7 +208,7 @@ const Checkout = () => {
         setCouponError('');
     };
 
-    // Proceed to payment step (Create Order & Redirect to UPIGateway)
+    // Proceed to payment step (Show QR)
     const handleProceedToPayment = async (e) => {
         e.preventDefault();
 
@@ -223,105 +223,33 @@ const Checkout = () => {
         }
 
         setError(null);
-        setLoading(true);
 
-        // Bypass payment gateway completely if order is 100% discounted / free
+        // Bypass payment completely if order is 100% discounted / free
         if (finalTotal <= 0) {
+            setLoading(true);
             await handleCompleteOrder({
-                cashfreePaymentId: null,
-                cashfreeOrderId: `FREE_ORDER_${Date.now()}`,
                 paymentStatus: 'SUCCESS',
                 paymentMethod: 'Free / 100% Coupon'
             });
             return;
         }
 
-        try {
-            // 1. Create a Pending Order first so we have an ID to pass to UPIGateway
-            const orderData = {
-                minecraftUsername,
-                email,
-                platform,
-                isGift,
-                giftUsername,
-                cartItems,
-                couponInfo: {
-                    couponCode: appliedCoupon?.coupon?.code || null,
-                    discount: discountAmount,
-                    subtotal: subtotal,
-                    finalTotal: finalTotal
-                }
-            };
-
-            const orderItems = (orderData.cartItems || cartItems).map(item => ({
-                id: item.id,
-                name: item.name,
-                price: typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.-]+/g, '')),
-                quantity: item.quantity,
-                subtotal: (typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.-]+/g, ''))) * item.quantity
-            }));
-
-            // Pass payment details to the order API (as pending)
-            const paymentDetails = {
-                cashfreePaymentId: null,
-                cashfreeOrderId: null,
-                paymentStatus: 'pending',
-                paymentMethod: 'UPIGateway',
-                transactionId: null
-            };
-
-            const createOrderResult = await ordersApi.create(
-                orderData.minecraftUsername,
-                orderData.email,
-                orderItems,
-                orderData.platform,
-                orderData.couponInfo,
-                null, // No UTR yet
-                paymentDetails,
-                orderData.isGift,
-                orderData.giftUsername
-            );
-
-            if (!createOrderResult || !createOrderResult.order) {
-                throw new Error("Failed to create order in database.");
-            }
-
-            const orderId = createOrderResult.order.id;
-
-            // 2. Call our backend to get UPIGateway URL
-            const response = await fetch(`${API_BASE_URL}/payment/upigateway/create`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    orderId: orderId,
-                    amount: finalTotal,
-                    customerName: minecraftUsername,
-                    customerEmail: email
-                })
-            });
-
-            const paymentData = await response.json();
-
-            if (paymentData.success && paymentData.payment_url) {
-                // Save essential success info to localStorage to recover on return
-                localStorage.setItem('pendingOrderSuccess', JSON.stringify(createOrderResult.order));
-                
-                // Redirect to UPIGateway Checkout
-                window.location.href = paymentData.payment_url;
-            } else {
-                throw new Error(paymentData.error || "Failed to initialize UPIGateway.");
-            }
-
-        } catch (err) {
-            console.error('Payment initialization error:', err);
-            setError('An error occurred during payment initialization: ' + (err.message || ''));
-            setLoading(false);
-        }
+        // Show the manual QR code section
+        setShowQR(true);
     };
 
     const handleCompletePayment = async (e) => {
-        // Not used anymore with UPIGateway redirect
         e.preventDefault();
+        
+        if (transactionId.trim().length !== 12 || isNaN(transactionId.trim())) {
+            setError("WARNING: Please enter a valid 12-digit numeric UTR/Transaction ID to verify your payment. Fake UTRs will result in order cancellation and a ban.");
+            return;
+        }
+
+        await handleCompleteOrder({
+            paymentStatus: 'pending',
+            paymentMethod: 'UPI (Manual QR)'
+        });
     };
 
     // Complete order after Cashfree payment verification
