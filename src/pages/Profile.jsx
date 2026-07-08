@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, Reorder } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
     User, Mail, AtSign, Lock, Save, X, Edit2, LogOut,
@@ -19,8 +19,8 @@ const Profile = () => {
         minecraftUsername: '',
         phone: ''
     });
-    const [userBadges, setUserBadges] = useState([]);
-
+    const [draggedItemIndex, setDraggedItemIndex] = useState(null);
+    const [dragOverItemIndex, setDragOverItemIndex] = useState(null);
     const [passwordData, setPasswordData] = useState({
         currentPassword: '',
         newPassword: '',
@@ -66,19 +66,36 @@ const Profile = () => {
         }
     }, [user]);
 
-    const handleReorder = (newBadges) => {
-        setUserBadges(newBadges);
+    const handleDragStart = (index) => {
+        setDraggedItemIndex(index);
+    };
+
+    const handleDragEnter = (index) => {
+        if (draggedItemIndex === null) return;
+        setDragOverItemIndex(index);
     };
 
     const handleDragEnd = async () => {
-        try {
-            const badgeIds = userBadges.map(b => b.id);
-            await userApi.reorderBadges(badgeIds);
-        } catch (error) {
-            console.error("Failed to save badge order", error);
-            setError("Failed to save new badge layout.");
+        if (draggedItemIndex !== null && dragOverItemIndex !== null && draggedItemIndex !== dragOverItemIndex) {
+            const newBadges = [...userBadges];
+            const draggedItem = newBadges[draggedItemIndex];
+            newBadges.splice(draggedItemIndex, 1);
+            newBadges.splice(dragOverItemIndex, 0, draggedItem);
+            setUserBadges(newBadges);
+            
+            try {
+                const badgeIds = newBadges.map(b => b.id);
+                await userApi.reorderBadges(badgeIds);
+            } catch (error) {
+                console.error("Failed to save badge order", error);
+                setError("Failed to save new badge layout.");
+            }
         }
+        setDraggedItemIndex(null);
+        setDragOverItemIndex(null);
     };
+
+
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -337,32 +354,33 @@ const Profile = () => {
                         {/* Custom Rank Badges Section */}
                         {userBadges && userBadges.length > 0 && (
                             <div className="rank-badges-section">
-                                <div className="badges-section-header" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                                <div className="badges-section-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: '12px' }}>
                                     <span className="badges-count-label">🎖️ {userBadges.length} Badge{userBadges.length !== 1 ? 's' : ''} Earned</span>
-                                    <span className="badges-hint-label" style={{ fontSize: '0.75rem', color: '#8b949e', fontStyle: 'italic', textTransform: 'none' }}>(Drag to reorder)</span>
+                                    <span className="badges-hint-label" style={{ marginLeft: '10px', fontSize: '0.75rem', color: '#8b949e' }}>• Drag to reorder</span>
                                 </div>
-                                <Reorder.Group 
-                                    axis="y" 
-                                    values={userBadges} 
-                                    onReorder={handleReorder} 
-                                    className="badges-grid-display"
-                                    as="div"
-                                >
-                                    {userBadges.map((badgeObj) => {
-                                        const { badge, assignedAt, id } = badgeObj;
-                                        return (
-                                        <Reorder.Item 
-                                            key={id} 
-                                            value={badgeObj}
-                                            className="badge-wrapper-container"
+                                <div className="badges-grid-display">
+                                    {userBadges.map(({ badge, assignedAt, id }, index) => (
+                                        <motion.div 
+                                            layout
+                                            key={id || index} 
+                                            className={`badge-wrapper-container ${draggedItemIndex === index ? 'dragging' : ''}`}
+                                            draggable
+                                            onDragStart={() => handleDragStart(index)}
+                                            onDragEnter={() => handleDragEnter(index)}
                                             onDragEnd={handleDragEnd}
-                                            whileDrag={{ scale: 1.05, zIndex: 10, cursor: 'grabbing' }}
-                                            style={{ cursor: 'grab' }}
+                                            onDragOver={(e) => e.preventDefault()}
+                                            style={{ 
+                                                cursor: 'grab', 
+                                                opacity: draggedItemIndex === index ? 0.5 : 1,
+                                                transform: dragOverItemIndex === index && draggedItemIndex !== index ? 'scale(1.05)' : 'scale(1)',
+                                                transition: 'transform 0.2s, opacity 0.2s'
+                                            }}
                                         >
                                             <div
                                                 className={`rank-badge-item rarity-${badge.rarity || 'common'}`}
                                                 style={{
-                                                    '--badge-color': badge.color || '#f97316'
+                                                    '--badge-color': badge.color || '#f97316',
+                                                    pointerEvents: draggedItemIndex !== null ? 'none' : 'auto' // Prevent drag jitter
                                                 }}
                                             >
                                                 {badge.image && <img src={badge.image} alt="" draggable="false" />}
@@ -370,32 +388,34 @@ const Profile = () => {
                                             </div>
 
                                             {/* Styled Tooltip */}
-                                            <div className="badge-tooltip">
-                                                <div className="badge-tooltip-header">
-                                                    {badge.image && <img src={badge.image} alt="" className="tooltip-badge-img" draggable="false" />}
-                                                    <div>
-                                                        <div className="tooltip-name">{badge.name}</div>
-                                                        <div className={`tooltip-rarity rarity-text-${badge.rarity || 'common'}`}>
-                                                            {(badge.rarity || 'common').toUpperCase()}
+                                            {draggedItemIndex === null && (
+                                                <div className="badge-tooltip">
+                                                    <div className="badge-tooltip-header">
+                                                        {badge.image && <img src={badge.image} alt="" className="tooltip-badge-img" draggable="false" />}
+                                                        <div>
+                                                            <div className="tooltip-name">{badge.name}</div>
+                                                            <div className={`tooltip-rarity rarity-text-${badge.rarity || 'common'}`}>
+                                                                {(badge.rarity || 'common').toUpperCase()}
+                                                            </div>
                                                         </div>
                                                     </div>
+                                                    {badge.description && (
+                                                        <div className="tooltip-description">{badge.description}</div>
+                                                    )}
+                                                    {assignedAt && (
+                                                        <div className="tooltip-date">
+                                                            Earned {new Date(assignedAt).toLocaleDateString('en-IN', {
+                                                                day: 'numeric',
+                                                                month: 'short',
+                                                                year: 'numeric'
+                                                            })}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                {badge.description && (
-                                                    <div className="tooltip-description">{badge.description}</div>
-                                                )}
-                                                {assignedAt && (
-                                                    <div className="tooltip-date">
-                                                        Earned {new Date(assignedAt).toLocaleDateString('en-IN', {
-                                                            day: 'numeric',
-                                                            month: 'short',
-                                                            year: 'numeric'
-                                                        })}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </Reorder.Item>
-                                    )})}
-                                </Reorder.Group>
+                                            )}
+                                        </motion.div>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
