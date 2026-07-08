@@ -307,7 +307,7 @@ const Profile = () => {
                             <img src={user.avatar} alt={user.name} />
                         ) : (
                             <div className="avatar-placeholder">
-                                {user.name?.charAt(0).toUpperCase() || 'U'}
+                                {(user.name || user.username || 'U').charAt(0).toUpperCase()}
                             </div>
                         )}
                         <div className="avatar-overlay">
