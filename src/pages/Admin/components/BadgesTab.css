@@ -294,7 +294,7 @@
     margin-bottom: 0.5rem;
 }
 
-.form-group input,
+.form-group input:not([type="color"]),
 .form-group textarea,
 .form-group select {
     width: 100%;
@@ -359,12 +359,8 @@
 }
 
 .color-picker input[type="color"] {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
     width: 40px !important;
     height: 40px !important;
-    background: transparent !important;
     border: none !important;
     border-radius: 8px;
     cursor: pointer;
