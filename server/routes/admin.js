@@ -1203,14 +1203,14 @@ router.get('/security/banned-ips', requireAdminAuth, async (req, res) => {
             bans: bans.map(ban => ({
                 id: ban._id,
                 ip: ban.ip,
-                reason: ban.reason,
-                description: ban.description,
-                failedAttempts: ban.failedAttempts,
-                bannedAt: ban.bannedAt,
-                expiresAt: ban.expiresAt,
-                bannedBy: ban.bannedBy,
-                metadata: ban.metadata,
-                remainingMs: Math.max(0, new Date(ban.expiresAt).getTime() - Date.now())
+                reason: ban.reason || 'Unknown',
+                description: ban.details?.description || 'No details provided',
+                failedAttempts: ban.details?.failedAttempts || 0,
+                bannedAt: ban.createdAt || new Date(),
+                expiresAt: ban.expiresAt || ban.bannedUntil,
+                bannedBy: ban.details?.bannedBy || 'System',
+                metadata: ban.details,
+                remainingMs: Math.max(0, new Date(ban.expiresAt || ban.bannedUntil).getTime() - Date.now())
             }))
         });
     } catch (error) {

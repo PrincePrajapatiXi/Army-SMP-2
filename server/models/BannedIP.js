@@ -6,7 +6,21 @@ const BannedIPSchema = new mongoose.Schema({
     expiresAt: { type: Date },
     reason: { type: String, default: 'admin_login_failed' },
     details: { type: Object }
-});
+}, { timestamps: true });
+
+BannedIPSchema.statics.getActiveBans = async function() {
+    return this.find({
+        $or: [
+            { expiresAt: { $gt: new Date() } },
+            { bannedUntil: { $gt: new Date() } }
+        ]
+    }).sort({ createdAt: -1 });
+};
+
+BannedIPSchema.statics.unbanIP = async function(id) {
+    const result = await this.findByIdAndDelete(id);
+    return !!result;
+};
 
 BannedIPSchema.statics.isBanned = async function(ip) {
     const ban = await this.findOne({ ip });
