@@ -41,19 +41,18 @@ const ServerStatusWidget = () => {
         return () => clearInterval(interval);
     }, []);
 
-    if (status.loading) return null;
-
+    // Removed: if (status.loading) return null;
     return (
         <div className="server-status-widget">
             <div className="status-left">
-                <div className={`status-icon-wrapper ${status.online ? 'online' : 'offline'}`}>
+                <div className={`status-icon-wrapper ${status.loading ? 'loading' : (status.online ? 'online' : 'offline')}`}>
                     <Server size={20} />
                 </div>
                 <div className="status-info">
                     <h3>Play.ArmySMP.fun</h3>
                     <p className="status-indicator">
-                        <span className={`dot ${status.online ? 'online' : 'offline'}`}></span>
-                        {status.online ? 'Server Online' : 'Server Offline'}
+                        <span className={`dot ${status.loading ? 'loading' : (status.online ? 'online' : 'offline')}`}></span>
+                        {status.loading ? 'Checking Status...' : (status.online ? 'Server Online' : 'Server Offline')}
                     </p>
                 </div>
             </div>
@@ -61,12 +60,12 @@ const ServerStatusWidget = () => {
             <div className="status-right">
                 <div className="stat-item">
                     <span className="stat-label"><Users size={12}/> Players</span>
-                    <span className="stat-value">{status.players} <span className="stat-sub">/ {status.max}</span></span>
+                    <span className="stat-value">{status.loading ? '-' : status.players} <span className="stat-sub">/ {status.loading ? '-' : status.max}</span></span>
                 </div>
                 <div className="stat-item ping-stat">
                     <span className="stat-label"><Activity size={12}/> Ping</span>
-                    <span className={`stat-value stat-ping ${status.online ? 'online' : 'offline'}`}>
-                        {status.ping ? `${status.ping}ms` : '--'}
+                    <span className={`stat-value stat-ping ${status.loading ? 'loading' : (status.online ? 'online' : 'offline')}`}>
+                        {status.loading ? '...' : (status.ping ? `${status.ping}ms` : '--')}
                     </span>
                 </div>
             </div>
