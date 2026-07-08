@@ -19,6 +19,7 @@ const Profile = () => {
         minecraftUsername: '',
         phone: ''
     });
+    const [userBadges, setUserBadges] = useState([]);
     const [draggedItemIndex, setDraggedItemIndex] = useState(null);
     const [dragOverItemIndex, setDragOverItemIndex] = useState(null);
     const [passwordData, setPasswordData] = useState({
