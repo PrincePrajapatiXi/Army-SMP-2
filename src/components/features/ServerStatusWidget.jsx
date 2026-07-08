@@ -58,18 +58,18 @@ const ServerStatusWidget = () => {
                 </div>
             </div>
 
-            {status.online && (
-                <div className="status-right">
-                    <div className="stat-item">
-                        <span className="stat-label"><Users size={12}/> Players</span>
-                        <span className="stat-value">{status.players} <span className="stat-sub">/ {status.max}</span></span>
-                    </div>
-                    <div className="stat-item ping-stat">
-                        <span className="stat-label"><Activity size={12}/> Ping</span>
-                        <span className="stat-value stat-ping">{status.ping}ms</span>
-                    </div>
+            <div className="status-right">
+                <div className="stat-item">
+                    <span className="stat-label"><Users size={12}/> Players</span>
+                    <span className="stat-value">{status.players} <span className="stat-sub">/ {status.max}</span></span>
                 </div>
-            )}
+                <div className="stat-item ping-stat">
+                    <span className="stat-label"><Activity size={12}/> Ping</span>
+                    <span className={`stat-value stat-ping ${status.online ? 'online' : 'offline'}`}>
+                        {status.ping ? `${status.ping}ms` : '--'}
+                    </span>
+                </div>
+            </div>
         </div>
     );
 };

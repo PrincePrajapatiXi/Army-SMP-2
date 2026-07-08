@@ -60,14 +60,14 @@ async function fetchServerStatus(host, port) {
     // Check if server is pingable but query is blocked (common with hosting providers)
     console.log(`⚠️ Server ${host}:${port} - Query blocked or server offline`);
 
-    // Default: assume online but can't get player count (better UX than showing offline)
+    // Default: assume offline
     return {
-        online: true,
+        online: false,
         hostname: 'Army SMP',
         numplayers: 0,
-        maxplayers: 0,
+        maxplayers: 20,
         queryBlocked: true,
-        message: 'Player count unavailable - query may be blocked by hosting'
+        message: 'Server is currently offline'
     };
 }
 

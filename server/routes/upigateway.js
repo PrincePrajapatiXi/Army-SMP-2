@@ -16,7 +16,7 @@ router.post('/create', async (req, res) => {
         
         // Define redirect URL
         // It will return to checkout page with order_id in query parameters
-        const redirectUrl = process.env.CLIENT_URL ? `${process.env.CLIENT_URL}/checkout?order_id=${orderId}` : `http://localhost:5173/checkout?order_id=${orderId}`;
+        const redirectUrl = process.env.CLIENT_URL ? `${process.env.CLIENT_URL}/checkout?order_id=${orderId}` : `https://store.armysmp.fun/checkout?order_id=${orderId}`;
 
         const payload = {
             key: apiKey,
