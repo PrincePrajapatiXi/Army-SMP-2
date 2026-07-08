@@ -39,15 +39,23 @@ const useOrders = () => {
     }, []);
 
     const updateOrderStatus = async (orderId, newStatus) => {
+        // Optimistic update for instant UI feedback
+        setOrders(prevOrders => prevOrders.map(o => 
+            (o.id === orderId || o.orderNumber === orderId) ? { ...o, status: newStatus } : o
+        ));
+
         try {
             await fetch(`${API_BASE_URL}/admin/orders/${orderId}/status`, {
                 method: 'PUT',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ status: newStatus })
             });
+            // Fetch silently in background to ensure sync
             fetchOrders();
         } catch (error) {
             console.error('Error updating status:', error);
+            // Revert on error
+            fetchOrders();
         }
     };
 

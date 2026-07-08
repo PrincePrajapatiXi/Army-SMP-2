@@ -883,6 +883,12 @@
     color: #ef4444;
 }
 
+.status-select option {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
 .order-card-body {
     padding: 20px;
     display: grid;
