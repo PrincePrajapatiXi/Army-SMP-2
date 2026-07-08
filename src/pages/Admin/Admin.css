@@ -954,6 +954,240 @@
     opacity: 0.5;
 }
 
+/* Processing Status */
+.status-select.processing {
+    background: rgba(59, 130, 246, 0.2);
+    color: #3b82f6;
+}
+
+.status-badge.processing {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+}
+
+.status-dot.processing {
+    background: #3b82f6;
+}
+
+/* Order Status Controls */
+.order-status-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Order Footer */
+.order-footer-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+/* Payment Status Control */
+.payment-status-control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+}
+
+.payment-select {
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.78rem;
+}
+
+.payment-select.pending {
+    background: rgba(255, 170, 0, 0.15);
+    color: #ffaa00;
+}
+
+.payment-select.paid {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
+.payment-select.failed {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.payment-select.refunded {
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+}
+
+.payment-select option {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* ==================== AUDIT LOGS STYLES ==================== */
+
+.audit-logs-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.audit-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.audit-search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 250px;
+    padding: 10px 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    color: var(--text-secondary);
+}
+
+.audit-search-box .search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    outline: none;
+}
+
+.audit-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.audit-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+    gap: 16px;
+}
+
+.audit-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+    gap: 12px;
+}
+
+.audit-empty svg {
+    opacity: 0.3;
+}
+
+.audit-empty p {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.audit-empty span {
+    font-size: 0.9rem;
+}
+
+.audit-logs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.audit-log-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.audit-log-card:hover {
+    border-color: rgba(255, 107, 53, 0.3);
+}
+
+.audit-log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid var(--card-border);
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.audit-log-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.audit-action-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.audit-admin-badge {
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(139, 92, 246, 0.12);
+    color: #a78bfa;
+}
+
+.audit-log-time {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.audit-log-body {
+    padding: 12px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.audit-log-details {
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    margin: 0;
+}
+
+.audit-log-ip {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-family: monospace;
+    background: var(--bg-dark);
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
 /* ==================== RESPONSIVE STYLES ==================== */
 
 /* Large Tablets */

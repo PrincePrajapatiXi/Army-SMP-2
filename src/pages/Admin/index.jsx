@@ -7,6 +7,7 @@ import './Admin.css';
 
 // Hooks
 import useOrders from './hooks/useOrders';
+import { API_BASE_URL } from '../../services/api';
 import useProducts from './hooks/useProducts';
 import useCoupons from './hooks/useCoupons';
 import usePromotions from './hooks/usePromotions';
@@ -310,6 +311,7 @@ const Admin = () => {
                         setSelectedOrders={ordersHook.setSelectedOrders}
                         toggleSelectOrder={ordersHook.toggleSelectOrder}
                         updateOrderStatus={ordersHook.updateOrderStatus}
+                        updatePaymentStatus={ordersHook.updatePaymentStatus}
                         handleBulkDelete={ordersHook.handleBulkDelete}
                         startDate={ordersHook.startDate}
                         setStartDate={ordersHook.setStartDate}

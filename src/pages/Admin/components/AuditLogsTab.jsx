@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, History, ShieldAlert } from 'lucide-react';
-import axios from 'axios';
+import { Search, History, ShieldAlert, RefreshCw, X } from 'lucide-react';
 import { API_BASE_URL } from '../../../services/api';
 
 const AuditLogsTab = () => {
@@ -8,95 +7,133 @@ const AuditLogsTab = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
-    useEffect(() => {
-        const fetchLogs = async () => {
-            try {
-                const token = localStorage.getItem('adminToken');
-                const response = await axios.get(`${API_BASE_URL}/admin/audit-logs`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                setLogs(response.data || []);
-            } catch (error) {
-                console.error('Failed to fetch audit logs', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchLogs = async () => {
+        setLoading(true);
+        try {
+            const token = sessionStorage.getItem('adminToken');
+            const response = await fetch(`${API_BASE_URL}/admin/audit-logs`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (!response.ok) throw new Error('Failed to fetch');
+            const data = await response.json();
+            setLogs(data || []);
+        } catch (error) {
+            console.error('Failed to fetch audit logs', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchLogs();
     }, []);
 
-    const filteredLogs = logs.filter(log => 
-        log.adminUsername.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.details.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredLogs = logs.filter(log => {
+        if (!searchTerm.trim()) return true;
+        const s = searchTerm.toLowerCase();
+        return (
+            (log.adminUsername || '').toLowerCase().includes(s) ||
+            (log.action || '').toLowerCase().includes(s) ||
+            (log.details || '').toLowerCase().includes(s) ||
+            (log.ipAddress || '').toLowerCase().includes(s)
+        );
+    });
+
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleString('en-IN', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const getActionColor = (action) => {
+        const lower = (action || '').toLowerCase();
+        if (lower.includes('delete') || lower.includes('removed')) return '#ef4444';
+        if (lower.includes('update') || lower.includes('edited')) return '#f59e0b';
+        if (lower.includes('create') || lower.includes('added')) return '#22c55e';
+        if (lower.includes('export')) return '#3b82f6';
+        if (lower.includes('login')) return '#8b5cf6';
+        return 'var(--primary)';
+    };
 
     return (
-        <div className="admin-card">
-            <div className="admin-card-header flex justify-between items-center mb-6">
-                <div>
-                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                        <History className="text-primary" /> Audit Logs
-                    </h2>
-                    <p className="text-gray-400 text-sm mt-1">Track admin activity and system changes</p>
-                </div>
-                
-                <div className="search-box">
+        <div className="audit-logs-content">
+            {/* Toolbar */}
+            <div className="audit-toolbar">
+                <div className="audit-search-box">
                     <Search size={18} />
                     <input
                         type="text"
-                        placeholder="Search logs..."
+                        placeholder="Search by admin, action, details, IP..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white"
+                        className="search-input"
                     />
+                    {searchTerm && (
+                        <button
+                            className="clear-search-btn"
+                            onClick={() => setSearchTerm('')}
+                        >
+                            <X size={14} />
+                        </button>
+                    )}
+                </div>
+                <div className="audit-actions">
+                    <span className="filter-count">{filteredLogs.length} logs</span>
+                    <button className="refresh-btn" onClick={fetchLogs} disabled={loading}>
+                        <RefreshCw size={16} className={loading ? 'spinning' : ''} />
+                        Reload
+                    </button>
                 </div>
             </div>
 
+            {/* Content */}
             {loading ? (
-                <div className="text-center py-10 text-gray-400">Loading logs...</div>
+                <div className="audit-loading">
+                    <RefreshCw size={32} className="spinning" />
+                    <p>Loading audit logs...</p>
+                </div>
             ) : filteredLogs.length === 0 ? (
-                <div className="text-center py-10">
-                    <ShieldAlert size={48} className="mx-auto mb-4 opacity-20" />
-                    <p className="text-gray-400">No logs found matching your criteria</p>
+                <div className="audit-empty">
+                    <ShieldAlert size={48} />
+                    <p>No logs found</p>
+                    <span>{searchTerm ? 'Try a different search term' : 'No admin activity recorded yet'}</span>
                 </div>
             ) : (
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="border-b border-white/10 text-gray-400 text-sm">
-                                <th className="pb-3 px-4">Date & Time</th>
-                                <th className="pb-3 px-4">Admin</th>
-                                <th className="pb-3 px-4">Action</th>
-                                <th className="pb-3 px-4">Details</th>
-                                <th className="pb-3 px-4">IP Address</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredLogs.map(log => (
-                                <tr key={log._id} className="border-b border-white/5 hover:bg-white/5 text-sm transition-colors">
-                                    <td className="py-3 px-4 text-gray-300">
-                                        {new Date(log.timestamp).toLocaleString()}
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <span className="bg-primary/20 text-primary px-2 py-1 rounded-md text-xs font-medium">
-                                            {log.adminUsername}
-                                        </span>
-                                    </td>
-                                    <td className="py-3 px-4 font-mono text-gray-300">
+                <div className="audit-logs-list">
+                    {filteredLogs.map((log, index) => (
+                        <div key={log._id || index} className="audit-log-card">
+                            <div className="audit-log-header">
+                                <div className="audit-log-left">
+                                    <span
+                                        className="audit-action-badge"
+                                        style={{
+                                            color: getActionColor(log.action),
+                                            background: `${getActionColor(log.action)}15`
+                                        }}
+                                    >
                                         {log.action}
-                                    </td>
-                                    <td className="py-3 px-4 text-gray-400">
-                                        {log.details}
-                                    </td>
-                                    <td className="py-3 px-4 text-gray-500 font-mono text-xs">
-                                        {log.ipAddress}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                                    </span>
+                                    <span className="audit-admin-badge">
+                                        {log.adminUsername || 'Admin'}
+                                    </span>
+                                </div>
+                                <span className="audit-log-time">{formatDate(log.timestamp)}</span>
+                            </div>
+                            <div className="audit-log-body">
+                                <p className="audit-log-details">{log.details || 'No details'}</p>
+                                {log.ipAddress && (
+                                    <span className="audit-log-ip">IP: {log.ipAddress}</span>
+                                )}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             )}
         </div>

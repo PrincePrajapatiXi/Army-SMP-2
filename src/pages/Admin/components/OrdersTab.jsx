@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
     Package, Filter, Trash2, Calendar, Search, X,
-    CheckCircle, XCircle, AlertCircle, Download
+    CheckCircle, XCircle, AlertCircle, Download, CreditCard, Clock
 } from 'lucide-react';
 import { API_BASE_URL } from '../../../services/api';
 
@@ -14,6 +14,7 @@ const OrdersTab = ({
     setSelectedOrders,
     toggleSelectOrder,
     updateOrderStatus,
+    updatePaymentStatus,
     handleBulkDelete,
     startDate,
     setStartDate,
@@ -43,14 +44,13 @@ const OrdersTab = ({
     const handleExportCSV = () => {
         const token = sessionStorage.getItem('adminToken');
         window.open(`${API_BASE_URL}/admin/orders/export?token=${token}`, '_blank');
-        // Note: passing token in query string might require backend support, 
-        // alternatively use fetch and blob download if auth is strictly via headers.
     };
 
     const getStatusIcon = (status) => {
         switch (status) {
             case 'completed': return <CheckCircle size={16} />;
             case 'cancelled': return <XCircle size={16} />;
+            case 'processing': return <Clock size={16} />;
             default: return <AlertCircle size={16} />;
         }
     };
@@ -98,6 +98,7 @@ const OrdersTab = ({
                     >
                         <option value="all">All Orders</option>
                         <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
                         <option value="completed">Completed</option>
                         <option value="cancelled">Cancelled</option>
                     </select>
@@ -205,15 +206,18 @@ const OrdersTab = ({
                                     <span className="order-date">{formatDate(order.createdAt)}</span>
                                 </div>
                             </div>
-                            <select
-                                value={order.status}
-                                onChange={(e) => updateOrderStatus(order.id || order.orderNumber, e.target.value)}
-                                className={`status-select ${order.status}`}
-                            >
-                                <option value="pending">Pending</option>
-                                <option value="completed">Completed</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
+                            <div className="order-status-controls">
+                                <select
+                                    value={order.status}
+                                    onChange={(e) => updateOrderStatus(order.id || order.orderNumber, e.target.value)}
+                                    className={`status-select ${order.status}`}
+                                >
+                                    <option value="pending">Pending</option>
+                                    <option value="processing">Processing</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div className="order-card-body">
@@ -248,11 +252,27 @@ const OrdersTab = ({
                         </div>
 
                         <div className="order-card-footer">
-                            {order.couponInfo?.couponCode && (
-                                <span className="coupon-info">
-                                    🎁 {order.couponInfo.couponCode} (-₹{order.couponInfo.discount})
-                                </span>
-                            )}
+                            <div className="order-footer-left">
+                                {order.couponInfo?.couponCode && (
+                                    <span className="coupon-info">
+                                        🎁 {order.couponInfo.couponCode} (-₹{order.couponInfo.discount})
+                                    </span>
+                                )}
+                                {/* Payment Status */}
+                                <div className="payment-status-control">
+                                    <CreditCard size={14} />
+                                    <select
+                                        value={order.paymentStatus || 'pending'}
+                                        onChange={(e) => updatePaymentStatus && updatePaymentStatus(order.id || order.orderNumber, e.target.value)}
+                                        className={`payment-select ${order.paymentStatus || 'pending'}`}
+                                    >
+                                        <option value="pending">Payment Pending</option>
+                                        <option value="paid">Paid</option>
+                                        <option value="failed">Failed</option>
+                                        <option value="refunded">Refunded</option>
+                                    </select>
+                                </div>
+                            </div>
                             <span className="order-total-badge">{order.totalDisplay}</span>
                         </div>
                     </div>
@@ -270,4 +290,3 @@ const OrdersTab = ({
 };
 
 export default OrdersTab;
-

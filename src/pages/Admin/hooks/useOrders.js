@@ -59,6 +59,25 @@ const useOrders = () => {
         }
     };
 
+    const updatePaymentStatus = async (orderId, newPaymentStatus) => {
+        // Optimistic update
+        setOrders(prevOrders => prevOrders.map(o =>
+            (o.id === orderId || o.orderNumber === orderId) ? { ...o, paymentStatus: newPaymentStatus } : o
+        ));
+
+        try {
+            await fetch(`${API_BASE_URL}/admin/orders/${orderId}/payment`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ paymentStatus: newPaymentStatus })
+            });
+            fetchOrders();
+        } catch (error) {
+            console.error('Error updating payment status:', error);
+            fetchOrders();
+        }
+    };
+
     const handleBulkDelete = async () => {
         if (selectedOrders.length === 0) return false;
 
@@ -163,6 +182,7 @@ const useOrders = () => {
         loading,
         fetchOrders,
         updateOrderStatus,
+        updatePaymentStatus,
         handleBulkDelete,
         statusFilter,
         setStatusFilter,
