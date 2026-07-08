@@ -12,7 +12,7 @@ const auditLogger = (actionDescription) => {
             // If the response is successful (2xx), log the action
             if (res.statusCode >= 200 && res.statusCode < 300) {
                 // Extract admin info from JWT payload (req.admin is set by verifyAdminToken)
-                const adminUsername = req.admin?.email || 'Unknown Admin';
+                const adminUsername = req.admin?.adminEmail || 'Admin';
                 
                 // Get IP
                 const ipAddress = req.headers['x-forwarded-for']?.split(',')[0] || req.ip || 'unknown';
@@ -25,7 +25,7 @@ const auditLogger = (actionDescription) => {
 
                 AuditLog.create({
                     adminUsername,
-                    action: req.method + ' ' + req.originalUrl,
+                    action: actionDescription,
                     details: details,
                     ipAddress
                 }).catch(err => console.error('Audit Log Error:', err));

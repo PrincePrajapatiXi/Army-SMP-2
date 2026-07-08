@@ -63,6 +63,7 @@ const requireAdminAuth = (req, res, next) => {
         }
 
         req.isAdmin = true;
+        req.admin = decoded;
         next();
     } catch (error) {
         console.error('Admin auth middleware error:', error);
