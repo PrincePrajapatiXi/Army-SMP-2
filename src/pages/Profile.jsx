@@ -59,7 +59,7 @@ const Profile = () => {
                     .map(b => ({
                         badge: b.badge,
                         assignedAt: b.assignedAt,
-                        id: b.badge._id || b.badge
+                        id: b.badge._id || b.badge.id || b.badge.name || String(Math.random())
                     }));
                 setUserBadges(validBadges);
             }
