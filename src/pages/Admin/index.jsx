@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     LogOut, Package, TrendingUp, Box, Ticket, Megaphone,
-    RefreshCw, BarChart3, Users, Star, Award, ShieldAlert
+    RefreshCw, BarChart3, Users, Star, Award, ShieldAlert, History
 } from 'lucide-react';
 import './Admin.css';
 
