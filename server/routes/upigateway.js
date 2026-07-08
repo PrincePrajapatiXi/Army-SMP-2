@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const fetch = require('node-fetch'); // Ensure node-fetch is available or use axios/native fetch
 const Order = require('../models/Order');
 
 // Route to create a UPIGateway order and get the payment URL
