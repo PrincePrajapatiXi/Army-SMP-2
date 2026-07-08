@@ -292,15 +292,15 @@ const Admin = () => {
                 </header>
 
                 {/* Dashboard Tab */}
-                {activeTab === 'dashboard' && (
+                <div style={{ display: activeTab === 'dashboard' ? 'block' : 'none' }}>
                     <Dashboard
                         orders={ordersHook.orders}
                         analytics={ordersHook.getAnalytics()}
                     />
-                )}
+                </div>
 
                 {/* Orders Tab */}
-                {activeTab === 'orders' && (
+                <div style={{ display: activeTab === 'orders' ? 'block' : 'none' }}>
                     <OrdersTab
                         orders={ordersHook.orders}
                         filteredOrders={ordersHook.getFilteredOrders()}
@@ -319,10 +319,10 @@ const Admin = () => {
                         orderSearch={ordersHook.orderSearch}
                         setOrderSearch={ordersHook.setOrderSearch}
                     />
-                )}
+                </div>
 
                 {/* Products Tab */}
-                {activeTab === 'products' && (
+                <div style={{ display: activeTab === 'products' ? 'block' : 'none' }}>
                     <ProductsTab
                         products={productsHook.products}
                         loading={productsHook.loading}
@@ -338,10 +338,10 @@ const Admin = () => {
                         handleDelete={productsHook.handleDelete}
                         closeModal={productsHook.closeModal}
                     />
-                )}
+                </div>
 
                 {/* Featured Ranks Tab */}
-                {activeTab === 'featured' && (
+                <div style={{ display: activeTab === 'featured' ? 'block' : 'none' }}>
                     <FeaturedRanksTab
                         products={productsHook.products}
                         loading={productsHook.loading}
@@ -352,10 +352,10 @@ const Admin = () => {
                         updateFeaturedStatus={productsHook.updateFeaturedStatus}
                         updateDisplayOrder={productsHook.updateDisplayOrder}
                     />
-                )}
+                </div>
 
                 {/* Coupons Tab */}
-                {activeTab === 'coupons' && (
+                <div style={{ display: activeTab === 'coupons' ? 'block' : 'none' }}>
                     <CouponsTab
                         coupons={couponsHook.coupons}
                         loading={couponsHook.loading}
@@ -372,10 +372,10 @@ const Admin = () => {
                         toggleActive={couponsHook.toggleActive}
                         closeModal={couponsHook.closeModal}
                     />
-                )}
+                </div>
 
                 {/* Promotions Tab */}
-                {activeTab === 'promotions' && (
+                <div style={{ display: activeTab === 'promotions' ? 'block' : 'none' }}>
                     <PromotionsTab
                         promotions={promotionsHook.promotions}
                         loading={promotionsHook.loading}
@@ -392,10 +392,10 @@ const Admin = () => {
                         toggleActive={promotionsHook.toggleActive}
                         closeModal={promotionsHook.closeModal}
                     />
-                )}
+                </div>
 
                 {/* Users Tab */}
-                {activeTab === 'users' && (
+                <div style={{ display: activeTab === 'users' ? 'block' : 'none' }}>
                     <UsersTab
                         users={usersHook.users}
                         filteredUsers={usersHook.getFilteredUsers()}
@@ -406,22 +406,22 @@ const Admin = () => {
                         sendPasswordReset={usersHook.sendPasswordReset}
                         refreshUsers={usersHook.fetchUsers}
                     />
-                )}
+                </div>
 
                 {/* Badges Tab */}
-                {activeTab === 'badges' && (
+                <div style={{ display: activeTab === 'badges' ? 'block' : 'none' }}>
                     <BadgesTab />
-                )}
+                </div>
 
                 {/* Firewall Tab */}
-                {activeTab === 'firewall' && (
+                <div style={{ display: activeTab === 'firewall' ? 'block' : 'none' }}>
                     <FirewallPanel />
-                )}
+                </div>
 
                 {/* Audit Logs Tab */}
-                {activeTab === 'audit-logs' && (
+                <div style={{ display: activeTab === 'audit-logs' ? 'block' : 'none' }}>
                     <AuditLogsTab />
-                )}
+                </div>
             </main>
         </div>
     );
