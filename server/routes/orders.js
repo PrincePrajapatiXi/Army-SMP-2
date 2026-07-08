@@ -35,11 +35,11 @@ router.post('/create', optionalAuth, async (req, res) => {
         if (transactionId && !cashfreePaymentId) {
             const trimmedUTR = transactionId.trim();
 
-            // Format validation: UTR should be 12-22 alphanumeric characters
-            const utrRegex = /^[a-zA-Z0-9]{12,22}$/;
+            // Format validation: UTR must be exactly 12 numeric digits for UPI.
+            const utrRegex = /^\d{12}$/;
             if (!utrRegex.test(trimmedUTR)) {
                 return res.status(400).json({
-                    error: 'Invalid UTR format. UTR should be 12-22 alphanumeric characters.',
+                    error: 'Invalid UTR format. A valid UPI UTR must be exactly 12 digits long (e.g. 312345678901).',
                     field: 'transactionId'
                 });
             }

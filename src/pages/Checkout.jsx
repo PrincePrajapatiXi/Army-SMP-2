@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { ordersApi, paymentApi, API_BASE_URL } from '../services/api';
 import { validateCoupon as validateCouponLocal } from '../data/coupons';
+import { QRCodeSVG } from 'qrcode.react';
 import Confetti from '../components/features/Confetti';
 import './Checkout.css';
 
@@ -22,7 +23,8 @@ const Checkout = () => {
     const [orderSuccess, setOrderSuccess] = useState(null);
 
     // Payment step state
-    const [orderDetails, setOrderDetails] = useState(null);
+    const [showQR, setShowQR] = useState(false);
+    const [transactionId, setTransactionId] = useState('');
 
     // Coupon state
     const [couponCode, setCouponCode] = useState('');
@@ -41,47 +43,25 @@ const Checkout = () => {
         }
     }, [user]);
 
-    // Handle Cashfree return URL (after payment redirect)
+    // Handle return URL after UPIGateway payment
     useEffect(() => {
         const returnOrderId = searchParams.get('order_id');
         if (returnOrderId) {
-            handlePaymentReturn(returnOrderId);
-        }
-    }, [searchParams]);
-
-    const handlePaymentReturn = async (cashfreeOrderId) => {
-        setLoading(true);
-        setError(null);
-        try {
-            // Verify payment with our backend
-            const verifyRes = await paymentApi.verifyPayment(cashfreeOrderId);
-            
-            if (verifyRes.success && verifyRes.verified) {
-                // Payment verified — retrieve stored order data from localStorage
-                const pendingOrder = JSON.parse(localStorage.getItem('pendingOrderData') || '{}');
-                
-                if (pendingOrder.minecraftUsername) {
-                    await handleCompleteOrder({
-                        cashfreePaymentId: verifyRes.paymentId,
-                        cashfreeOrderId: cashfreeOrderId,
-                        paymentStatus: verifyRes.paymentStatus,
-                        paymentMethod: verifyRes.paymentMethod
-                    }, pendingOrder);
-                } else {
-                    setError('Payment verified but order data was lost. Please contact support with Order ID: ' + cashfreeOrderId);
+            const pendingSuccessData = localStorage.getItem('pendingOrderSuccess');
+            if (pendingSuccessData) {
+                try {
+                    const orderData = JSON.parse(pendingSuccessData);
+                    setOrderSuccess(orderData);
+                    clearCart();
+                    localStorage.removeItem('pendingOrderSuccess');
+                } catch (e) {
+                    console.error('Failed to parse pending order data', e);
                 }
-            } else {
-                setError('Payment was not successful. Status: ' + (verifyRes.paymentStatus || 'Unknown'));
             }
-        } catch (err) {
-            console.error('Payment return verification error:', err);
-            setError('Failed to verify payment. Please contact support.');
-        } finally {
-            setLoading(false);
-            // Clean up URL params
             window.history.replaceState({}, '', '/checkout');
         }
-    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams]);
 
     // Fetch active coupons on mount
     useEffect(() => {
@@ -228,22 +208,7 @@ const Checkout = () => {
         setCouponError('');
     };
 
-    // Load Cashfree JS SDK
-    const loadCashfreeSDK = () => {
-        return new Promise((resolve) => {
-            if (window.Cashfree) {
-                resolve(true);
-                return;
-            }
-            const script = document.createElement('script');
-            script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
-            script.onload = () => resolve(true);
-            script.onerror = () => resolve(false);
-            document.body.appendChild(script);
-        });
-    };
-
-    // Proceed to payment step
+    // Proceed to payment step (Create Order & Redirect to UPIGateway)
     const handleProceedToPayment = async (e) => {
         e.preventDefault();
 
@@ -263,7 +228,7 @@ const Checkout = () => {
         // Bypass payment gateway completely if order is 100% discounted / free
         if (finalTotal <= 0) {
             await handleCompleteOrder({
-                cashfreePaymentId: `FREE_${Date.now()}`,
+                cashfreePaymentId: null,
                 cashfreeOrderId: `FREE_ORDER_${Date.now()}`,
                 paymentStatus: 'SUCCESS',
                 paymentMethod: 'Free / 100% Coupon'
@@ -272,76 +237,91 @@ const Checkout = () => {
         }
 
         try {
-            // Load Cashfree SDK
-            const isScriptLoaded = await loadCashfreeSDK();
-            if (!isScriptLoaded) {
-                setError('Payment SDK failed to load. Are you online?');
-                setLoading(false);
-                return;
-            }
-
-            // Create Order on Backend (Cashfree)
-            const paymentRes = await paymentApi.createOrder(
-                finalTotal,
-                email,
-                minecraftUsername
-            );
-            
-            if (!paymentRes || !paymentRes.paymentSessionId) {
-                setError('Failed to initialize payment order. Please try again.');
-                setLoading(false);
-                return;
-            }
-
-            // Save order data to sessionStorage before redirect
-            const pendingOrderData = {
+            // 1. Create a Pending Order first so we have an ID to pass to UPIGateway
+            const orderData = {
                 minecraftUsername,
                 email,
                 platform,
                 isGift,
                 giftUsername,
-                cartItems: cartItems.map(item => ({
-                    id: item.id,
-                    name: item.name,
-                    price: typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.-]+/g, '')),
-                    quantity: item.quantity,
-                    subtotal: (typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.-]+/g, ''))) * item.quantity
-                })),
+                cartItems,
                 couponInfo: {
                     couponCode: appliedCoupon?.coupon?.code || null,
                     discount: discountAmount,
                     subtotal: subtotal,
                     finalTotal: finalTotal
-                },
-                cashfreeOrderId: paymentRes.orderId
-            };
-            localStorage.setItem('pendingOrderData', JSON.stringify(pendingOrderData));
-
-            // Initialize Cashfree checkout
-            const cashfreeMode = import.meta.env.VITE_CASHFREE_ENV || 'production';
-            const cashfree = window.Cashfree({ mode: cashfreeMode });
-
-            const checkoutOptions = {
-                paymentSessionId: paymentRes.paymentSessionId,
-                redirectTarget: '_self'  // Redirect in same window
+                }
             };
 
-            // Open Cashfree checkout
-            const result = await cashfree.checkout(checkoutOptions);
+            const orderItems = (orderData.cartItems || cartItems).map(item => ({
+                id: item.id,
+                name: item.name,
+                price: typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.-]+/g, '')),
+                quantity: item.quantity,
+                subtotal: (typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.-]+/g, ''))) * item.quantity
+            }));
 
-            if (result.error) {
-                console.error('Cashfree checkout error:', result.error);
-                setError('Payment failed: ' + (result.error.message || 'Unknown error'));
-                setLoading(false);
+            // Pass payment details to the order API (as pending)
+            const paymentDetails = {
+                cashfreePaymentId: null,
+                cashfreeOrderId: null,
+                paymentStatus: 'pending',
+                paymentMethod: 'UPIGateway',
+                transactionId: null
+            };
+
+            const createOrderResult = await ordersApi.create(
+                orderData.minecraftUsername,
+                orderData.email,
+                orderItems,
+                orderData.platform,
+                orderData.couponInfo,
+                null, // No UTR yet
+                paymentDetails,
+                orderData.isGift,
+                orderData.giftUsername
+            );
+
+            if (!createOrderResult || !createOrderResult.order) {
+                throw new Error("Failed to create order in database.");
             }
-            // If result.redirect — user will be redirected to Cashfree page
-            // After payment, user comes back to return_url with order_id
+
+            const orderId = createOrderResult.order.id;
+
+            // 2. Call our backend to get UPIGateway URL
+            const response = await fetch(`${API_BASE_URL}/payment/upigateway/create`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: orderId,
+                    amount: finalTotal,
+                    customerName: minecraftUsername,
+                    customerEmail: email
+                })
+            });
+
+            const paymentData = await response.json();
+
+            if (paymentData.success && paymentData.payment_url) {
+                // Save essential success info to localStorage to recover on return
+                localStorage.setItem('pendingOrderSuccess', JSON.stringify(createOrderResult.order));
+                
+                // Redirect to UPIGateway Checkout
+                window.location.href = paymentData.payment_url;
+            } else {
+                throw new Error(paymentData.error || "Failed to initialize UPIGateway.");
+            }
 
         } catch (err) {
             console.error('Payment initialization error:', err);
             setError('An error occurred during payment initialization: ' + (err.message || ''));
             setLoading(false);
         }
+    };
+
+    const handleCompletePayment = async (e) => {
+        // Not used anymore with UPIGateway redirect
+        e.preventDefault();
     };
 
     // Complete order after Cashfree payment verification
@@ -374,12 +354,13 @@ const Checkout = () => {
                 subtotal: (typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.-]+/g, ''))) * item.quantity
             }));
 
-            // Pass Cashfree details to the order API
-            const cashfreeDetails = {
-                cashfreePaymentId: cashfreeResponse.cashfreePaymentId,
-                cashfreeOrderId: cashfreeResponse.cashfreeOrderId,
+            // Pass payment details to the order API
+            const paymentDetails = {
+                cashfreePaymentId: null,
+                cashfreeOrderId: null,
                 paymentStatus: cashfreeResponse.paymentStatus,
-                paymentMethod: cashfreeResponse.paymentMethod
+                paymentMethod: cashfreeResponse.paymentMethod,
+                transactionId: transactionId
             };
 
             const result = await ordersApi.create(
@@ -393,8 +374,8 @@ const Checkout = () => {
                     subtotal: subtotal,
                     finalTotal: finalTotal
                 },
-                null,
-                cashfreeDetails,
+                transactionId, // UTR
+                paymentDetails,
                 orderData.isGift,
                 orderData.giftUsername
             );
@@ -410,7 +391,7 @@ const Checkout = () => {
                 subtotal: orderSubtotal,
                 total: orderFinalTotal,
                 totalDisplay: `₹${orderFinalTotal.toFixed(2)}`,
-                transactionId: cashfreeResponse.cashfreePaymentId
+                transactionId: transactionId || 'FREE_ORDER'
             });
             await clearCart();
             // Clean up pending order data
@@ -697,129 +678,194 @@ const Checkout = () => {
                         </div>
                     </div>
 
-                    {/* Checkout Form */}
-                    <form onSubmit={handleProceedToPayment} className="checkout-form">
-                        <h2>Delivery Information</h2>
+                    {/* Conditional Rendering: Delivery Form vs QR Payment */}
+                    {!showQR ? (
+                        <form onSubmit={handleProceedToPayment} className="checkout-form">
+                            <h2>Delivery Information</h2>
 
-                        {error && (
-                            <div className="error-message">
-                                {error}
-                            </div>
-                        )}
+                            {error && (
+                                <div className="error-message">
+                                    {error}
+                                </div>
+                            )}
 
-                        <div className="form-group">
-                            <label htmlFor="minecraft-username">
-                                Minecraft Username <span className="required">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                id="minecraft-username"
-                                value={minecraftUsername}
-                                onChange={(e) => setMinecraftUsername(e.target.value)}
-                                placeholder="Enter your Minecraft username"
-                                disabled={loading}
-                                required
-                            />
-                            {!isGift && <small>Items will be delivered to this account</small>}
-                        </div>
-
-                        <div className="form-group gift-toggle" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '8px' }}>
-                            <input 
-                                type="checkbox" 
-                                id="is-gift" 
-                                checked={isGift} 
-                                onChange={(e) => setIsGift(e.target.checked)} 
-                                style={{ width: 'auto', marginBottom: 0 }}
-                                disabled={loading}
-                            />
-                            <label htmlFor="is-gift" style={{ marginBottom: 0, display: 'inline-block' }}>
-                                This order is a gift for someone else 🎁
-                            </label>
-                        </div>
-
-                        {isGift && (
-                            <div className="form-group" style={{ animation: 'fadeDown 0.3s ease-out' }}>
-                                <label htmlFor="gift-username">
-                                    Recipient's Minecraft Username <span className="required">*</span>
+                            <div className="form-group">
+                                <label htmlFor="minecraft-username">
+                                    Minecraft Username <span className="required">*</span>
                                 </label>
                                 <input
                                     type="text"
-                                    id="gift-username"
-                                    value={giftUsername}
-                                    onChange={(e) => setGiftUsername(e.target.value)}
-                                    placeholder="Who is receiving this gift?"
+                                    id="minecraft-username"
+                                    value={minecraftUsername}
+                                    onChange={(e) => setMinecraftUsername(e.target.value)}
+                                    placeholder="Enter your Minecraft username"
                                     disabled={loading}
-                                    required={isGift}
-                                    style={{ border: '1px solid var(--primary-light)' }}
+                                    required
                                 />
-                                <small style={{ color: 'var(--primary-light)' }}>Items will be delivered to THIS account instead.</small>
+                                {!isGift && <small>Items will be delivered to this account</small>}
                             </div>
-                        )}
 
-                        <div className="form-group">
-                            <label htmlFor="email">
-                                Email <span className="required">*</span>
-                            </label>
-                            <input
-                                type="email"
-                                id="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="Enter your email address"
-                                disabled={loading}
-                                required
-                            />
-                            <small>We'll send order updates to this email</small>
-                        </div>
+                            <div className="form-group gift-toggle" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '8px' }}>
+                                <input 
+                                    type="checkbox" 
+                                    id="is-gift" 
+                                    checked={isGift} 
+                                    onChange={(e) => setIsGift(e.target.checked)} 
+                                    style={{ width: 'auto', marginBottom: 0 }}
+                                    disabled={loading}
+                                />
+                                <label htmlFor="is-gift" style={{ marginBottom: 0, display: 'inline-block' }}>
+                                    This order is a gift for someone else 🎁
+                                </label>
+                            </div>
 
-                        <div className="form-group">
-                            <label htmlFor="platform">
-                                Platform <span className="required">*</span>
-                            </label>
-                            <select
-                                id="platform"
-                                value={platform}
-                                onChange={(e) => setPlatform(e.target.value)}
-                                disabled={loading}
-                                required
-                                className="platform-select"
-                            >
-                                <option value="">Select your platform</option>
-                                <option value="Java">☕ Java Edition</option>
-                                <option value="Bedrock">🪨 Bedrock Edition</option>
-                            </select>
-                            <small>Choose the Minecraft edition you play on</small>
-                        </div>
-
-                        <button
-                            type="submit"
-                            className="btn btn-primary checkout-btn"
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 size={20} className="spinner" />
-                                    Processing...
-                                </>
-                            ) : finalTotal <= 0 ? (
-                                <>
-                                    <Check size={20} />
-                                    Complete Free Order
-                                </>
-                            ) : (
-                                <>
-                                    <CreditCard size={20} />
-                                    Pay ₹{finalTotal.toFixed(2)} with Cashfree
-                                </>
+                            {isGift && (
+                                <div className="form-group" style={{ animation: 'fadeDown 0.3s ease-out' }}>
+                                    <label htmlFor="gift-username">
+                                        Recipient's Minecraft Username <span className="required">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="gift-username"
+                                        value={giftUsername}
+                                        onChange={(e) => setGiftUsername(e.target.value)}
+                                        placeholder="Who is receiving this gift?"
+                                        disabled={loading}
+                                        required={isGift}
+                                        style={{ border: '1px solid var(--primary-light)' }}
+                                    />
+                                    <small style={{ color: 'var(--primary-light)' }}>Items will be delivered to THIS account instead.</small>
+                                </div>
                             )}
-                        </button>
 
-                        <p className="payment-note">
-                            {finalTotal <= 0 
-                                ? "100% discount applied. No payment required." 
-                                : "Pay safely via UPI, Netbanking, or Cards with Cashfree."}
-                        </p>
-                    </form>
+                            <div className="form-group">
+                                <label htmlFor="email">
+                                    Email <span className="required">*</span>
+                                </label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="Enter your email address"
+                                    disabled={loading}
+                                    required
+                                />
+                                <small>We'll send order updates to this email</small>
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="platform">
+                                    Platform <span className="required">*</span>
+                                </label>
+                                <select
+                                    id="platform"
+                                    value={platform}
+                                    onChange={(e) => setPlatform(e.target.value)}
+                                    disabled={loading}
+                                    required
+                                    className="platform-select"
+                                >
+                                    <option value="">Select your platform</option>
+                                    <option value="Java">☕ Java Edition</option>
+                                    <option value="Bedrock">🪨 Bedrock Edition</option>
+                                </select>
+                                <small>Choose the Minecraft edition you play on</small>
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="btn btn-primary checkout-btn"
+                                disabled={loading}
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 size={20} className="spinner" />
+                                        Processing...
+                                    </>
+                                ) : finalTotal <= 0 ? (
+                                    <>
+                                        <Check size={20} />
+                                        Complete Free Order
+                                    </>
+                                ) : (
+                                    <>
+                                        <CreditCard size={20} />
+                                        Proceed to Payment (₹{finalTotal.toFixed(2)})
+                                    </>
+                                )}
+                            </button>
+
+                            <p className="payment-note">
+                                {finalTotal <= 0 
+                                    ? "100% discount applied. No payment required." 
+                                    : "Scan QR to pay securely via UPI."}
+                            </p>
+                        </form>
+                    ) : (
+                        <div className="checkout-form payment-qr-section">
+                            <h2>Scan & Pay via UPI</h2>
+                            <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>
+                                Please scan the QR code below using any UPI app (GPay, PhonePe, Paytm, etc.) to complete your payment of <strong style={{ color: 'var(--primary)' }}>₹{finalTotal.toFixed(2)}</strong>.
+                            </p>
+
+                            {error && (
+                                <div className="error-message">
+                                    {error}
+                                </div>
+                            )}
+
+                            <div style={{ background: 'white', padding: '20px', borderRadius: '12px', display: 'inline-block', margin: '0 auto 20px', border: '4px solid var(--primary)' }}>
+                                <QRCodeSVG 
+                                    value={`upi://pay?pa=${import.meta.env.VITE_UPI_ID || 'your_upi_id@okicici'}&pn=Army%20SMP&am=${finalTotal.toFixed(2)}&cu=INR`} 
+                                    size={200}
+                                    level={"H"}
+                                />
+                            </div>
+
+                            <div className="transaction-input-section">
+                                <label htmlFor="transactionId">Enter UTR / Transaction ID <span className="required">*</span></label>
+                                <input
+                                    type="text"
+                                    id="transactionId"
+                                    value={transactionId}
+                                    onChange={(e) => setTransactionId(e.target.value)}
+                                    placeholder="e.g. 312345678901"
+                                    disabled={loading}
+                                    maxLength={22}
+                                />
+                                <small>After paying, enter the 12-digit UTR reference number from your payment app.</small>
+                            </div>
+
+                            <button
+                                onClick={handleCompletePayment}
+                                className="btn btn-primary complete-payment-btn"
+                                disabled={loading || transactionId.trim().length < 12}
+                                style={{ marginTop: '20px', width: '100%', padding: '16px' }}
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 size={20} className="spinner" />
+                                        Verifying...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Check size={20} />
+                                        I have Paid & Entered UTR
+                                    </>
+                                )}
+                            </button>
+                            
+                            <button
+                                onClick={() => setShowQR(false)}
+                                className="btn btn-outline"
+                                disabled={loading}
+                                style={{ marginTop: '10px', width: '100%', padding: '16px', background: 'transparent' }}
+                            >
+                                Back to Details
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
