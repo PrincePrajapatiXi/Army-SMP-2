@@ -244,7 +244,9 @@
     width: 100%;
     max-width: 480px;
     max-height: 90vh;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -254,6 +256,7 @@
     align-items: center;
     padding: 1.25rem 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
 }
 
 .modal-header h3 {
@@ -275,6 +278,8 @@
 
 .modal-body {
     padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
 }
 
 .form-group {
