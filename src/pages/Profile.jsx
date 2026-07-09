@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useNavigate } from 'react-router-dom';
 import {
-    User, Mail, AtSign, Lock, Save, X, Edit2, LogOut,
+    User, Mail, AtSign, Lock, Save, X, Edit2, LogOut, Phone,
     AlertCircle, CheckCircle, Eye, EyeOff, Shield, Calendar, Gamepad2, KeyRound, Camera, Loader
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -14,8 +14,14 @@ const Profile = () => {
     const navigate = useNavigate();
     const { user, isAuthenticated, isLoading: authLoading, updateProfile, changePassword, logout } = useAuth();
 
+    const avatarInputRef = useRef(null);
+
     const [isEditing, setIsEditing] = useState(false);
     const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [isSettingPassword, setIsSettingPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [avatarUploading, setAvatarUploading] = useState(false);
+
     const [formData, setFormData] = useState({
         minecraftUsername: '',
         phone: ''
@@ -32,10 +38,7 @@ const Profile = () => {
     });
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
-    const [isSettingPassword, setIsSettingPassword] = useState(false);
-    const [avatarUploading, setAvatarUploading] = useState(false);
-    const avatarInputRef = useRef(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
@@ -83,6 +86,8 @@ const Profile = () => {
         try {
             const badgeIds = newBadges.map(b => b.id);
             await userApi.reorderBadges(badgeIds);
+            setSuccess('Badge layout saved successfully!');
+            setTimeout(() => setSuccess(''), 2000);
         } catch (error) {
             console.error("Failed to save badge order", error);
             setError("Failed to save new badge layout.");
@@ -249,10 +254,9 @@ const Profile = () => {
             );
 
             if (result.success) {
-                setSuccess('Password set successfully! You can now login with email/password or Google.');
+                setSuccess('Password set successfully!');
                 setIsSettingPassword(false);
                 setSetPasswordFormData({ newPassword: '', confirmPassword: '' });
-                // Refresh user data
                 window.location.reload();
             } else {
                 setError(result.message || 'Failed to set password');
@@ -262,12 +266,6 @@ const Profile = () => {
         } finally {
             setIsLoading(false);
         }
-    };
-
-    const cancelSetPassword = () => {
-        setIsSettingPassword(false);
-        setSetPasswordFormData({ newPassword: '', confirmPassword: '' });
-        setError('');
     };
 
     if (authLoading || !user) {
@@ -326,24 +324,22 @@ const Profile = () => {
                             <div className="status-badges">
                                 {user.isEmailVerified ? (
                                     <span className="badge verified" title="Email Verified">
-                                        <Shield size={12} />
-                                        Verified
+                                        <Shield size={12} /> Verified
                                     </span>
                                 ) : (
                                     <span className="badge unverified" title="Email Not Verified">
-                                        <AlertCircle size={12} />
-                                        Unverified
+                                        <AlertCircle size={12} /> Unverified
                                     </span>
                                 )}
                                 <span className="badge provider">
                                     {user.authProvider === 'google' ? 'Google' :
-                                        user.authProvider === 'facebook' ? 'Facebook' :
-                                            user.authProvider === 'discord' ? 'Discord' : 'Email'}
+                                     user.authProvider === 'facebook' ? 'Facebook' :
+                                     user.authProvider === 'discord' ? 'Discord' : 'Email'}
                                 </span>
                             </div>
                         </div>
 
-                        {/* Custom Rank Badges Section */}
+                        {/* Rank Badges Section - Custom Support for Responsive Grid Wraps */}
                         {userBadges && userBadges.length > 0 && (
                             <div className="rank-badges-section">
                                 <div className="badges-section-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: '12px' }}>
@@ -357,6 +353,12 @@ const Profile = () => {
                                                 className="badges-grid-display"
                                                 {...provided.droppableProps}
                                                 ref={provided.innerRef}
+                                                style={{
+                                                    display: 'flex',
+                                                    flexWrap: 'wrap',
+                                                    gap: '10px',
+                                                    width: '100%'
+                                                }}
                                             >
                                                 {userBadges.map((badgeObj, index) => (
                                                     <Draggable 
@@ -365,32 +367,34 @@ const Profile = () => {
                                                         index={index}
                                                     >
                                                         {(provided, snapshot) => (
-                                                            <div 
+                                                            <motion.div 
+                                                                layout
+                                                                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                                                                 ref={provided.innerRef}
                                                                 {...provided.draggableProps}
                                                                 {...provided.dragHandleProps}
                                                                 className="badge-wrapper-container"
                                                                 style={{ 
                                                                     ...provided.draggableProps.style,
-                                                                    cursor: 'grab',
-                                                                    transform: snapshot.isDragging 
-                                                                        ? `${provided.draggableProps.style?.transform || ''} scale(1.05)` 
-                                                                        : provided.draggableProps.style?.transform,
-                                                                    boxShadow: snapshot.isDragging ? '0 10px 20px rgba(0,0,0,0.3)' : 'none',
-                                                                    zIndex: snapshot.isDragging ? 100 : 1
+                                                                    userSelect: 'none',
+                                                                    position: 'relative'
                                                                 }}
                                                             >
                                                                 <div
                                                                     className={`rank-badge-item rarity-${badgeObj.badge.rarity || 'common'}`}
                                                                     style={{
-                                                                        '--badge-color': badgeObj.badge.color || '#f97316'
+                                                                        '--badge-color': badgeObj.badge.color || '#f97316',
+                                                                        transform: snapshot.isDragging ? 'scale(1.05)' : 'scale(1)',
+                                                                        boxShadow: snapshot.isDragging ? '0 10px 25px rgba(0,0,0,0.5)' : 'none',
+                                                                        transition: 'transform 0.1s ease',
+                                                                        pointerEvents: 'none' // Eliminates pixel alignment cursor offset jitter
                                                                     }}
                                                                 >
                                                                     {badgeObj.badge.image && <img src={badgeObj.badge.image} alt="" draggable="false" />}
                                                                     <span>{badgeObj.badge.name}</span>
                                                                 </div>
 
-                                                                {/* Styled Tooltip */}
+                                                                {/* Hide tooltip while item is active */}
                                                                 {!snapshot.isDragging && (
                                                                     <div className="badge-tooltip" style={{ pointerEvents: 'none' }}>
                                                                         <div className="badge-tooltip-header">
@@ -408,15 +412,13 @@ const Profile = () => {
                                                                         {badgeObj.assignedAt && (
                                                                             <div className="tooltip-date">
                                                                                 Earned {new Date(badgeObj.assignedAt).toLocaleDateString('en-IN', {
-                                                                                    day: 'numeric',
-                                                                                    month: 'short',
-                                                                                    year: 'numeric'
+                                                                                    day: 'numeric', month: 'short', year: 'numeric'
                                                                                 })}
                                                                             </div>
                                                                         )}
                                                                     </div>
                                                                 )}
-                                                            </div>
+                                                            </motion.div>
                                                         )}
                                                     </Draggable>
                                                 ))}
@@ -432,24 +434,14 @@ const Profile = () => {
 
                 <AnimatePresence>
                     {error && (
-                        <motion.div 
-                            initial={{ opacity: 0, y: -10 }} 
-                            animate={{ opacity: 1, y: 0 }} 
-                            exit={{ opacity: 0 }} 
-                            className="profile-alert error"
-                        >
+                        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="profile-alert error">
                             <AlertCircle size={18} />
                             <span>{error}</span>
                         </motion.div>
                     )}
 
                     {success && (
-                        <motion.div 
-                            initial={{ opacity: 0, y: -10 }} 
-                            animate={{ opacity: 1, y: 0 }} 
-                            exit={{ opacity: 0 }} 
-                            className="profile-alert success"
-                        >
+                        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="profile-alert success">
                             <CheckCircle size={18} />
                             <span>{success}</span>
                         </motion.div>
@@ -458,24 +450,18 @@ const Profile = () => {
 
                 <div className="profile-section">
                     <div className="section-header">
-                        <h2>
-                            <User size={20} />
-                            Profile Information
-                        </h2>
+                        <h2><User size={20} /> Profile Information</h2>
                         {!isEditing ? (
                             <button className="edit-btn" onClick={() => setIsEditing(true)}>
-                                <Edit2 size={16} />
-                                Edit
+                                <Edit2 size={16} /> Edit
                             </button>
                         ) : (
                             <div className="edit-actions">
                                 <button className="cancel-btn" onClick={cancelEdit} disabled={isLoading}>
-                                    <X size={16} />
-                                    Cancel
+                                    <X size={16} /> Cancel
                                 </button>
                                 <button className="save-btn" onClick={handleSaveProfile} disabled={isLoading}>
-                                    {isLoading ? <span className="spinner"></span> : <Save size={16} />}
-                                    Save
+                                    {isLoading ? <span className="spinner"></span> : <Save size={16} />} Save
                                 </button>
                             </div>
                         )}
@@ -483,25 +469,17 @@ const Profile = () => {
 
                     <div className="profile-fields">
                         <div className="field">
-                            <label>
-                                <Mail size={16} />
-                                Email
-                            </label>
+                            <label><Mail size={16} /> Email</label>
                             <span className="non-editable">
                                 {user.email}
                                 {!user.isEmailVerified && (
-                                    <button className="verify-link" onClick={() => navigate('/verify-email')}>
-                                        Verify
-                                    </button>
+                                    <button className="verify-link" onClick={() => navigate('/verify-email')}>Verify</button>
                                 )}
                             </span>
                         </div>
 
                         <div className="field">
-                            <label>
-                                <Gamepad2 size={16} />
-                                Minecraft Username
-                            </label>
+                            <label><Gamepad2 size={16} /> Minecraft Username</label>
                             {isEditing ? (
                                 <input
                                     type="text"
@@ -517,39 +495,43 @@ const Profile = () => {
                         </div>
 
                         <div className="field">
-                            <label>
-                                <Calendar size={16} />
-                                Member Since
-                            </label>
+                            <label><Phone size={16} /> Phone Number</label>
+                            {isEditing ? (
+                                <input
+                                    type="text"
+                                    name="phone"
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                    placeholder="Your contact number"
+                                    disabled={isLoading}
+                                />
+                            ) : (
+                                <span>{user.phone || 'Not set'}</span>
+                            )}
+                        </div>
+
+                        <div className="field">
+                            <label><Calendar size={16} /> Member Since</label>
                             <span>{new Date(user.createdAt).toLocaleDateString('en-IN', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
+                                year: 'numeric', month: 'long', day: 'numeric'
                             })}</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Security Section - Show for all users */}
                 <div className="profile-section">
                     <div className="section-header">
-                        <h2>
-                            <Lock size={20} />
-                            Security
-                        </h2>
+                        <h2><Lock size={20} /> Security</h2>
                     </div>
 
-                    {/* For OAuth users without password - show Set Password */}
                     {user.authProvider !== 'local' && (
                         <>
                             <p className="oauth-info" style={{ color: '#9ca3af', marginBottom: '1rem', fontSize: '0.9rem' }}>
-                                You're signed in with {user.authProvider === 'google' ? 'Google' : user.authProvider}.
-                                Set a password to also enable email/password login.
+                                You're signed in with {user.authProvider === 'google' ? 'Google' : user.authProvider}. Set a password to also enable email/password login.
                             </p>
                             {!isSettingPassword ? (
                                 <button className="change-password-btn" onClick={() => setIsSettingPassword(true)}>
-                                    <KeyRound size={16} />
-                                    Set Password
+                                    <KeyRound size={16} /> Set Password
                                 </button>
                             ) : (
                                 <div className="password-form">
@@ -564,11 +546,7 @@ const Profile = () => {
                                                 placeholder="Enter at least 6 characters"
                                                 disabled={isLoading}
                                             />
-                                            <button
-                                                type="button"
-                                                className="toggle-password"
-                                                onClick={() => setShowNewPassword(!showNewPassword)}
-                                            >
+                                            <button type="button" className="toggle-password" onClick={() => setShowNewPassword(!showNewPassword)}>
                                                 {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                             </button>
                                         </div>
@@ -576,23 +554,25 @@ const Profile = () => {
 
                                     <div className="field">
                                         <label>Confirm Password</label>
-                                        <input
-                                            type="password"
-                                            name="confirmPassword"
-                                            value={setPasswordFormData.confirmPassword}
-                                            onChange={handleSetPasswordChange}
-                                            placeholder="Confirm your password"
-                                            disabled={isLoading}
-                                        />
+                                        <div className="password-input">
+                                            <input
+                                                type={showConfirmPassword ? 'text' : 'password'}
+                                                name="confirmPassword"
+                                                value={setPasswordFormData.confirmPassword}
+                                                onChange={handleSetPasswordChange}
+                                                placeholder="Confirm your password"
+                                                disabled={isLoading}
+                                            />
+                                            <button type="button" className="toggle-password" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div className="password-actions">
-                                        <button className="cancel-btn" onClick={cancelSetPassword} disabled={isLoading}>
-                                            Cancel
-                                        </button>
+                                        <button className="cancel-btn" onClick={() => setIsSettingPassword(false)} disabled={isLoading}>Cancel</button>
                                         <button className="save-btn" onClick={handleSetPassword} disabled={isLoading}>
-                                            {isLoading ? <span className="spinner"></span> : <Save size={16} />}
-                                            Set Password
+                                            {isLoading ? <span className="spinner"></span> : <Save size={16} />} Set Password
                                         </button>
                                     </div>
                                 </div>
@@ -600,13 +580,11 @@ const Profile = () => {
                         </>
                     )}
 
-                    {/* For local users - show Change Password */}
                     {user.authProvider === 'local' && (
                         <>
                             {!isChangingPassword ? (
                                 <button className="change-password-btn" onClick={() => setIsChangingPassword(true)}>
-                                    <Lock size={16} />
-                                    Change Password
+                                    <Lock size={16} /> Change Password
                                 </button>
                             ) : (
                                 <div className="password-form">
@@ -620,11 +598,7 @@ const Profile = () => {
                                                 onChange={handlePasswordChange}
                                                 disabled={isLoading}
                                             />
-                                            <button
-                                                type="button"
-                                                className="toggle-password"
-                                                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                            >
+                                            <button type="button" className="toggle-password" onClick={() => setShowCurrentPassword(!showCurrentPassword)}>
                                                 {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                             </button>
                                         </div>
@@ -640,11 +614,7 @@ const Profile = () => {
                                                 onChange={handlePasswordChange}
                                                 disabled={isLoading}
                                             />
-                                            <button
-                                                type="button"
-                                                className="toggle-password"
-                                                onClick={() => setShowNewPassword(!showNewPassword)}
-                                            >
+                                            <button type="button" className="toggle-password" onClick={() => setShowNewPassword(!showNewPassword)}>
                                                 {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                             </button>
                                         </div>
@@ -652,22 +622,23 @@ const Profile = () => {
 
                                     <div className="field">
                                         <label>Confirm New Password</label>
-                                        <input
-                                            type="password"
-                                            name="confirmPassword"
-                                            value={passwordData.confirmPassword}
-                                            onChange={handlePasswordChange}
-                                            disabled={isLoading}
-                                        />
+                                        <div className="password-input">
+                                            <input
+                                                type={showConfirmPassword ? 'text' : 'password'}
+                                                name="confirmPassword"
+                                                value={passwordData.confirmPassword}
+                                                onChange={handlePasswordChange}
+                                                disabled={isLoading}
+                                            />
+                                            <button type="button" className="toggle-password" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                            </button>
+                                        </div>
                                     </div>
-
                                     <div className="password-actions">
-                                        <button className="cancel-btn" onClick={cancelPasswordChange} disabled={isLoading}>
-                                            Cancel
-                                        </button>
+                                        <button className="cancel-btn" onClick={cancelPasswordChange} disabled={isLoading}>Cancel</button>
                                         <button className="save-btn" onClick={handleChangePassword} disabled={isLoading}>
-                                            {isLoading ? <span className="spinner"></span> : <Save size={16} />}
-                                            Update Password
+                                            {isLoading ? <span className="spinner"></span> : <Save size={16} />} Update Password
                                         </button>
                                     </div>
                                 </div>
@@ -678,8 +649,7 @@ const Profile = () => {
 
                 <div className="profile-section danger-zone">
                     <button className="logout-btn" onClick={handleLogout}>
-                        <LogOut size={16} />
-                        Logout
+                        <LogOut size={16} /> Logout
                     </button>
                 </div>
             </div>
@@ -688,4 +658,3 @@ const Profile = () => {
 };
 
 export default Profile;
-
