@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
     User, Mail, AtSign, Lock, Save, X, Edit2, LogOut,
@@ -35,7 +35,7 @@ const Profile = () => {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [isSettingPassword, setIsSettingPassword] = useState(false);
     const [avatarUploading, setAvatarUploading] = useState(false);
-    const avatarInputRef = React.useRef(null);
+    const avatarInputRef = useRef(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -67,21 +67,35 @@ const Profile = () => {
         }
     }, [user]);
 
-    const handleDragStart = (index) => {
+    const handleDragStart = (e, index) => {
         setDraggedItemIndex(index);
+        if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', index);
+        }
     };
 
-    const handleDragEnter = (index) => {
+    const handleDragEnter = (e, index) => {
+        e.preventDefault();
         if (draggedItemIndex === null) return;
         setDragOverItemIndex(index);
     };
 
-    const handleDragEnd = async () => {
-        if (draggedItemIndex !== null && dragOverItemIndex !== null && draggedItemIndex !== dragOverItemIndex) {
+    const handleDragOver = (e, index) => {
+        e.preventDefault();
+        if (draggedItemIndex === null) return;
+        if (dragOverItemIndex !== index) {
+            setDragOverItemIndex(index);
+        }
+    };
+
+    const handleDrop = async (e, index) => {
+        e.preventDefault();
+        if (draggedItemIndex !== null && index !== null && draggedItemIndex !== index) {
             const newBadges = [...userBadges];
             const draggedItem = newBadges[draggedItemIndex];
             newBadges.splice(draggedItemIndex, 1);
-            newBadges.splice(dragOverItemIndex, 0, draggedItem);
+            newBadges.splice(index, 0, draggedItem);
             setUserBadges(newBadges);
             
             try {
@@ -96,9 +110,10 @@ const Profile = () => {
         setDragOverItemIndex(null);
     };
 
-
-
-    const handleChange = (e) => {
+    const handleDragEnd = () => {
+        setDraggedItemIndex(null);
+        setDragOverItemIndex(null);
+    };    const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
         setError('');
@@ -366,10 +381,11 @@ const Profile = () => {
                                             key={id || index} 
                                             className={`badge-wrapper-container ${draggedItemIndex === index ? 'dragging' : ''}`}
                                             draggable
-                                            onDragStart={() => handleDragStart(index)}
-                                            onDragEnter={() => handleDragEnter(index)}
+                                            onDragStart={(e) => handleDragStart(e, index)}
+                                            onDragEnter={(e) => handleDragEnter(e, index)}
+                                            onDragOver={(e) => handleDragOver(e, index)}
+                                            onDrop={(e) => handleDrop(e, index)}
                                             onDragEnd={handleDragEnd}
-                                            onDragOver={(e) => e.preventDefault()}
                                             style={{ 
                                                 cursor: 'grab', 
                                                 opacity: draggedItemIndex === index ? 0.5 : 1,
@@ -422,19 +438,31 @@ const Profile = () => {
                     </div>
                 </div>
 
-                {error && (
-                    <div className="profile-alert error">
-                        <AlertCircle size={18} />
-                        <span>{error}</span>
-                    </div>
-                )}
+                <AnimatePresence>
+                    {error && (
+                        <motion.div 
+                            initial={{ opacity: 0, y: -10 }} 
+                            animate={{ opacity: 1, y: 0 }} 
+                            exit={{ opacity: 0 }} 
+                            className="profile-alert error"
+                        >
+                            <AlertCircle size={18} />
+                            <span>{error}</span>
+                        </motion.div>
+                    )}
 
-                {success && (
-                    <div className="profile-alert success">
-                        <CheckCircle size={18} />
-                        <span>{success}</span>
-                    </div>
-                )}
+                    {success && (
+                        <motion.div 
+                            initial={{ opacity: 0, y: -10 }} 
+                            animate={{ opacity: 1, y: 0 }} 
+                            exit={{ opacity: 0 }} 
+                            className="profile-alert success"
+                        >
+                            <CheckCircle size={18} />
+                            <span>{success}</span>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 <div className="profile-section">
                     <div className="section-header">
