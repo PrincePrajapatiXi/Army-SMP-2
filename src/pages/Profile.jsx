@@ -12,7 +12,7 @@ import { useAuth } from '../context/AuthContext';
 import { userApi } from '../services/api';
 import './Profile.css';
 
-// Separate Sortable Item Component for individual badge manipulation
+// Separate Sortable Item Component with 2D Grid Padding Fixes
 const SortableBadge = ({ badgeObj }) => {
     const { badge, assignedAt, id } = badgeObj;
     const {
@@ -26,21 +26,28 @@ const SortableBadge = ({ badgeObj }) => {
 
     const style = {
         transform: CSS.Transform.toString(transform),
-        transition,
+        transition: transition || 'transform 200ms cubic-bezier(0.2, 0, 0, 1)',
         userSelect: 'none',
         position: 'relative',
         opacity: isDragging ? 0.4 : 1,
-        zIndex: isDragging ? 100 : 1
+        zIndex: isDragging ? 100 : 1,
     };
 
     return (
-        <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="badge-wrapper-container">
+        <div 
+            ref={setNodeRef} 
+            style={style} 
+            {...attributes} 
+            {...listeners} 
+            className="badge-wrapper-container"
+        >
             <div
                 className={`rank-badge-item rarity-${badge.rarity || 'common'}`}
                 style={{
                     '--badge-color': badge.color || '#f97316',
                     transform: isDragging ? 'scale(1.05)' : 'scale(1)',
                     boxShadow: isDragging ? '0 10px 25px rgba(0,0,0,0.5)' : 'none',
+                    whiteSpace: 'nowrap', // Prevents long names from breaking lines unexpectedly
                 }}
             >
                 {badge.image && <img src={badge.image} alt="" draggable="false" />}
@@ -60,13 +67,6 @@ const SortableBadge = ({ badgeObj }) => {
                     </div>
                     {badge.description && (
                         <div className="tooltip-description">{badge.description}</div>
-                    )}
-                    {assignedAt && (
-                        <div className="tooltip-date">
-                            Earned {new Date(assignedAt).toLocaleDateString('en-IN', {
-                                day: 'numeric', month: 'short', year: 'numeric'
-                            })}
-                        </div>
                     )}
                 </div>
             )}
@@ -106,11 +106,11 @@ const Profile = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    // Configure dnd-kit sensors for optimal pointer activation
+    // Configure fine-tuned sensors for dynamic element boxes
     const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: {
-                distance: 5, // 5px drag threshold prevents accidental clicks
+                distance: 8, // 8px activation avoids jitter when hovering over uneven card widths
             },
         }),
         useSensor(KeyboardSensor, {
@@ -143,6 +143,7 @@ const Profile = () => {
         }
     }, [user]);
 
+    // Handle reorder execution strictly on drop event
     const handleDragEnd = async (event) => {
         const { active, over } = event;
         
@@ -157,11 +158,14 @@ const Profile = () => {
         try {
             const badgeIds = newOrderedBadges.map(b => b.id);
             await userApi.reorderBadges(badgeIds);
+            
+            // FIXED: Show success alert briefly, then clear it so it doesn't linger
             setSuccess('Badge layout saved successfully!');
             setTimeout(() => setSuccess(''), 2000);
         } catch (error) {
             console.error("Failed to save badge order", error);
             setError("Failed to save new badge layout.");
+            setTimeout(() => setError(''), 3000);
         }
     };
     
@@ -408,7 +412,7 @@ const Profile = () => {
                             </div>
                         </div>
 
-                        {/* Rank Badges Section - Backed by dnd-kit rectSortingStrategy for true 2D Matrix Grid Wraps */}
+                        {/* Rank Badges Section - Supported with bounding box collision rules */}
                         {userBadges && userBadges.length > 0 && (
                             <div className="rank-badges-section">
                                 <div className="badges-section-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: '12px' }}>
@@ -417,19 +421,19 @@ const Profile = () => {
                                 </div>
                                 <DndContext 
                                     sensors={sensors}
-                                    collisionDetection={closestCenter}
+                                    collisionDetection={closestCenter} // Computes center bounds for variable-width slots like Lieutenant Colonel
                                     onDragEnd={handleDragEnd}
                                 >
                                     <SortableContext 
                                         items={userBadges.map(b => b.id)}
-                                        strategy={rectSortingStrategy} // CRITICAL: This native handler maps dynamic grid wrap boxes natively!
+                                        strategy={rectSortingStrategy}
                                     >
                                         <div 
                                             className="badges-grid-display"
                                             style={{
                                                 display: 'flex',
                                                 flexWrap: 'wrap',
-                                                gap: '10px',
+                                                gap: '12px',
                                                 width: '100%'
                                             }}
                                         >
@@ -574,9 +578,6 @@ const Profile = () => {
                                                 onChange={handleSetPasswordChange}
                                                 placeholder="Confirm your password"
                                                 disabled={isLoading}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter') handleSetPassword();
-                                                }}
                                             />
                                             <button type="button" className="toggle-password" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                                                 {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
