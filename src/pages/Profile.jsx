@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useNavigate } from 'react-router-dom';
 import {
     User, Mail, AtSign, Lock, Save, X, Edit2, LogOut,
@@ -20,7 +21,6 @@ const Profile = () => {
         phone: ''
     });
     const [userBadges, setUserBadges] = useState([]);
-    const [draggedItemIndex, setDraggedItemIndex] = useState(null);
     const [passwordData, setPasswordData] = useState({
         currentPassword: '',
         newPassword: '',
@@ -66,36 +66,22 @@ const Profile = () => {
         }
     }, [user]);
 
-    const handleDragStart = (e, index) => {
-        setDraggedItemIndex(index);
-        if (e.dataTransfer) {
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', index);
-        }
-    };
-
-    const handleDragEnter = (e, index) => {
-        e.preventDefault();
-        if (draggedItemIndex === null || draggedItemIndex === index) return;
+    const handleDragEnd = async (result) => {
+        if (!result.destination) return;
         
-        setUserBadges((prevBadges) => {
-            const newBadges = [...prevBadges];
-            const draggedItem = newBadges[draggedItemIndex];
-            newBadges.splice(draggedItemIndex, 1);
-            newBadges.splice(index, 0, draggedItem);
-            return newBadges;
-        });
-        setDraggedItemIndex(index);
-    };
+        const sourceIndex = result.source.index;
+        const destinationIndex = result.destination.index;
+        
+        if (sourceIndex === destinationIndex) return;
 
-    const handleDragOver = (e) => {
-        e.preventDefault();
-    };
+        const newBadges = Array.from(userBadges);
+        const [reorderedItem] = newBadges.splice(sourceIndex, 1);
+        newBadges.splice(destinationIndex, 0, reorderedItem);
+        
+        setUserBadges(newBadges);
 
-    const handleDragEnd = async () => {
-        setDraggedItemIndex(null);
         try {
-            const badgeIds = userBadges.map(b => b.id);
+            const badgeIds = newBadges.map(b => b.id);
             await userApi.reorderBadges(badgeIds);
         } catch (error) {
             console.error("Failed to save badge order", error);
@@ -364,62 +350,81 @@ const Profile = () => {
                                     <span className="badges-count-label">🎖️ {userBadges.length} Badge{userBadges.length !== 1 ? 's' : ''} Earned</span>
                                     <span className="badges-hint-label" style={{ marginLeft: '10px', fontSize: '0.75rem', color: '#8b949e' }}>• Drag to reorder</span>
                                 </div>
-                                <div className="badges-grid-display">
-                                    {userBadges.map((badgeObj, index) => (
-                                        <motion.div 
-                                            layout
-                                            key={badgeObj.id} 
-                                            className={`badge-wrapper-container ${draggedItemIndex === index ? 'dragging' : ''}`}
-                                            draggable
-                                            onDragStart={(e) => handleDragStart(e, index)}
-                                            onDragEnter={(e) => handleDragEnter(e, index)}
-                                            onDragOver={handleDragOver}
-                                            onDragEnd={handleDragEnd}
-                                            style={{ 
-                                                cursor: 'grab',
-                                                opacity: draggedItemIndex === index ? 0.5 : 1
-                                            }}
-                                        >
-                                            <div
-                                                className={`rank-badge-item rarity-${badgeObj.badge.rarity || 'common'}`}
-                                                style={{
-                                                    '--badge-color': badgeObj.badge.color || '#f97316',
-                                                    pointerEvents: draggedItemIndex !== null ? 'none' : 'auto'
-                                                }}
+                                <DragDropContext onDragEnd={handleDragEnd}>
+                                    <Droppable droppableId="user-badges-droppable" direction="horizontal">
+                                        {(provided) => (
+                                            <div 
+                                                className="badges-grid-display"
+                                                {...provided.droppableProps}
+                                                ref={provided.innerRef}
                                             >
-                                                {badgeObj.badge.image && <img src={badgeObj.badge.image} alt="" draggable="false" />}
-                                                <span>{badgeObj.badge.name}</span>
-                                            </div>
+                                                {userBadges.map((badgeObj, index) => (
+                                                    <Draggable 
+                                                        key={String(badgeObj.id)} 
+                                                        draggableId={String(badgeObj.id)} 
+                                                        index={index}
+                                                    >
+                                                        {(provided, snapshot) => (
+                                                            <div 
+                                                                ref={provided.innerRef}
+                                                                {...provided.draggableProps}
+                                                                {...provided.dragHandleProps}
+                                                                className="badge-wrapper-container"
+                                                                style={{ 
+                                                                    ...provided.draggableProps.style,
+                                                                    cursor: 'grab',
+                                                                    transform: snapshot.isDragging 
+                                                                        ? `${provided.draggableProps.style?.transform || ''} scale(1.05)` 
+                                                                        : provided.draggableProps.style?.transform,
+                                                                    boxShadow: snapshot.isDragging ? '0 10px 20px rgba(0,0,0,0.3)' : 'none',
+                                                                    zIndex: snapshot.isDragging ? 100 : 1
+                                                                }}
+                                                            >
+                                                                <div
+                                                                    className={`rank-badge-item rarity-${badgeObj.badge.rarity || 'common'}`}
+                                                                    style={{
+                                                                        '--badge-color': badgeObj.badge.color || '#f97316'
+                                                                    }}
+                                                                >
+                                                                    {badgeObj.badge.image && <img src={badgeObj.badge.image} alt="" draggable="false" />}
+                                                                    <span>{badgeObj.badge.name}</span>
+                                                                </div>
 
-                                            {/* Styled Tooltip */}
-                                            {draggedItemIndex === null && (
-                                                <div className="badge-tooltip" style={{ pointerEvents: 'none' }}>
-                                                    <div className="badge-tooltip-header">
-                                                        {badgeObj.badge.image && <img src={badgeObj.badge.image} alt="" className="tooltip-badge-img" draggable="false" />}
-                                                        <div>
-                                                            <div className="tooltip-name">{badgeObj.badge.name}</div>
-                                                            <div className={`tooltip-rarity rarity-text-${badgeObj.badge.rarity || 'common'}`}>
-                                                                {(badgeObj.badge.rarity || 'common').toUpperCase()}
+                                                                {/* Styled Tooltip */}
+                                                                {!snapshot.isDragging && (
+                                                                    <div className="badge-tooltip" style={{ pointerEvents: 'none' }}>
+                                                                        <div className="badge-tooltip-header">
+                                                                            {badgeObj.badge.image && <img src={badgeObj.badge.image} alt="" className="tooltip-badge-img" draggable="false" />}
+                                                                            <div>
+                                                                                <div className="tooltip-name">{badgeObj.badge.name}</div>
+                                                                                <div className={`tooltip-rarity rarity-text-${badgeObj.badge.rarity || 'common'}`}>
+                                                                                    {(badgeObj.badge.rarity || 'common').toUpperCase()}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        {badgeObj.badge.description && (
+                                                                            <div className="tooltip-description">{badgeObj.badge.description}</div>
+                                                                        )}
+                                                                        {badgeObj.assignedAt && (
+                                                                            <div className="tooltip-date">
+                                                                                Earned {new Date(badgeObj.assignedAt).toLocaleDateString('en-IN', {
+                                                                                    day: 'numeric',
+                                                                                    month: 'short',
+                                                                                    year: 'numeric'
+                                                                                })}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                        </div>
-                                                    </div>
-                                                    {badgeObj.badge.description && (
-                                                        <div className="tooltip-description">{badgeObj.badge.description}</div>
-                                                    )}
-                                                    {badgeObj.assignedAt && (
-                                                        <div className="tooltip-date">
-                                                            Earned {new Date(badgeObj.assignedAt).toLocaleDateString('en-IN', {
-                                                                day: 'numeric',
-                                                                month: 'short',
-                                                                year: 'numeric'
-                                                            })}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </motion.div>
-                                    ))}
-                                </div>
+                                                        )}
+                                                    </Draggable>
+                                                ))}
+                                                {provided.placeholder}
+                                            </div>
+                                        )}
+                                    </Droppable>
+                                </DragDropContext>
                             </div>
                         )}
                     </div>
