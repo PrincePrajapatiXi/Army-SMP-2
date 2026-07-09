@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
     User, Mail, AtSign, Lock, Save, X, Edit2, LogOut,
@@ -21,7 +21,6 @@ const Profile = () => {
     });
     const [userBadges, setUserBadges] = useState([]);
     const [draggedItemIndex, setDraggedItemIndex] = useState(null);
-    const [dragOverItemIndex, setDragOverItemIndex] = useState(null);
     const [passwordData, setPasswordData] = useState({
         currentPassword: '',
         newPassword: '',
@@ -67,11 +66,34 @@ const Profile = () => {
         }
     }, [user]);
 
-    const handleReorder = (newOrder) => {
-        setUserBadges(newOrder);
+    const handleDragStart = (e, index) => {
+        setDraggedItemIndex(index);
+        if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', index);
+        }
+    };
+
+    const handleDragEnter = (e, index) => {
+        e.preventDefault();
+        if (draggedItemIndex === null || draggedItemIndex === index) return;
+        
+        setUserBadges((prevBadges) => {
+            const newBadges = [...prevBadges];
+            const draggedItem = newBadges[draggedItemIndex];
+            newBadges.splice(draggedItemIndex, 1);
+            newBadges.splice(index, 0, draggedItem);
+            return newBadges;
+        });
+        setDraggedItemIndex(index);
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
     };
 
     const handleDragEnd = async () => {
+        setDraggedItemIndex(null);
         try {
             const badgeIds = userBadges.map(b => b.id);
             await userApi.reorderBadges(badgeIds);
@@ -82,6 +104,7 @@ const Profile = () => {
     };
     
     const handleChange = (e) => {
+        const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
         setError('');
     };
@@ -341,25 +364,27 @@ const Profile = () => {
                                     <span className="badges-count-label">🎖️ {userBadges.length} Badge{userBadges.length !== 1 ? 's' : ''} Earned</span>
                                     <span className="badges-hint-label" style={{ marginLeft: '10px', fontSize: '0.75rem', color: '#8b949e' }}>• Drag to reorder</span>
                                 </div>
-                                <Reorder.Group 
-                                    as="div" 
-                                    values={userBadges} 
-                                    onReorder={handleReorder} 
-                                    className="badges-grid-display"
-                                >
-                                    {userBadges.map((badgeObj) => (
-                                        <Reorder.Item 
-                                            as="div"
+                                <div className="badges-grid-display">
+                                    {userBadges.map((badgeObj, index) => (
+                                        <motion.div 
+                                            layout
                                             key={badgeObj.id} 
-                                            value={badgeObj}
-                                            className="badge-wrapper-container"
+                                            className={`badge-wrapper-container ${draggedItemIndex === index ? 'dragging' : ''}`}
+                                            draggable
+                                            onDragStart={(e) => handleDragStart(e, index)}
+                                            onDragEnter={(e) => handleDragEnter(e, index)}
+                                            onDragOver={handleDragOver}
                                             onDragEnd={handleDragEnd}
-                                            style={{ cursor: 'grab' }}
+                                            style={{ 
+                                                cursor: 'grab',
+                                                opacity: draggedItemIndex === index ? 0.5 : 1
+                                            }}
                                         >
                                             <div
                                                 className={`rank-badge-item rarity-${badgeObj.badge.rarity || 'common'}`}
                                                 style={{
-                                                    '--badge-color': badgeObj.badge.color || '#f97316'
+                                                    '--badge-color': badgeObj.badge.color || '#f97316',
+                                                    pointerEvents: draggedItemIndex !== null ? 'none' : 'auto'
                                                 }}
                                             >
                                                 {badgeObj.badge.image && <img src={badgeObj.badge.image} alt="" draggable="false" />}
@@ -367,32 +392,34 @@ const Profile = () => {
                                             </div>
 
                                             {/* Styled Tooltip */}
-                                            <div className="badge-tooltip">
-                                                <div className="badge-tooltip-header">
-                                                    {badgeObj.badge.image && <img src={badgeObj.badge.image} alt="" className="tooltip-badge-img" draggable="false" />}
-                                                    <div>
-                                                        <div className="tooltip-name">{badgeObj.badge.name}</div>
-                                                        <div className={`tooltip-rarity rarity-text-${badgeObj.badge.rarity || 'common'}`}>
-                                                            {(badgeObj.badge.rarity || 'common').toUpperCase()}
+                                            {draggedItemIndex === null && (
+                                                <div className="badge-tooltip" style={{ pointerEvents: 'none' }}>
+                                                    <div className="badge-tooltip-header">
+                                                        {badgeObj.badge.image && <img src={badgeObj.badge.image} alt="" className="tooltip-badge-img" draggable="false" />}
+                                                        <div>
+                                                            <div className="tooltip-name">{badgeObj.badge.name}</div>
+                                                            <div className={`tooltip-rarity rarity-text-${badgeObj.badge.rarity || 'common'}`}>
+                                                                {(badgeObj.badge.rarity || 'common').toUpperCase()}
+                                                            </div>
                                                         </div>
                                                     </div>
+                                                    {badgeObj.badge.description && (
+                                                        <div className="tooltip-description">{badgeObj.badge.description}</div>
+                                                    )}
+                                                    {badgeObj.assignedAt && (
+                                                        <div className="tooltip-date">
+                                                            Earned {new Date(badgeObj.assignedAt).toLocaleDateString('en-IN', {
+                                                                day: 'numeric',
+                                                                month: 'short',
+                                                                year: 'numeric'
+                                                            })}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                {badgeObj.badge.description && (
-                                                    <div className="tooltip-description">{badgeObj.badge.description}</div>
-                                                )}
-                                                {badgeObj.assignedAt && (
-                                                    <div className="tooltip-date">
-                                                        Earned {new Date(badgeObj.assignedAt).toLocaleDateString('en-IN', {
-                                                            day: 'numeric',
-                                                            month: 'short',
-                                                            year: 'numeric'
-                                                        })}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </Reorder.Item>
+                                            )}
+                                        </motion.div>
                                     ))}
-                                </Reorder.Group>
+                                </div>
                             </div>
                         )}
                     </div>
