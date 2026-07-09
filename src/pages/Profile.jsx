@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useNavigate } from 'react-router-dom';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, rectSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
     User, Mail, AtSign, Lock, Save, X, Edit2, LogOut, Phone,
     AlertCircle, CheckCircle, Eye, EyeOff, Shield, Calendar, Gamepad2, KeyRound, Camera, Loader
@@ -9,6 +11,68 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { userApi } from '../services/api';
 import './Profile.css';
+
+// Separate Sortable Item Component for individual badge manipulation
+const SortableBadge = ({ badgeObj }) => {
+    const { badge, assignedAt, id } = badgeObj;
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id: id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        userSelect: 'none',
+        position: 'relative',
+        opacity: isDragging ? 0.4 : 1,
+        zIndex: isDragging ? 100 : 1
+    };
+
+    return (
+        <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="badge-wrapper-container">
+            <div
+                className={`rank-badge-item rarity-${badge.rarity || 'common'}`}
+                style={{
+                    '--badge-color': badge.color || '#f97316',
+                    transform: isDragging ? 'scale(1.05)' : 'scale(1)',
+                    boxShadow: isDragging ? '0 10px 25px rgba(0,0,0,0.5)' : 'none',
+                }}
+            >
+                {badge.image && <img src={badge.image} alt="" draggable="false" />}
+                <span>{badge.name}</span>
+            </div>
+
+            {!isDragging && (
+                <div className="badge-tooltip" style={{ pointerEvents: 'none' }}>
+                    <div className="badge-tooltip-header">
+                        {badge.image && <img src={badge.image} alt="" className="tooltip-badge-img" draggable="false" />}
+                        <div>
+                            <div className="tooltip-name">{badge.name}</div>
+                            <div className={`tooltip-rarity rarity-text-${badge.rarity || 'common'}`}>
+                                {(badge.rarity || 'common').toUpperCase()}
+                            </div>
+                        </div>
+                    </div>
+                    {badge.description && (
+                        <div className="tooltip-description">{badge.description}</div>
+                    )}
+                    {assignedAt && (
+                        <div className="tooltip-date">
+                            Earned {new Date(assignedAt).toLocaleDateString('en-IN', {
+                                day: 'numeric', month: 'short', year: 'numeric'
+                            })}
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
 
 const Profile = () => {
     const navigate = useNavigate();
@@ -42,14 +106,24 @@ const Profile = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    // Redirect if not authenticated
+    // Configure dnd-kit sensors for optimal pointer activation
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 5, // 5px drag threshold prevents accidental clicks
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
     useEffect(() => {
         if (!authLoading && !isAuthenticated) {
             navigate('/login');
         }
     }, [isAuthenticated, authLoading, navigate]);
 
-    // Initialize form data when user loads
     useEffect(() => {
         if (user) {
             setFormData({
@@ -69,22 +143,19 @@ const Profile = () => {
         }
     }, [user]);
 
-    const handleDragEnd = async (result) => {
-        if (!result.destination) return;
+    const handleDragEnd = async (event) => {
+        const { active, over } = event;
         
-        const sourceIndex = result.source.index;
-        const destinationIndex = result.destination.index;
-        
-        if (sourceIndex === destinationIndex) return;
+        if (!over || active.id === over.id) return;
 
-        const newBadges = Array.from(userBadges);
-        const [reorderedItem] = newBadges.splice(sourceIndex, 1);
-        newBadges.splice(destinationIndex, 0, reorderedItem);
+        const oldIndex = userBadges.findIndex((item) => item.id === active.id);
+        const newIndex = userBadges.findIndex((item) => item.id === over.id);
         
-        setUserBadges(newBadges);
+        const newOrderedBadges = arrayMove(userBadges, oldIndex, newIndex);
+        setUserBadges(newOrderedBadges);
 
         try {
-            const badgeIds = newBadges.map(b => b.id);
+            const badgeIds = newOrderedBadges.map(b => b.id);
             await userApi.reorderBadges(badgeIds);
             setSuccess('Badge layout saved successfully!');
             setTimeout(() => setSuccess(''), 2000);
@@ -151,7 +222,6 @@ const Profile = () => {
 
         try {
             const result = await updateProfile(formData);
-
             if (result.success) {
                 setSuccess('Profile updated successfully!');
                 setIsEditing(false);
@@ -189,7 +259,6 @@ const Profile = () => {
 
         try {
             const result = await changePassword(passwordData.currentPassword, passwordData.newPassword);
-
             if (result.success) {
                 setSuccess('Password changed successfully!');
                 setIsChangingPassword(false);
@@ -339,94 +408,37 @@ const Profile = () => {
                             </div>
                         </div>
 
-                        {/* Rank Badges Section - Custom Support for Responsive Grid Wraps */}
+                        {/* Rank Badges Section - Backed by dnd-kit rectSortingStrategy for true 2D Matrix Grid Wraps */}
                         {userBadges && userBadges.length > 0 && (
                             <div className="rank-badges-section">
                                 <div className="badges-section-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: '12px' }}>
                                     <span className="badges-count-label">🎖️ {userBadges.length} Badge{userBadges.length !== 1 ? 's' : ''} Earned</span>
                                     <span className="badges-hint-label" style={{ marginLeft: '10px', fontSize: '0.75rem', color: '#8b949e' }}>• Drag to reorder</span>
                                 </div>
-                                <DragDropContext onDragEnd={handleDragEnd}>
-                                    <Droppable droppableId="user-badges-droppable" direction="horizontal">
-                                        {(provided) => (
-                                            <div 
-                                                className="badges-grid-display"
-                                                {...provided.droppableProps}
-                                                ref={provided.innerRef}
-                                                style={{
-                                                    display: 'flex',
-                                                    flexWrap: 'wrap',
-                                                    gap: '10px',
-                                                    width: '100%'
-                                                }}
-                                            >
-                                                {userBadges.map((badgeObj, index) => (
-                                                    <Draggable 
-                                                        key={String(badgeObj.id)} 
-                                                        draggableId={String(badgeObj.id)} 
-                                                        index={index}
-                                                    >
-                                                        {(provided, snapshot) => (
-                                                            <motion.div 
-                                                                layout
-                                                                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                                                                ref={provided.innerRef}
-                                                                {...provided.draggableProps}
-                                                                {...provided.dragHandleProps}
-                                                                className="badge-wrapper-container"
-                                                                style={{ 
-                                                                    ...provided.draggableProps.style,
-                                                                    userSelect: 'none',
-                                                                    position: 'relative'
-                                                                }}
-                                                            >
-                                                                <div
-                                                                    className={`rank-badge-item rarity-${badgeObj.badge.rarity || 'common'}`}
-                                                                    style={{
-                                                                        '--badge-color': badgeObj.badge.color || '#f97316',
-                                                                        transform: snapshot.isDragging ? 'scale(1.05)' : 'scale(1)',
-                                                                        boxShadow: snapshot.isDragging ? '0 10px 25px rgba(0,0,0,0.5)' : 'none',
-                                                                        transition: 'transform 0.1s ease',
-                                                                        pointerEvents: 'none' // Eliminates pixel alignment cursor offset jitter
-                                                                    }}
-                                                                >
-                                                                    {badgeObj.badge.image && <img src={badgeObj.badge.image} alt="" draggable="false" />}
-                                                                    <span>{badgeObj.badge.name}</span>
-                                                                </div>
-
-                                                                {/* Hide tooltip while item is active */}
-                                                                {!snapshot.isDragging && (
-                                                                    <div className="badge-tooltip" style={{ pointerEvents: 'none' }}>
-                                                                        <div className="badge-tooltip-header">
-                                                                            {badgeObj.badge.image && <img src={badgeObj.badge.image} alt="" className="tooltip-badge-img" draggable="false" />}
-                                                                            <div>
-                                                                                <div className="tooltip-name">{badgeObj.badge.name}</div>
-                                                                                <div className={`tooltip-rarity rarity-text-${badgeObj.badge.rarity || 'common'}`}>
-                                                                                    {(badgeObj.badge.rarity || 'common').toUpperCase()}
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        {badgeObj.badge.description && (
-                                                                            <div className="tooltip-description">{badgeObj.badge.description}</div>
-                                                                        )}
-                                                                        {badgeObj.assignedAt && (
-                                                                            <div className="tooltip-date">
-                                                                                Earned {new Date(badgeObj.assignedAt).toLocaleDateString('en-IN', {
-                                                                                    day: 'numeric', month: 'short', year: 'numeric'
-                                                                                })}
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                )}
-                                                            </motion.div>
-                                                        )}
-                                                    </Draggable>
-                                                ))}
-                                                {provided.placeholder}
-                                            </div>
-                                        )}
-                                    </Droppable>
-                                </DragDropContext>
+                                <DndContext 
+                                    sensors={sensors}
+                                    collisionDetection={closestCenter}
+                                    onDragEnd={handleDragEnd}
+                                >
+                                    <SortableContext 
+                                        items={userBadges.map(b => b.id)}
+                                        strategy={rectSortingStrategy} // CRITICAL: This native handler maps dynamic grid wrap boxes natively!
+                                    >
+                                        <div 
+                                            className="badges-grid-display"
+                                            style={{
+                                                display: 'flex',
+                                                flexWrap: 'wrap',
+                                                gap: '10px',
+                                                width: '100%'
+                                            }}
+                                        >
+                                            {userBadges.map((badgeObj) => (
+                                                <SortableBadge key={badgeObj.id} badgeObj={badgeObj} />
+                                            ))}
+                                        </div>
+                                    </SortableContext>
+                                </DndContext>
                             </div>
                         )}
                     </div>
@@ -562,6 +574,9 @@ const Profile = () => {
                                                 onChange={handleSetPasswordChange}
                                                 placeholder="Confirm your password"
                                                 disabled={isLoading}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') handleSetPassword();
+                                                }}
                                             />
                                             <button type="button" className="toggle-password" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                                                 {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
