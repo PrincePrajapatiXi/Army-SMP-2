@@ -40,4 +40,17 @@ export default defineConfig({
       }
     })
   ],
+  build: {
+    // SECURITY: Never expose source maps in production — they reveal your full source code
+    sourcemap: false,
+    // Minify and strip all console.log / debugger statements from the production bundle
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,   // Remove all console.* calls
+        drop_debugger: true,  // Remove all debugger statements
+        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.trace']
+      }
+    }
+  }
 })

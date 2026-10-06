@@ -60,16 +60,18 @@ router.post('/', requireAdminAuth, upload.single('image'), async (req, res) => {
 
     } catch (error) {
         console.error('[Upload API] Upload error:', error);
+        // SECURITY: Never expose internal error details (stack traces, paths) to the client
+        const isDev = process.env.NODE_ENV !== 'production';
         res.status(500).json({
             error: 'Upload failed',
-            message: error.message,
-            details: error
+            ...(isDev && { message: error.message })
         });
     }
 });
 
-// Delete image endpoint (optional - for cleanup)
-router.delete('/:publicId', async (req, res) => {
+// Delete image endpoint — requires admin authentication
+// SECURITY: Previously had NO auth — anyone could delete any image!
+router.delete('/:publicId', requireAdminAuth, async (req, res) => {
     try {
         const publicId = req.params.publicId;
         await cloudinary.uploader.destroy(`army-smp/${publicId}`);

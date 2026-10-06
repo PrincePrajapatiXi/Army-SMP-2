@@ -39,6 +39,19 @@ const { initCronJobs } = require('./services/cronJobs');
 // Import passport for OAuth
 const passport = require('./services/passport');
 
+// SECURITY: Crash on startup if critical secrets are missing
+if (!process.env.SESSION_SECRET) {
+    console.error('\n❌ FATAL: SESSION_SECRET must be set in environment variables!');
+    console.error('Add it to server/.env.local:\n  SESSION_SECRET=your-long-random-secret-here\n');
+    process.exit(1);
+}
+
+// SECURITY: Warn loudly if not running in production mode
+if (process.env.NODE_ENV !== 'production') {
+    console.warn('\n⚠️  WARNING: NODE_ENV is not set to "production".');
+    console.warn('   Debug mode / dev features may be active. Set NODE_ENV=production in your deployment environment.\n');
+}
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -149,8 +162,9 @@ app.use(helmet({
 app.use(sanitizeInputs);
 
 // Session configuration for cart persistence (MUST be before passport)
+// SESSION_SECRET is validated at startup above — no insecure fallback here
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'army-smp-fallback-secret',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -229,6 +243,7 @@ app.listen(PORT, async () => {
     console.log(`🔐 Admin API: http://localhost:${PORT}/api/admin`);
     console.log(`🛡️ WAF + IPS Security: ACTIVE`);
     console.log(`🚫 Admin IP Ban: 2 failed attempts = 1 week ban`);
+    console.log(`🔒 NODE_ENV: ${process.env.NODE_ENV || 'NOT SET (development assumed)'}`);
 
     // Verify email configuration
     await verifyEmailConfig();

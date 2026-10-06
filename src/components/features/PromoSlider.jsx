@@ -7,13 +7,13 @@ import { API_BASE_URL } from '../../services/api';
 const defaultPromos = [
     {
         _id: '1',
-        logo: '/images/dragohost-logo.png',
-        name: 'DragoHost',
-        tagline: 'Premium Minecraft Hosting',
-        description: 'DragoHost Offers True 24/7 Premium Servers For its Customers With A Premium Panel And A Guaranteed 100% Uptime Of The Servers You Host With Us!',
+        logo: '/images/Spider.jpg',
+        name: 'Prince',
+        tagline: 'Developer',
+        description: 'I am a pro developer and a minecraft server owner.',
         features: ['24/7 Support', '100% Uptime', 'Premium Panel', 'DDoS Protection'],
-        link: 'https://discord.gg/D9pGnUM2tH',
-        buttonText: 'Join Discord',
+        link: 'https://www.instagram.com/prince_developer_/',
+        buttonText: 'Visit Instagram',
         gradient: 'linear-gradient(135deg, #1e3a5f, #0d1b2a)'
     },
     {
